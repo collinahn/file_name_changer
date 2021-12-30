@@ -1,7 +1,9 @@
 # 추출한 파일 정보를 토대로 api요청을 보낸 뒤 {원래 파일 명:바뀔 파일 명} 형식으로저장한다
 
 from gps_loc import GPSInfo
+from local_db_gps import LocalDB
 from reverse_geocode import LocationRequest
+from threading import Thread
 
 
 class Name(object):
@@ -16,35 +18,32 @@ class Name(object):
         cls = type(self)
         if not hasattr(cls, '_init'):
             self.clsGPS = GPSInfo()
-            self.clsAPI = LocationRequest()
+            self.clsDB = LocalDB()
 
             self.dctName = {}
-            if flagThread is None:
-                self.dctName = self.get_new_name()
-            else:
-                self.dctName = self.get_new_name_thread()
+            self.dctName = self.get_new_name_thread()
 
             cls._init = True
 
-    def get_new_name(self) -> dict:
-        for orginName, tplGPS in self.clsGPS.gps.items():
-            addr = self.clsAPI.parse_addr_response(tplGPS[0], tplGPS[1]) # 위도, 경도 튜플
-
-            self.dctName[orginName] = addr
-
+    # 사용안함
+    def get_name_procedure(self):
+        for orginName, tplGPS in self.clsGPS.gps_GRS80.items():
+            self.dctName[orginName] = self.clsDB.get_addr(tplGPS)
+        
         return self.dctName
 
-    def get_a_name(self, orignName, lat, lon):
-        addr = self.clsAPI.parse_addr_response(lat, lon)
+    # 스레드 재료
+    def get_name_thread(self, orignName, tplLatLon):
+        addr = self.clsDB.get_addr(tplLatLon)
 
         self.dctName[orignName] = addr
 
+    # TODO: 적당한 수의 스레드로 나눈다
     def get_new_name_thread(self) -> dict:
-        from threading import Thread
         lstThreads = []
 
-        for orginName, tplGPS in self.clsGPS.gps.items():
-            lstThreads.append(Thread(target=self.get_a_name, args=(orginName, tplGPS[0], tplGPS[1])))
+        for orginName, tplGPS in self.clsGPS.gps_GRS80.items():
+            lstThreads.append(Thread(target=self.get_name_thread, args=(orginName, tplGPS)))
 
         for thread in lstThreads:
             thread.start()
@@ -68,8 +67,6 @@ if __name__ == '__main__':
 
     print(n.new_name)
     print(f'for - not threaded : {elapsedTime = }')
-
-    del n
 
     # now = time.time()
     # n = Name("threaded")

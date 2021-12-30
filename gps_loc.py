@@ -3,6 +3,9 @@
 from PIL import Image
 from PIL import UnidentifiedImageError
 from PIL.ExifTags import TAGS
+from pyproj import Proj
+from pyproj import transform
+from functools import partial
 
 from file_detect import FileDetector
 
@@ -23,10 +26,12 @@ class GPSInfo(object):
 
             self.dctMetaData: dict[str, str] = {}
             self.dctDecodedMeta: dict[str, str] = {}
-            self.dctGPSInfo: dict[str,tuple] = {}
+            self.__dctGPSInfoWGS84: dict[str, tuple] = {}
+            self.dctGPSInfoGRS80: dict[str, tuple] = {}
 
             self.init_meta_data()
-            self.decode_meta_data() # 초기화
+            self.decode_meta_data_to_GRS80() # 초기화 -deprecated
+            self.set_WGS84_to_GRS80()
 
             cls.__init = True
 
@@ -39,11 +44,11 @@ class GPSInfo(object):
                 continue
 
             self.dctMetaData[fileName] = fileImage._getexif()
-        
-        print(f"{self.dctMetaData = }")
+
+        # print(f"{self.dctMetaData = }")
 
     @staticmethod
-    def _open_image(name):
+    def _open_image(name) -> Image:
         image: Image = None
         try:
             image = Image.open(name)
@@ -52,7 +57,7 @@ class GPSInfo(object):
         
         return image
 
-    def decode_meta_data(self):
+    def decode_meta_data_to_GRS80(self) -> None:
         for fName, meta in self.dctMetaData.items():
 
             for key, value in meta.items():
@@ -85,14 +90,49 @@ class GPSInfo(object):
             if exifGPS[3] == 'W': 
                 Lon = Lon * -1
 
-            self.dctGPSInfo[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
+            self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
 
         print('decode done')
-        print(f'{self.dctGPSInfo = }')
+        print(f'{self.__dctGPSInfoWGS84 = }')
+
+    # 로컬 DB에서 사용하는 좌표계로 변환한다.
+    # TODO: deprecated되었으므로 새로운 버전의 pyproj에서 권장하는 방식으로 업데이트한다.
+    def set_WGS84_to_GRS80(self):
+        WGS84 = {
+            'proj':'latlong', 
+            'datum':'WGS84', 
+            'ellps':'WGS84', 
+        }
+        GRS80 = { 
+            'proj':'tmerc', 
+            'lat_0':'38', 
+            'lon_0':'127.5', 
+            'k':0.9996, 
+            'x_0':1_000_000, 
+            'y_0':2_000_000, 
+            'ellps':'GRS80', 
+            'units':'m' 
+        }
+
+        projWGS84 = Proj(**WGS84) #'epsg:4326'
+        projGRS80 = Proj(**GRS80)
+        trans = partial(transform, projWGS84, projGRS80)
+
+        for fName, WGS84xy in self.__dctGPSInfoWGS84.items():
+            # trans = Transformer(WGS84, GRS80)
+            self.dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
+        
+        print('transfrom complete')
+        print(f'{self.dctGPSInfoGRS80 = }')
 
     @property
     def gps(self):
-        return self.dctGPSInfo
+        return self.__dctGPSInfoWGS84
+
+    @property
+    def gps_GRS80(self):
+        # 로컬 데이터베이스를 사용하는 새로운 모듈에서 활용
+        return self.dctGPSInfoGRS80
 
 
 

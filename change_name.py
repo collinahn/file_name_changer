@@ -46,14 +46,16 @@ class NameChanger(object):
     def process(self):
         gubun = 2
         parentFolderName = self._extract_parent_dir()
-        print()
-        print()
-        print(f'{parentFolderName = }')
-        print()
-        print()
+        # print()
+        # print()
+        # print(f'{parentFolderName = }')
+        # print()
+        # print()
+
+
         #호차 구분
         if '1' in parentFolderName:
-            gubun = 1
+            gubun = 6 #1조는 6으로
         elif '2' in parentFolderName:
             gubun = 2
         elif '3' in parentFolderName:
