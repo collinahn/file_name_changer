@@ -92,7 +92,7 @@ class GPSInfo(object):
 
             self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
 
-        print('decode done')
+        print('decode to WGS84 done')
         print(f'{self.__dctGPSInfoWGS84 = }')
 
     # 로컬 DB에서 사용하는 좌표계로 변환한다.
@@ -122,7 +122,7 @@ class GPSInfo(object):
             # trans = Transformer(WGS84, GRS80)
             self.dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
         
-        print('transfrom complete')
+        print('transfrom to GRS80 complete')
         print(f'{self.dctGPSInfoGRS80 = }')
 
     @property

@@ -43,7 +43,7 @@ class NameChanger(object):
     def _simplify_address(origin):
         return origin
 
-    def process(self):
+    def process_cli(self):
         gubun = 2
         parentFolderName = self._extract_parent_dir()
         # print()
@@ -69,7 +69,6 @@ class NameChanger(object):
             self._change_name(oldName, simplifiedAddr, cnt, gubun)
             cnt += 1
 
-
 if __name__ == '__main__':
     cn = NameChanger()
 
@@ -78,6 +77,6 @@ if __name__ == '__main__':
     # print(header.parent)
     # print(str(header).split('\\', -1)[-2])
 
-    cn.process()
+    cn.process_cli()
 
 

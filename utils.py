@@ -8,3 +8,7 @@ def extract_file_name_sorted():
 
     lstRes: list[str] = os.listdir('.')
     return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ] 
+
+
+def extract_parent_dir(): # 부모 디렉터리 추출
+    return os.path.abspath(__file__).rsplit('\\', 1)[0]
