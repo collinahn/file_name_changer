@@ -6,7 +6,7 @@ from qCenterWid import GongikWidget
 import utils
 
 # exe 빌드하기
-# pyinstaller -w -F --add-data 'db/addr.db;./db' --add-data 'img/frog.ico;./img' --add-data 'img/developer.ico;./img' --add-data 'img/exit.ico;,./img' --icon=img/frog.ico qApp.py
+# pyinstaller -w -F --add-data 'db/addr.db;./db' --add-data 'img/frog.ico;./img' --add-data 'img/developer.ico;./img' --add-data 'img/exit.ico;./img' --icon=img/frog.ico qApp.py
 
 class MyApp(QMainWindow):
     def __init__(self):

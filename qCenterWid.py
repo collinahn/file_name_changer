@@ -32,12 +32,15 @@ class GongikWidget(QWidget):
         self.setProcessedName = set()
         self.setProcessedAddr = set()
         self.lstTempNamePool = [] # 파일 미리보기를 위한 임시 리스트
-        self.currentPreview = self.lstOldName[0]
+
+        #TODO: 잘못된 경로(temp)로 읽히는 원인 파악하기 
+        currentDir = 'exe 파일이 위치한 곳' # utils.extract_parent_dir()
 
         if not self.dctNameStorage:
-            QMessageBox.warning(self, '경고', f'현재 디렉토리\n({utils.extract_parent_dir()})\n에 처리할 수 있는 파일이 없습니다.')
+            QMessageBox.warning(self, '경고', f'현재 디렉토리\n({currentDir})\n에 처리할 수 있는 파일이 없습니다.\n종료합니다.')
             sys.exit()
 
+        self.currentPreview = self.lstOldName[0]
         self.init_ui()
         
     def init_ui(self):

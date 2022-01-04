@@ -59,10 +59,8 @@ class NameChanger(object):
         elif '4' in parentFolderName:
             gubun = 4
 
-        cnt = 1
-        for oldName, addr in self.dctName2Change.items():
+        for cnt, (oldName, addr) in enumerate(self.dctName2Change.items(), start=1):
             self._change_name(oldName, addr, cnt, gubun)
-            cnt += 1
 
     def get_final_name(self, oldName, detailInput):
         gubun = 2
