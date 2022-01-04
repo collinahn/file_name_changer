@@ -2,7 +2,7 @@
 
 from gps_loc import GPSInfo
 from local_db_gps import LocalDB
-from reverse_geocode import LocationRequest
+from reverse_geocode import LocationRequest # 사용안함
 from threading import Thread
 
 
@@ -40,10 +40,10 @@ class Name(object):
 
     # TODO: 적당한 수의 스레드로 나눈다
     def get_new_name_thread(self) -> dict:
-        lstThreads = []
-
-        for orginName, tplGPS in self.clsGPS.gps_GRS80.items():
-            lstThreads.append(Thread(target=self.get_name_thread, args=(orginName, tplGPS)))
+        lstThreads = [
+            Thread(target=self.get_name_thread, args=(orginName, tplGPS))
+            for orginName, tplGPS in self.clsGPS.gps_GRS80.items()
+        ]
 
         for thread in lstThreads:
             thread.start()

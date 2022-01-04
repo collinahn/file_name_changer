@@ -19,6 +19,8 @@ class NameChanger(object):
             self.clsName: Name = Name()
             self.dctName2Change: dict = self.clsName.new_name 
 
+            self.dctFinalResult: dict[str, str] = {} #최종 결과 담아놓기
+
             processedFileNames = set(self.dctName2Change.keys())
             currentDirFileNames = set(utils.extract_file_name_sorted())
 
@@ -46,12 +48,6 @@ class NameChanger(object):
     def process_cli(self):
         gubun = 2
         parentFolderName = self._extract_parent_dir()
-        # print()
-        # print()
-        # print(f'{parentFolderName = }')
-        # print()
-        # print()
-
 
         #호차 구분
         if '1' in parentFolderName:
@@ -65,9 +61,38 @@ class NameChanger(object):
 
         cnt = 1
         for oldName, addr in self.dctName2Change.items():
-            simplifiedAddr = self._simplify_address(addr)
-            self._change_name(oldName, simplifiedAddr, cnt, gubun)
+            self._change_name(oldName, addr, cnt, gubun)
             cnt += 1
+
+    def get_final_name(self, oldName, detailInput):
+        gubun = 2
+        parentFolderName = self._extract_parent_dir()
+
+        #호차 구분
+        if '1' in parentFolderName:
+            gubun = 6 #1조는 6으로
+        elif '2' in parentFolderName:
+            gubun = 2
+        elif '3' in parentFolderName:
+            gubun = 3
+        elif '4' in parentFolderName:
+            gubun = 4
+
+        self.dctFinalResult[oldName] = str(gubun) + '_' + self.dctName2Change[oldName] + ' ' + detailInput
+        
+        return self.dctFinalResult[oldName]
+
+    def change_name_on_btn(self, dctLoc2Name) -> bool:
+        i = 0
+        for target, loc in self.dctName2Change.items():
+            try:
+                newName = dctLoc2Name[loc] + '(' + str(i) + ').jpg' 
+                os.rename(target, newName)
+                i += 1
+            except Exception as e:
+                print(e, "exception")
+                return False
+        return True
 
 if __name__ == '__main__':
     cn = NameChanger()
