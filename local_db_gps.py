@@ -5,7 +5,7 @@ from sqlite3.dbapi2 import Connection
 from haversine import haversine
 
 from gps_loc import GPSInfo
-
+import utils
 
 class LocalDB(object):
     def __new__(cls, *args):
@@ -18,7 +18,7 @@ class LocalDB(object):
     def __init__(self, flagThread=None):
         cls = type(self)
         if not hasattr(cls, '_init'):
-            self.DB_FILE = './db/addr.db'
+            self.DB_FILE = utils.resource_path('db/addr.db')
 
             clsGpsInfo = GPSInfo()
             self.gpsData = clsGpsInfo.gps_GRS80
@@ -36,19 +36,16 @@ class LocalDB(object):
         if not lstDBRet:
             return 'Undefined'
 
-        tryIdx = 0
         minDistance = 999_999_999_999
         minIdx = 0
 
-        for record in lstDBRet:
+        for tryIdx, record in enumerate(lstDBRet):
             # 타깃 x, y좌표
             coordFmDB = record[-2:]
             distance = haversine(tplCoord, coordFmDB)
             if minDistance > distance:
                 minDistance = distance
                 minIdx = tryIdx # 인덱스 추적
-            
-            tryIdx += 1
 
         # 도로명 + 공백 + 건물번호
         return lstDBRet[minIdx][7] + " " + lstDBRet[minIdx][9]
@@ -69,9 +66,9 @@ class LocalDB(object):
             curs = conn.cursor()
             query = f"SELECT * FROM tMstSpecs \
                     WHERE xCoord >= {xCoord - self.gps_radius} \
-                    AND xCoord <= {xCoord + self.gps_radius} \
-                    AND yCoord >= {yCoord - self.gps_radius} \
-                    AND yCoord <= {yCoord + self.gps_radius};"
+                        AND xCoord <= {xCoord + self.gps_radius} \
+                        AND yCoord >= {yCoord - self.gps_radius} \
+                        AND yCoord <= {yCoord + self.gps_radius};"
             curs.execute(query)
             lstRet = curs.fetchall()
 
