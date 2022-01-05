@@ -1,12 +1,13 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QDialog, QGridLayout, QLabel, QMainWindow, QAction, QPushButton, qApp
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 
 from qCenterWid import GongikWidget
 import utils
 
 # exe 빌드하기
-# pyinstaller -w -F --add-data 'db/addr.db;./db' --add-data 'img/frog.ico;./img' --add-data 'img/developer.ico;./img' --add-data 'img/exit.ico;./img' --icon=img/frog.ico qApp.py
+# pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qApp.py
 
 class MyApp(QMainWindow):
     def __init__(self):
@@ -71,16 +72,37 @@ class InfoDialog(QDialog):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 
-        label1 = QLabel('version 1.1(2022-01-05)')
-        label2 = QLabel('개발자: 안태영\n연락처: collinahn@gmail.com\n참고사항: 오프라인에서 로컬DB를 사용하여 위치를 추적하는 방식으로,\n부정확할 수 있습니다. 개선 예정입니다.')
+        label0 = QLabel('버전:')
+        label0.setAlignment(Qt.AlignTop)
+        label0_a = QLabel('v1.1(2022-01-05)')
+        label1 = QLabel('개발자:')
+        label1.setAlignment(Qt.AlignTop)
+        label1_a = QLabel("안태영")
+        label2 = QLabel('연락처:')
+        label2.setAlignment(Qt.AlignTop)
+        label2_a = QLabel('collinahn@gmail.com')
+        label3 = QLabel('참고사항:')
+        label3.setAlignment(Qt.AlignTop)
+        label3_a = QLabel('오프라인에서 내장된 로컬DB\n(www.juso.go.kr)를 사용하여 \n위치를 추적하는 방식으로,\n다소 부정확할 수 있습니다. \n개선 예정입니다.')
+        label4 = QLabel('License:')
+        label4.setAlignment(Qt.AlignTop)
+        label4_a = QLabel('License: MIT License \nCopyright (c) 2021 Collin Ahn')
 
         self.pushButton1= QPushButton('확인')
         self.pushButton1.clicked.connect(self.pushButtonClicked)
 
         layout = QGridLayout()
-        layout.addWidget(label1, 0, 0)
-        layout.addWidget(label2, 1, 0, 1, -1)
-        layout.addWidget(self.pushButton1, 2, 2)
+        layout.addWidget(label0, 0, 0)
+        layout.addWidget(label0_a, 0, 1)
+        layout.addWidget(label1, 1, 0)
+        layout.addWidget(label1_a, 1, 1)
+        layout.addWidget(label2, 2, 0)
+        layout.addWidget(label2_a, 2, 1)
+        layout.addWidget(label3, 3, 0)
+        layout.addWidget(label3_a, 3, 1)
+        layout.addWidget(label4, 4, 0)
+        layout.addWidget(label4_a, 4, 1)
+        layout.addWidget(self.pushButton1, 4, 2, 1, 1)
 
         self.setLayout(layout)
 

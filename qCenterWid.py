@@ -178,10 +178,11 @@ class GongikWidget(QWidget):
 
     def onBtnChange(self):
         while True: # 디테일을 전부 다 지정하지 않고 넘어가는 경우
-            OldFileName = self.point_file_name()
-            if not OldFileName:
+            oldFileName = self.currentPreview
+            self.dctLocation2Details[self.dctNameStorage[oldFileName]] = self.clsNc.get_final_name(oldFileName, '') # {주소: 바뀔 이름(초기화)}
+            oldFileName = self.point_file_name()
+            if not oldFileName:
                 break
-            self.dctLocation2Details[self.dctNameStorage[OldFileName]] = self.clsNc.get_final_name(OldFileName, '') # {주소: 바뀔 이름(초기화)}
 
         if self.clsNc.change_name_on_btn(self.dctLocation2Details):
             QMessageBox.information(self, '알림', '변환이 완료되었습니다.')
