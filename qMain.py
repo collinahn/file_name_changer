@@ -27,9 +27,9 @@ class MyApp(QMainWindow):
         exitAction.setStatusTip('프로그램을 종료합니다. 완료 버튼을 누르지 않았다면 진행 상황이 저장되지 않습니다.')
         exitAction.triggered.connect(qApp.quit)
 
-        #메뉴 바 - info
+        #메뉴 바 - progMenu - info
         infoAction = QAction(QIcon(self.main_icon_path), '프로그램 정보', self)
-        infoAction.setShortcut('Ctrl+I')
+        infoAction.setShortcut('Ctrl+D')
         infoAction.setStatusTip('프로그램의 정보를 확인합니다.')
         infoAction.triggered.connect(self.view_developer_info)
 
@@ -86,7 +86,7 @@ class InfoDialog(QDialog):
         label3_a = QLabel('오프라인에서 내장된 로컬DB\n(www.juso.go.kr)를 사용하여 \n위치를 추적하는 방식으로,\n다소 부정확할 수 있습니다. \n개선 예정입니다.')
         label4 = QLabel('License:')
         label4.setAlignment(Qt.AlignTop)
-        label4_a = QLabel('License: MIT License \nCopyright (c) 2021 Collin Ahn')
+        label4_a = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
 
         self.pushButton1= QPushButton('확인')
         self.pushButton1.clicked.connect(self.pushButtonClicked)
