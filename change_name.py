@@ -87,16 +87,16 @@ class NameChanger(object):
         i = 0
         for target, loc in self.dctName2Change.items():
             frontName = carSpec + dctLoc2Name[loc][1:]
-            # try:
-            if target in dctName2BeforeAfter:
-                newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
-            else: 
-                newName = frontName + ' (' + str(i) + ').jpg' 
-            os.rename(target, newName)
-            i += 1
-            # except Exception as e:
-            #     print(e, 'exception')
-            #     ret = False
+            try:
+                if target in dctName2BeforeAfter:
+                    newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
+                else: 
+                    newName = frontName + ' (' + str(i) + ').jpg' 
+                os.rename(target, newName)
+                i += 1
+            except Exception as e:
+                print(e, 'exception')
+                ret = False
         return ret
 
 if __name__ == '__main__':

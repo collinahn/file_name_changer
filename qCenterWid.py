@@ -235,6 +235,13 @@ class GongikWidget(QWidget):
         self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]] = self.clsNc.get_final_name(targetFileName, self.nameInput.text())
         print(f'(register_unmanaged_filenames) filename = {targetFileName}: {self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]]}')
 
+    def register_unmanaged_filenames(self):
+        # 현재 커서의 지정 이름 저장
+        oldFileName = self.currentPreview
+        self.store_preview_history(oldFileName)
+        self.dctLocation2Details[self.dctNameStorage[oldFileName]] = self.clsNc.get_final_name(oldFileName, self.nameInput.text())
+        print(f'filename = {oldFileName}: {self.dctLocation2Details[self.dctNameStorage[oldFileName]]}')
+
     # 사진과 설명을 업데이트한다.
     def update_pixmap(self, srcName):
         self.labelLoc4Preview.setText(f'사진 위치: {self.dctName2AddrStorage[srcName]}')
