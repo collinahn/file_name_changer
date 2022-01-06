@@ -5,7 +5,7 @@ import requests
 import json
 
 from __api import API_KEY
-from gps_loc import GPSInfo
+from meta_data import GPSInfo
 
 
 class LocationRequest(object):
@@ -83,7 +83,7 @@ class LocationRequest(object):
         try:
             if json['meta']['total_count'] == 0:
                 return False
-        except AttributeError as ae:
+        except (AttributeError, KeyError) as ae:
             print(ae)
 
         return True
@@ -114,10 +114,8 @@ class LocationRequest(object):
             
             # ret = jsonData['documents'][0]['road_address']['address_name'] or jsonData['documents'][0]['address']['address_name']
 
-        except AttributeError as ae:
-            print(ae)
-        except IndexError as ie:
-            print(ie)
+        except (AttributeError, IndexError, KeyError) as e:
+            print(e)
 
         return ret
 

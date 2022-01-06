@@ -4,7 +4,7 @@ import sqlite3
 from sqlite3.dbapi2 import Connection
 from haversine import haversine
 
-from gps_loc import GPSInfo
+from meta_data import GPSInfo
 import utils
 
 class LocalDB(object):
@@ -78,7 +78,7 @@ class LocalDB(object):
             if conn: 
                 conn.close()
 
-        print(f'{lstRet = }')
+        # print(f'{lstRet = }')
         print(f'{len(lstRet) = }')
         return lstRet
 

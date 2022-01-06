@@ -1,6 +1,6 @@
 # 추출한 파일 정보를 토대로 api요청을 보낸 뒤 {원래 파일 명:바뀔 파일 명} 형식으로저장한다
 
-from gps_loc import GPSInfo
+from meta_data import GPSInfo
 from local_db_gps import LocalDB
 from reverse_geocode import LocationRequest # 사용안함
 from threading import Thread

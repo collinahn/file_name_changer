@@ -17,7 +17,7 @@ class NameChanger(object):
         cls = type(self)
         if not hasattr(cls, '_init'):
             self.clsName: Name = Name()
-            self.dctName2Change: dict = self.clsName.new_name 
+            self.dctName2Change: dict[str,str] = self.clsName.new_name 
 
             self.dctFinalResult: dict[str, str] = {} #최종 결과 담아놓기
 
@@ -63,6 +63,7 @@ class NameChanger(object):
             self._change_name(oldName, addr, cnt, gubun)
 
     def get_final_name(self, oldName, detailInput):
+        # 현재 폴더 오류로 실행은 하되 마지막에 실제 호차구분으로 대체됨
         gubun = 2
         parentFolderName = self._extract_parent_dir()
 
@@ -80,20 +81,23 @@ class NameChanger(object):
         
         return self.dctFinalResult[oldName]
 
-    def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter) -> bool:
+    def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter, carSpec='2') -> bool:
+        ret = True
+        
         i = 0
         for target, loc in self.dctName2Change.items():
-            try:
-                if target in dctName2BeforeAfter:
-                    newName = dctLoc2Name[loc] + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
-                else: 
-                    newName = dctLoc2Name[loc] + ' (' + str(i) + ').jpg' 
-                os.rename(target, newName)
-                i += 1
-            except Exception as e:
-                print(e, "exception")
-                return False
-        return True
+            frontName = carSpec + dctLoc2Name[loc][1:]
+            # try:
+            if target in dctName2BeforeAfter:
+                newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
+            else: 
+                newName = frontName + ' (' + str(i) + ').jpg' 
+            os.rename(target, newName)
+            i += 1
+            # except Exception as e:
+            #     print(e, 'exception')
+            #     ret = False
+        return ret
 
 if __name__ == '__main__':
     cn = NameChanger()
