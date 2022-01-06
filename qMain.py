@@ -7,7 +7,8 @@ from qCenterWid import GongikWidget
 import utils
 
 # exe 빌드하기
-# pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qApp.py
+# pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
+VERSION_INFO = 'v1.2(2022-01-06)'
 
 class MyApp(QMainWindow):
     def __init__(self):
@@ -74,7 +75,7 @@ class InfoDialog(QDialog):
 
         label0 = QLabel('버전:')
         label0.setAlignment(Qt.AlignTop)
-        label0_a = QLabel('v1.1(2022-01-05)')
+        label0_a = QLabel(VERSION_INFO)
         label1 = QLabel('개발자:')
         label1.setAlignment(Qt.AlignTop)
         label1_a = QLabel("안태영")
@@ -83,7 +84,7 @@ class InfoDialog(QDialog):
         label2_a = QLabel('collinahn@gmail.com')
         label3 = QLabel('참고사항:')
         label3.setAlignment(Qt.AlignTop)
-        label3_a = QLabel('오프라인에서 내장된 로컬DB\n(www.juso.go.kr)를 사용하여 \n위치를 추적하는 방식으로,\n다소 부정확할 수 있습니다. \n개선 예정입니다.')
+        label3_a = QLabel('오프라인에서 내장된 로컬DB \n(출처: www.juso.go.kr)를 사용하여 \n위치를 추적하는 방식으로, 다소 부정확할 수 있습니다. \n개선 예정입니다.')
         label4 = QLabel('License:')
         label4.setAlignment(Qt.AlignTop)
         label4_a = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
@@ -102,7 +103,7 @@ class InfoDialog(QDialog):
         layout.addWidget(label3_a, 3, 1)
         layout.addWidget(label4, 4, 0)
         layout.addWidget(label4_a, 4, 1)
-        layout.addWidget(self.pushButton1, 4, 2, 1, 1)
+        layout.addWidget(self.pushButton1, 4, 2)
 
         self.setLayout(layout)
 

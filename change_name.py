@@ -81,19 +81,21 @@ class NameChanger(object):
         return self.dctFinalResult[oldName]
 
     def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter) -> bool:
+        ret = True
+        
         i = 0
         for target, loc in self.dctName2Change.items():
-            try:
-                if target in dctName2BeforeAfter:
-                    newName = dctLoc2Name[loc] + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
-                else: 
-                    newName = dctLoc2Name[loc] + ' (' + str(i) + ').jpg' 
-                os.rename(target, newName)
-                i += 1
-            except Exception as e:
-                print(e, "exception")
-                return False
-        return True
+            # try:
+            if target in dctName2BeforeAfter:
+                newName = dctLoc2Name[loc] + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
+            else: 
+                newName = dctLoc2Name[loc] + ' (' + str(i) + ').jpg' 
+            os.rename(target, newName)
+            i += 1
+            # except Exception as e:
+            #     print(e, 'exception')
+            #     ret = False
+        return ret
 
 if __name__ == '__main__':
     cn = NameChanger()

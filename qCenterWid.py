@@ -152,6 +152,13 @@ class GongikWidget(QWidget):
         if storeEntireLoc:
             self.setProcessedAddr.add(self.dctNameStorage[name])
 
+    def register_unmanaged_filenames(self):
+        # 현재 커서의 지정 이름 저장
+        oldFileName = self.currentPreview
+        self.store_preview_history(oldFileName)
+        self.dctLocation2Details[self.dctNameStorage[oldFileName]] = self.clsNc.get_final_name(oldFileName, self.nameInput.text())
+        print(f'filename = {oldFileName}: {self.dctLocation2Details[self.dctNameStorage[oldFileName]]}')
+
     # 사진과 설명을 업데이트한다.
     def update_pixmap(self, srcName):
         self.labelLoc4Preview.setText(f'사진 위치: {self.dctNameStorage[srcName]}')
@@ -170,18 +177,25 @@ class GongikWidget(QWidget):
 
         self.dctLocation2Details[self.dctNameStorage[oldFileName]] = newFileName # {주소: 바뀔 이름}
         
-        self.fileNamePreview.setText(f'{newFileName} (으)로 등록되었습니다.')
+        self.fileNamePreview.setText(f'{newFileName} (으)로 등록완료')
 
     def onBtnShowNextAddr(self):
         self.lstTempNamePool = [] # 장소 단위 리스트 초기화
 
+        self.register_unmanaged_filenames() # 처리되지 않은 파일 이름들 처리
+
         oldFileName = self.point_file_name()
         if not oldFileName:
-            QMessageBox.warning(self, '경고', '마지막 장소입니다')
+            QMessageBox.warning(self, '경고', '마지막 장소입니다.')
             return
 
         self.fileNamePreview.setText('')
         self.update_pixmap(oldFileName)
+        self.currentPreview = oldFileName
+
+        self.radioBtnDefault.setChecked(True) # 라디오 버튼 기본값으로 
+        self.nameInput.setText('') # 입력 필드 초기화
+
 
 
     def onBtnNextThumbnail(self):
@@ -208,9 +222,8 @@ class GongikWidget(QWidget):
 
     #TODO: 리팩토링좀
     def onBtnChange(self):
-        # 현재 커서의 지정 이름 저장
-        oldFileName = self.currentPreview
-        self.dctLocation2Details[self.dctNameStorage[oldFileName]] = self.clsNc.get_final_name(oldFileName, self.nameInput.text())
+        self.register_unmanaged_filenames() # 처리되지 않고 넘어간 파일 이름 처리
+
         while True: # 디테일을 전부 다 지정하지 않고 넘어가는 경우
             oldFileName = self.point_file_name()
             if not oldFileName:
@@ -220,7 +233,7 @@ class GongikWidget(QWidget):
         if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2BeforeAfter):
             QMessageBox.information(self, '알림', '처리가 완료되었습니다.')
         else:
-            QMessageBox.warning(self, '경고', '이미 완료되었습니다.')
+            QMessageBox.warning(self, '경고', '문제가 있어 일부 파일을 처리하지 못했습니다.(수동 확인 필요)')
 
         QMessageBox.information(self, '알림', '프로그램을 종료하고 퇴근합니다.')
         sys.exit()
