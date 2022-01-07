@@ -10,6 +10,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 from qCenterWid import GongikWidget
+from change_name import NameChanger
+from meta_data import GPSInfo
 import utils
 
 # exe 빌드하기
@@ -27,6 +29,14 @@ class MyApp(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
+        # 기본 설정
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.main_icon_path))
+
+        # 메인 위젯 설정
+        qw = GongikWidget()
+        self.setCentralWidget(qw)
+
         #메뉴 바 - progMenu - Exit
         exitAction = QAction(QIcon(self.exit_icon_path), '퇴근하기', self)
         exitAction.setShortcut('Ctrl+Shift+Q')
@@ -39,32 +49,37 @@ class MyApp(QMainWindow):
         infoAction.setStatusTip('프로그램의 정보를 확인합니다.')
         infoAction.triggered.connect(self.onModalDeveloperInfo)
 
+        # 참고 정보 표시
+        checkAction = QAction(QIcon(self.main_icon_path), '위치 목록 확인', self)
+        checkAction.setShortcut('Ctrl+G')
+        checkAction.setStatusTip('사진 정보 목록을 불러옵니다.')
+        checkAction.triggered.connect(self.onModalAddrInfo)
+
         self.statusBar()
 
         menu = self.menuBar()
-        menu.setNativeMenuBar(True)
+        menu.setNativeMenuBar(False)
         progMenu = menu.addMenu('&파일')
-
-        progMenu.addAction(infoAction)
+        additionalMenu = menu.addMenu('&정보')
+        
         progMenu.addAction(exitAction)
+        additionalMenu.addAction(infoAction)
+        additionalMenu.addAction(checkAction)
 
-        # 기본 설정
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.main_icon_path))
-
-        # 메인 위젯 설정
-        qw = GongikWidget()
-        self.setCentralWidget(qw)
 
         self.setGeometry(540, 300, 300, 200)
         self.show()
 
     def onModalDeveloperInfo(self):
-        dlg = InfoDialog()
+        dlg = DeveloperInfoDialog()
         dlg.exec_()
 
+    def onModalAddrInfo(self):
+        alg = AddrInfoDialog()
+        alg.exec_()
 
-class InfoDialog(QDialog):
+
+class DeveloperInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
 
@@ -109,6 +124,52 @@ class InfoDialog(QDialog):
         layout.addWidget(label4, 4, 0)
         layout.addWidget(label4_a, 4, 1)
         layout.addWidget(self.pushButton1, 4, 2)
+
+        self.setLayout(layout)
+
+    def onBtnClicked(self):
+        self.close()
+
+class AddrInfoDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.title = '사진 상세'
+        self.icon_path = utils.resource_path('img/frog.ico')
+
+        self.clsNc = NameChanger()
+        self.clsGI = GPSInfo()
+        self.dctName2AddrStorage = self.clsNc.dctName2Change
+        self.dctName2Time = self.clsGI.time_as_str
+
+        self.setupUI()
+
+    def setupUI(self):
+        self.setGeometry(1100, 200, 300, 100)
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.icon_path))
+
+        lstNameAddrTime = [(QLabel('파일 이름'), QLabel('사진 위치'), QLabel('촬영 시각'))]
+        lstNameAddrTime[-1][0].setAlignment(Qt.AlignCenter)
+        lstNameAddrTime[-1][1].setAlignment(Qt.AlignCenter)
+        lstNameAddrTime[-1][2].setAlignment(Qt.AlignCenter)
+
+        # QLabel 객체 삽입
+        for name, addr in self.dctName2AddrStorage.items():
+            lstNameAddrTime.append((QLabel(f'{name}'), QLabel(f'{addr}'), QLabel(f'{self.dctName2Time[name]}')))
+        lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
+
+        # 확인버튼
+        self.pushButton1= QPushButton('확인')
+        self.pushButton1.clicked.connect(self.onBtnClicked)
+
+        layout = QGridLayout()
+
+        for gridLoc, tplNameAddrTime in enumerate(lstNameAddrTime):
+            for idx, data in enumerate(tplNameAddrTime):
+                layout.addWidget(data, gridLoc, idx)
+
+        layout.addWidget(self.pushButton1, len(lstNameAddrTime)+1, 0, -1, -1)
 
         self.setLayout(layout)
 

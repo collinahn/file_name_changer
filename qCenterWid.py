@@ -1,9 +1,9 @@
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (
-    QGroupBox, QHBoxLayout, QMessageBox, QRadioButton, QShortcut, QSizePolicy,
+    QGroupBox, QHBoxLayout, QMessageBox, QRadioButton,
     QToolTip, QWidget, QApplication, QGridLayout,
-    QPushButton, QLabel, QLineEdit
+    QPushButton, QLabel, QLineEdit, QSizePolicy
 )
 import sys
 
@@ -64,21 +64,21 @@ class GongikWidget(QWidget):
         self.init_ui()
         
     def init_ui(self):
-        currentDir = utils.extract_parent_dir()
+        # currentDir = utils.extract_parent_dir()
 
         QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         layout = QGridLayout()
         self.setLayout(layout)
 
-        self.dirInfo = QLabel('현재 디렉토리: ')
+        self.dirInfo = QLabel('총 사진 개수:')
         layout.addWidget(self.dirInfo, 0, 0)
 
-        self.startingDir = QLabel(currentDir)
+        self.startingDir = QLabel(f'{len(self.dctName2AddrStorage)}')
         layout.addWidget(self.startingDir, 0, 1)
 
-        self.labelLoc4Preview = QLabel(f'사진 위치: {self.dctName2AddrStorage[self.currentPreview]}')
-        self.labelLoc4Preview.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(self.labelLoc4Preview, 0,2)
+        # self.labelLoc4Preview = QLabel(f'장소 목록: {set(self.dctName2AddrStorage.values())}')
+        # self.labelLoc4Preview.setAlignment(QtCore.Qt.AlignCenter)
+        # layout.addWidget(self.labelLoc4Preview, 0,2)
 
         self.instruction = QLabel('상세 입력')
         layout.addWidget(self.instruction, 1, 0)
@@ -86,11 +86,13 @@ class GongikWidget(QWidget):
         self.nameInput = QLineEdit()
         self.nameInput.setPlaceholderText('상세 정보 입력')
         self.nameInput.setMaxLength(100)
+        self.nameInput.setMinimumWidth(250)
+        self.nameInput.setMinimumHeight(50)
         self.nameInput.returnPressed.connect(self.onBtnRegName)
         layout.addWidget(self.nameInput, 1, 1)
 
         # 전 후 선택 라디오버튼
-        self.radioGroupBox = QGroupBox('')
+        self.radioGroupBox = QGroupBox('파일 이름 개별지정')
         layout.addWidget(self.radioGroupBox, 1, 2)
 
         self.radioBoxLayout = QHBoxLayout()
@@ -134,16 +136,18 @@ class GongikWidget(QWidget):
 
         # 1호차2호차 선택 라디오버튼
         self.radioGroupCar = QGroupBox('호차 선택')
-        layout.addWidget(self.radioGroupCar, 4, 0)
+        layout.addWidget(self.radioGroupCar, 4, 0, 1, 2)
 
         self.radioBoxCarLayout = QHBoxLayout()
         self.radioGroupCar.setLayout(self.radioBoxCarLayout)
 
-        self.radioBtn1stCar = QRadioButton('1호차', self)
+        self.radioBtn1stCar = QRadioButton('1호차(Alt+1)', self)
         self.radioBtn1stCar.clicked.connect(self.onRadioBtnCar)
+        self.radioBtn1stCar.setShortcut('Alt+1')
         self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=QtCore.Qt.AlignTop)
-        self.radioBtn2ndCar = QRadioButton('2호차', self)
+        self.radioBtn2ndCar = QRadioButton('2호차(Alt+2)', self)
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
+        self.radioBtn2ndCar.setShortcut('Alt+2')
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=QtCore.Qt.AlignTop)
         self.radioBtn2ndCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
@@ -161,7 +165,7 @@ class GongikWidget(QWidget):
         self.btnNextPicSameAddr.clicked.connect(self.onBtnNextPreview)
         layout.addWidget(self.btnNextPicSameAddr, 5, 2)
 
-    # TODO Rename this here and in `init_ui`
+    # 이름 뒤 구분 명칭을 결정하는 라디오 버튼을 만든다
     def _make_radio_btn_for_footer(self, tplRadioBtn, tplShortCut, seq):
         result = QRadioButton(tplRadioBtn[seq], self)
         result.clicked.connect(self.onRadioBtnBeforeAfter)
@@ -196,7 +200,7 @@ class GongikWidget(QWidget):
 
 
     def _generate_text_for_indicator(self, pos='1'):
-        return f'위치: {self.dctName2AddrStorage[self.currentPreview]} \
+        return f'현재 위치: {self.dctName2AddrStorage[self.currentPreview]} \
                \n해당 위치 개수: {pos} / {self.dctLoc2LocNumber[self.dctName2AddrStorage[self.currentPreview]]}'
 
     @staticmethod
