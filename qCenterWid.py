@@ -1,15 +1,27 @@
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+from PyQt5.QtGui import (
+    QPixmap,
+    QFont
+)
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QGroupBox, QHBoxLayout, QMessageBox, QRadioButton,
-    QToolTip, QWidget, QApplication, QGridLayout,
-    QPushButton, QLabel, QLineEdit, QSizePolicy
+    QGroupBox, 
+    QHBoxLayout, 
+    QMessageBox, 
+    QRadioButton,
+    QToolTip, 
+    QWidget, 
+    QApplication, 
+    QGridLayout,
+    QPushButton, 
+    QLabel, 
+    QLineEdit, 
+    QSizePolicy
 )
 import sys
 
-import utils
 from change_name import NameChanger
 from meta_data import GPSInfo
+import utils
 
 TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
 
@@ -52,12 +64,6 @@ class GongikWidget(QWidget):
         self.dctOldName2BeforeAfter = {}
         self.carNumber = '2' # 호차 구분 (1호차: 6, 2호차: 2)
 
-        if not self.dctName2AddrStorage:
-            #TODO: 잘못된 경로(temp)로 읽히는 원인 파악하기 
-            currentDir = 'exe 파일이 위치한 곳' # utils.extract_parent_dir()
-            QMessageBox.warning(self, '경고', f'현재 디렉토리\n({currentDir})\n에 처리할 수 있는 파일이 없습니다.\n종료합니다.')
-            sys.exit()
-
         self.currentPreview = self.lstOldName[0]
         self.tempImgPreview = self.currentPreview # 장소별/같은 장소 내의 임시 프리뷰 통합 관리/ currentPreview는 다음 장소 업데이트를 위해.. temp는 같은 장소 내에서.
         
@@ -66,21 +72,26 @@ class GongikWidget(QWidget):
     def init_ui(self):
         # currentDir = utils.extract_parent_dir()
 
-        QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+        QToolTip.setFont(QFont('SansSerif', 10))
         layout = QGridLayout()
         self.setLayout(layout)
 
-        self.dirInfo = QLabel('총 사진 개수:')
-        layout.addWidget(self.dirInfo, 0, 0)
+        # 0번 레이아웃
+        self.currentPath = QLabel(f'실행 경로: {utils.resource_path()}')
+        layout.addWidget(self.currentPath, 0, 0, 1, 2)
+        self.totalPics = QLabel(f'총 사진 개수: {len(self.dctName2AddrStorage)}')
+        self.totalPics.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.totalPics, 0, 2)
 
-        self.startingDir = QLabel(f'{len(self.dctName2AddrStorage)}')
-        layout.addWidget(self.startingDir, 0, 1)
+        # self.startingDir = QLabel(f'{}')
+        # layout.addWidget(self.startingDir, 0, 1)
 
         # self.labelLoc4Preview = QLabel(f'장소 목록: {set(self.dctName2AddrStorage.values())}')
-        # self.labelLoc4Preview.setAlignment(QtCore.Qt.AlignCenter)
+        # self.labelLoc4Preview.setAlignment(Qt.AlignCenter)
         # layout.addWidget(self.labelLoc4Preview, 0,2)
 
         self.instruction = QLabel('상세 입력')
+        self.instruction.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.instruction, 1, 0)
 
         self.nameInput = QLineEdit()
@@ -118,8 +129,8 @@ class GongikWidget(QWidget):
 
         self.picPreview = QLabel('사진 미리보기')
         self.picPreview.resize(540, 540)
-        self.picPreview.setAlignment(QtCore.Qt.AlignCenter)
-        self.picPreview.setPixmap(QtGui.QPixmap(self.currentPreview).scaled(540, 360))#, QtCore.Qt.KeepAspectRatio))
+        self.picPreview.setAlignment(Qt.AlignCenter)
+        self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(540, 360))#, Qt.KeepAspectRatio))
         layout.addWidget(self.picPreview, 2, 2, 3, -1)
 
         self.btnNextAddr = QPushButton('다음 장소 보기\n(Alt+W)')
@@ -131,7 +142,7 @@ class GongikWidget(QWidget):
         # 같은 위치 preview 갯수 세기
         self.textPointer4SameLoc = self._generate_text_for_indicator()
         self.labelPointer4SameLoc = QLabel(self.textPointer4SameLoc)
-        self.labelPointer4SameLoc.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelPointer4SameLoc.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.labelPointer4SameLoc, 3,1)
 
         # 1호차2호차 선택 라디오버튼
@@ -144,11 +155,11 @@ class GongikWidget(QWidget):
         self.radioBtn1stCar = QRadioButton('1호차(Alt+1)', self)
         self.radioBtn1stCar.clicked.connect(self.onRadioBtnCar)
         self.radioBtn1stCar.setShortcut('Alt+1')
-        self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=QtCore.Qt.AlignTop)
+        self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=Qt.AlignTop)
         self.radioBtn2ndCar = QRadioButton('2호차(Alt+2)', self)
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
         self.radioBtn2ndCar.setShortcut('Alt+2')
-        self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=QtCore.Qt.AlignTop)
+        self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
         self.radioBtn2ndCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
@@ -170,7 +181,7 @@ class GongikWidget(QWidget):
         result = QRadioButton(tplRadioBtn[seq], self)
         result.clicked.connect(self.onRadioBtnBeforeAfter)
         result.setShortcut(tplShortCut[seq])
-        self.radioBoxLayout.addWidget(result, alignment=QtCore.Qt.AlignTop)
+        self.radioBoxLayout.addWidget(result, alignment=Qt.AlignTop)
         return result
 
     # 초기화 시 시간을 기준으로 주소를 교정한다.
@@ -241,8 +252,7 @@ class GongikWidget(QWidget):
 
     # 사진과 설명을 업데이트한다.
     def update_pixmap(self, srcName):
-        self.labelLoc4Preview.setText(f'사진 위치: {self.dctName2AddrStorage[srcName]}')
-        self.picPreview.setPixmap(QtGui.QPixmap(srcName).scaled(540, 360))# , QtCore.Qt.KeepAspectRatio))
+        self.picPreview.setPixmap(QPixmap(srcName).scaled(540, 360))# , Qt.KeepAspectRatio))
     
     def onBtnRegName(self):
         oldFileName = self.currentPreview
@@ -262,13 +272,13 @@ class GongikWidget(QWidget):
 
         self.register_unmanaged_filenames() # 처리되지 않은 파일 이름들 처리
 
-        oldFileName = self._point_file_name()
-        if not oldFileName:
+        nextFileName = self._point_file_name()
+        if not nextFileName:
             QMessageBox.warning(self, '경고', '마지막 장소입니다.')
             return
 
-        self.currentPreview = oldFileName
-        self.tempImgPreview = oldFileName
+        self.currentPreview = nextFileName
+        self.tempImgPreview = nextFileName
 
         # 강제로 임시대기열 업데이트 후 현재 프리뷰로 나가는 파일 목록에서 삭제
         currentLoc = self.dctName2AddrStorage[self.currentPreview]

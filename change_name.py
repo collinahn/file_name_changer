@@ -1,8 +1,8 @@
 # 파일의 이름을 받아와 원래 파일명을 바꿀 파일명으로 변경함
 
-import utils
 import os
 
+import utils
 from get_name import Name
 
 class NameChanger(object):
@@ -35,11 +35,6 @@ class NameChanger(object):
         newName = str(header) + '_' + addr + ' ' + str(oldName.split('.')[0]) + ' (' + str(cnt) + ')' + '.jpg'
         os.rename(oldName, newName)
 
-    @staticmethod
-    def _extract_parent_dir(): # 부모 디렉터리 추출
-        currentPath = os.path.abspath(__file__)
-        return str(currentPath).split('\\', -1)[-2]
-
     # 이미 필터링된 주소를 넘기는 것으로 수정
     @staticmethod
     def _simplify_address(origin):
@@ -47,7 +42,7 @@ class NameChanger(object):
 
     def process_cli(self):
         gubun = 2
-        parentFolderName = self._extract_parent_dir()
+        parentFolderName = utils.extract_parent_dir()
 
         #호차 구분
         if '1' in parentFolderName:
@@ -65,7 +60,7 @@ class NameChanger(object):
     def get_final_name(self, oldName, detailInput):
         # 현재 폴더 오류로 실행은 하되 마지막에 실제 호차구분으로 대체됨
         gubun = 2
-        parentFolderName = self._extract_parent_dir()
+        parentFolderName = utils.extract_parent_dir()
 
         #호차 구분
         if '1' in parentFolderName:
