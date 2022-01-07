@@ -29,7 +29,7 @@ import utils
 
 # exe 빌드하기
 # pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
-VERSION_INFO = 'v1.3(2022-01-07)'
+VERSION_INFO = 'v1.3a(2022-01-07)'
 
 class Gongik(QMainWindow):
     def __init__(self):
