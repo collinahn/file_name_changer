@@ -1,4 +1,5 @@
-# 파일 정보에서 gps 확인한다
+# 파일 정보에서 gps 및 시간 확인한다
+# TODO: 부모 클래스 만들어서 상속받기 -> utils로 간 open_image도 다시 가져오기
 
 from PIL import Image
 from PIL import UnidentifiedImageError
@@ -7,7 +8,85 @@ from pyproj import Proj
 from pyproj import transform
 from functools import partial
 
+from . import utils
 from .file_detect import FileDetector
+
+class TimeInfo(object):
+    __dctDir2Instance: dict = {}
+    __setIsInit: set = set()
+
+    def __new__(cls, targetDir=utils.extract_parent_dir()):
+        if targetDir in cls.__dctDir2Instance:
+            return cls.__dctDir2Instance[targetDir]
+
+        cls._instance: TimeInfo = super().__new__(cls) 
+        cls.__dctDir2Instance[targetDir] = cls._instance
+        print(f'TIME_INFO {targetDir =}', cls._instance)
+        return cls._instance
+
+    def __init__(self, targetDir=utils.extract_parent_dir()):
+        cls = type(self)
+        if targetDir not in cls.__setIsInit:
+            self.targetDir = targetDir
+            self.clsFD = FileDetector(targetDir)
+            self.fileList = self.clsFD.fileList
+            print(f'{self.fileList = }')
+
+            self.dctMetaData: dict = {}
+            self.dctDecodedMeta: dict = {}
+            self.dctTimeFilesMade: dict = {}
+
+            self.init_meta_data()
+            self.extract_time_info()
+
+            cls.__setIsInit.add(targetDir)
+
+    #메타데이터가 있는 사진 파일들의 이름과 메타데이터를 저장한다.
+    def init_meta_data(self):
+        for fileName in self.fileList:
+            fileImage = utils.open_image(self.targetDir+'/'+fileName)
+
+            if not fileImage:
+                continue
+
+            self.dctMetaData[fileName] = fileImage._getexif()
+
+    def decode_meta_data(self, metadata):
+        for key, value in metadata.items():
+            decodedData = TAGS.get(key, key)
+            self.dctDecodedMeta[decodedData] = value
+
+    def extract_time_info(self) -> None:
+        for fName, meta in self.dctMetaData.items():
+            if not meta:
+                continue
+
+            self.decode_meta_data(meta)
+            
+            #시간 메타데이타 초기화
+            timeFile = self.dctDecodedMeta['DateTimeOriginal'] or self.dctDecodedMeta['DateTimeDigitized'] or self.dctDecodedMeta['DateTime']
+            self.dctTimeFilesMade[fName] = timeFile
+    
+    @property
+    def time_as_str(self):
+        return self.dctTimeFilesMade
+
+    @property
+    def time(self):
+        dctRet: dict[str,int] = {}
+        for fName, time in self.dctTimeFilesMade.items():
+            tmp = time.split()
+            try:
+                hhmmss = tmp[1].split(':') #시 분 초 추출
+                timeAsSeconds = int(hhmmss[0]) * 3600 + int(hhmmss[1]) * 60 + int(hhmmss[2])
+            except (AttributeError, IndexError) as ae:
+                print(f'error: invalid time metadata - {ae}')
+                continue
+
+            dctRet[fName] = timeAsSeconds
+
+        return dctRet
+
 
 
 class GPSInfo(object):
@@ -21,8 +100,8 @@ class GPSInfo(object):
     def __init__(self):
         cls = type(self)
         if not hasattr(cls, '_init'):
-            self.clsDetect: FileDetector = FileDetector()
-            self.lstFiles: list[str] = self.clsDetect.fileList
+            self.clsFD: FileDetector = FileDetector()
+            self.lstFiles: list[str] = self.clsFD.fileList
 
             self.dctTimeFilesMade: dict[str, str] = {} #디코딩할 때 초기화
 
@@ -32,45 +111,35 @@ class GPSInfo(object):
             self.dctGPSInfoGRS80: dict[str, tuple] = {}
 
             self.init_meta_data()
-            self.decode_meta_data() # 초기화 -deprecated
+            self.extract_gps_data() # 초기화 -deprecated
             self.set_WGS84_to_GRS80()
 
             cls.__init = True
 
-    @staticmethod
-    def _open_image(name) -> Image:
-        image: Image = None
-        try:
-            image = Image.open(name)
-        except UnidentifiedImageError as ue:
-            print(ue, name)
-        
-        return image
-
     #메타데이터가 있는 사진 파일들의 이름과 메타데이터를 저장한다.
     def init_meta_data(self):
         for fileName in self.lstFiles:
-            fileImage = self._open_image(fileName)
+            fileImage = utils.open_image(fileName)
 
-            if not fileImage:
-                continue
+            # if not fileImage:
+            #     continue
 
             self.dctMetaData[fileName] = fileImage._getexif()
 
         # print(f"{self.dctMetaData = }")
 
+    def decode_meta_data(self, metadata):
+        for key, value in metadata.items():
+            decodedData = TAGS.get(key, key)
+            self.dctDecodedMeta[decodedData] = value
 
-    def decode_meta_data(self) -> None:
+    def extract_gps_data(self) -> None:
         for fName, meta in self.dctMetaData.items():
+            if not meta:
+                continue
 
-            for key, value in meta.items():
-                decodedData = TAGS.get(key, key)
-                self.dctDecodedMeta[decodedData] = value
+            self.decode_meta_data(meta)
             
-            #시간 메타데이타 초기화
-            timeFile = self.dctDecodedMeta['DateTimeOriginal'] or self.dctDecodedMeta['DateTimeDigitized'] or self.dctDecodedMeta['DateTime']
-            self.dctTimeFilesMade[fName] = timeFile
-
             try:
                 exifGPS = self.dctDecodedMeta['GPSInfo']
                 latData = exifGPS[2]
@@ -101,9 +170,7 @@ class GPSInfo(object):
                 self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
             except (ZeroDivisionError, KeyError) as ze:
                 print(ze)
-                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
-                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
-                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
+                print(f'{fName} gps info not found.')
                 self.__dctGPSInfoWGS84[fName] = (0, 0)
             
 
@@ -150,29 +217,15 @@ class GPSInfo(object):
         # 로컬 데이터베이스를 사용하는 새로운 모듈에서 활용
         return self.dctGPSInfoGRS80
 
-    @property
-    def time_as_str(self):
-        return self.dctTimeFilesMade
-
-    @property
-    def time(self):
-        dctRet: dict[str,int] = {}
-        for fName, time in self.dctTimeFilesMade.items():
-            tmp = time.split()
-            try:
-                hhmmss = tmp[1].split(':') #시 분 초 추출
-                timeAsSeconds = int(hhmmss[0]) * 3600 + int(hhmmss[1]) * 60 + int(hhmmss[2])
-            except (AttributeError, IndexError) as ae:
-                print(f'error: invalid time metadata - {ae}')
-                continue
-
-            dctRet[fName] = timeAsSeconds
-
-        return dctRet
-
 
 
 if __name__ == '__main__':
     gps = GPSInfo()
-    print(gps.time)
+
+    time = TimeInfo(".")
+    time1 = TimeInfo("..")
+    time2 = TimeInfo(".")
+    time4 = TimeInfo(".")
+    print(time.dctTimeFilesMade)
+
 

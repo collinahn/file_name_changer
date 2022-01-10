@@ -2,24 +2,26 @@
 
 from . import utils
 
-class FileDetector(object):
-    def __new__(cls):
-        if not hasattr(cls, '_instance'):
-            cls._instance = super().__new__(cls)
 
-        print('FILE_DECTECTOR', cls._instance)
+class FileDetector(object):
+    __dctArg2Instance: dict = {}
+    __setIsInit: set = set()
+
+    def __new__(cls, targetDir=utils.extract_parent_dir(), *args):
+        if targetDir in cls.__dctArg2Instance:
+            return cls.__dctArg2Instance[targetDir]
+
+        cls._instance: FileDetector = super().__new__(cls) 
+        cls.__dctArg2Instance[targetDir] = cls._instance
+        print(f'FILE_DECTECTOR {targetDir =}', cls._instance)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, targetDir=utils.extract_parent_dir(), *args):
         cls = type(self)
-        if not hasattr(cls, '_init'):
-            self.lstPic: list[str] = utils.extract_file_name_sorted()
+        if targetDir not in cls.__setIsInit:
+            self.lstPic: list[str] = utils.extract_file_name_sorted(targetDir)
 
-            # for indv in self.lstPic:
-                # print("debug:", indv)
-
-            cls._init = True
-
+            cls.__setIsInit.add(targetDir)
 
     @property
     def fileList(self):

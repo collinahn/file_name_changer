@@ -20,8 +20,8 @@ from PyQt5.QtWidgets import (
 )
 
 from lib.change_name import NameChanger
-from lib.meta_data import GPSInfo
-from lib.utils import resource_path
+from lib.meta_data import GPSInfo, TimeInfo
+from lib.utils import extract_parent_dir
 
 TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
 
@@ -41,8 +41,9 @@ class GongikWidget(QWidget):
 
         self.clsNc = NameChanger()
         self.clsGI = GPSInfo()
+        self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
-        self.dctName2Time = self.clsGI.time # {이름:초로 나타낸 시간}
+        self.dctName2Time = self.clsTI.time # {이름:초로 나타낸 시간}
         self.lstOldName = list(self.dctName2AddrStorage.keys())
         self._correct_road_addr_with_time() # 위치 보정
 
@@ -70,25 +71,17 @@ class GongikWidget(QWidget):
         self.init_ui()
         
     def init_ui(self):
-        # currentDir = utils.extract_parent_dir()
 
         QToolTip.setFont(QFont('SansSerif', 10))
         layout = QGridLayout()
         self.setLayout(layout)
 
         # 0번 레이아웃
-        self.currentPath = QLabel(f'실행 경로: {resource_path()}')
+        self.currentPath = QLabel(f'실행 경로: {extract_parent_dir()}')
         layout.addWidget(self.currentPath, 0, 0, 1, 2)
         self.totalPics = QLabel(f'총 사진 개수: {len(self.dctName2AddrStorage)}')
         self.totalPics.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.totalPics, 0, 2)
-
-        # self.startingDir = QLabel(f'{}')
-        # layout.addWidget(self.startingDir, 0, 1)
-
-        # self.labelLoc4Preview = QLabel(f'장소 목록: {set(self.dctName2AddrStorage.values())}')
-        # self.labelLoc4Preview.setAlignment(Qt.AlignCenter)
-        # layout.addWidget(self.labelLoc4Preview, 0,2)
 
         self.instruction = QLabel('상세 입력')
         self.instruction.setAlignment(Qt.AlignCenter)

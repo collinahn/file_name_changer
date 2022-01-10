@@ -24,7 +24,7 @@ from PyQt5.QtCore import Qt
 
 from qCenterWid import GongikWidget
 from lib.change_name import NameChanger
-from lib.meta_data import GPSInfo
+from lib.meta_data import GPSInfo, TimeInfo
 from lib.utils import resource_path
 
 '''
@@ -32,7 +32,7 @@ exe 빌드하기
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.3.2(2022-01-10)'
+VERSION_INFO = 'v1.4.0a(2022-01-11)'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -41,21 +41,23 @@ class Gongik(QMainWindow):
         self.title = 'Gongik'
         self.main_icon_path = resource_path('img/frog.ico')
         self.exit_icon_path = resource_path('img/exit.ico')
-        
+
         self.clsNc = NameChanger()
         self.dctNameStorage = self.clsNc.dctName2Change
-        
+
         if not self.dctNameStorage:
-            failDlg = InitFailDialogue()
-            failDlg.exec_()
-            if failDlg.result:
-                QMessageBox.warning(self, '경고', f'개발중인 기능입니다.\n수동으로 사진을 옮기세요.')
-                sys.exit()
-            else:
-                QMessageBox.warning(self, '경고', f'종료합니다.')
-                sys.exit()
+            self.handle_failure()
 
         self.init_ui()
+        
+    def handle_failure(self):
+        failDlg = InitFailDialogue()
+        failDlg.exec_()
+        if failDlg.getFilesFmPhone:
+            QMessageBox.warning(self, '경고', '개발중인 기능입니다.\n수동으로 사진을 옮기세요.')
+        else:
+            QMessageBox.warning(self, '경고', '종료합니다.')
+        sys.exit()
 
     def init_ui(self):
         # 기본 설정
@@ -114,12 +116,11 @@ class InitFailDialogue(QDialog):
         self.title = '알림'
         self.icon_path = resource_path('img/frog.ico')
 
-        self.result: bool = False
+        self.getFilesFmPhone: bool = False
 
         self.setupUI()
 
     def setupUI(self):
-        # self.setGeometry(1100, 200, 300, 100)
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 
@@ -142,11 +143,11 @@ class InitFailDialogue(QDialog):
 
 
     def onBtnYesClicked(self):
-        self.result = True
+        self.getFilesFmPhone = True
         self.close()
 
     def onBtnNoClicked(self):
-        self.result = False
+        self.getFilesFmPhone = False
         self.close()
 
 class DeveloperInfoDialog(QDialog):
@@ -208,8 +209,9 @@ class AddrInfoDialog(QDialog):
 
         self.clsNc = NameChanger()
         self.clsGI = GPSInfo()
+        self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
-        self.dctName2Time = self.clsGI.time_as_str
+        self.dctName2Time = self.clsTI.time_as_str
 
         self.setupUI()
 
