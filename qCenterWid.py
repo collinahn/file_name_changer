@@ -1,3 +1,4 @@
+import sys
 from PyQt5.QtGui import (
     QPixmap,
     QFont
@@ -17,7 +18,6 @@ from PyQt5.QtWidgets import (
     QLineEdit, 
     QSizePolicy
 )
-import sys
 
 from change_name import NameChanger
 from meta_data import GPSInfo

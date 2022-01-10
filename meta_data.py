@@ -71,34 +71,40 @@ class GPSInfo(object):
             timeFile = self.dctDecodedMeta['DateTimeOriginal'] or self.dctDecodedMeta['DateTimeDigitized'] or self.dctDecodedMeta['DateTime']
             self.dctTimeFilesMade[fName] = timeFile
 
-            exifGPS = self.dctDecodedMeta['GPSInfo']
-            latData = exifGPS[2]
-            lonData = exifGPS[4]
+            try:
+                exifGPS = self.dctDecodedMeta['GPSInfo']
+                latData = exifGPS[2]
+                lonData = exifGPS[4]
 
             # 도, 분, 초 계산
-            latDeg = float(latData[0])
-            latMin = float(latData[1])
-            latSec = float(latData[2])
+                latDeg = float(latData[0])
+                latMin = float(latData[1])
+                latSec = float(latData[2])
 
-            lonDeg = float(lonData[0])
-            lonMin = float(lonData[1])
-            lonSec = float(lonData[2])
+                lonDeg = float(lonData[0])
+                lonMin = float(lonData[1])
+                lonSec = float(lonData[2])
 
-            # 도 decimal로 나타내기
-            # 위도 계산
-            Lat = (latDeg + (latMin + latSec / 60.0) / 60.0)
-            # 북위, 남위인지를 판단, 남위일 경우 -로 변경
-            if exifGPS[1] == 'S': 
-                Lat = Lat * -1
+                # 도 decimal로 나타내기
+                # 위도 계산
+                Lat = (latDeg + (latMin + latSec / 60.0) / 60.0)
+                # 북위, 남위인지를 판단, 남위일 경우 -로 변경
+                if exifGPS[1] == 'S': 
+                    Lat = Lat * -1
 
-            # 경도 계산
-            Lon = (lonDeg + (lonMin + lonSec / 60.0) / 60.0)
-            # 동경, 서경인지를 판단, 서경일 경우 -로 변경
-            if exifGPS[3] == 'W': 
-                Lon = Lon * -1
+                # 경도 계산
+                Lon = (lonDeg + (lonMin + lonSec / 60.0) / 60.0)
+                # 동경, 서경인지를 판단, 서경일 경우 -로 변경
+                if exifGPS[3] == 'W': 
+                    Lon = Lon * -1
 
-            self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
-
+                self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
+            except (ZeroDivisionError, KeyError) as ze:
+                print(ze)
+                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
+                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
+                print(f'{fName}의 위치정보를 찾을 수 없습니다.')
+                self.__dctGPSInfoWGS84[fName] = (0, 0)
             
 
         print('decode to WGS84 done')

@@ -27,9 +27,12 @@ from change_name import NameChanger
 from meta_data import GPSInfo
 import utils
 
-# exe 빌드하기
-# pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
-VERSION_INFO = 'v1.3a(2022-01-07)'
+'''
+exe 빌드하기
+pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
+'''
+
+VERSION_INFO = 'v1.3b(2022-01-10)'
 
 class Gongik(QMainWindow):
     def __init__(self):
