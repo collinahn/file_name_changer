@@ -23,9 +23,9 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 from qCenterWid import GongikWidget
-from change_name import NameChanger
-from meta_data import GPSInfo
-import utils
+from lib.change_name import NameChanger
+from lib.meta_data import GPSInfo
+from lib.utils import resource_path
 
 '''
 exe 빌드하기
@@ -39,8 +39,8 @@ class Gongik(QMainWindow):
         super().__init__()
 
         self.title = 'Gongik'
-        self.main_icon_path = utils.resource_path('img/frog.ico')
-        self.exit_icon_path = utils.resource_path('img/exit.ico')
+        self.main_icon_path = resource_path('img/frog.ico')
+        self.exit_icon_path = resource_path('img/exit.ico')
         
         self.clsNc = NameChanger()
         self.dctNameStorage = self.clsNc.dctName2Change
@@ -112,7 +112,7 @@ class InitFailDialogue(QDialog):
         super().__init__()
 
         self.title = '알림'
-        self.icon_path = utils.resource_path('img/frog.ico')
+        self.icon_path = resource_path('img/frog.ico')
 
         self.result: bool = False
 
@@ -154,7 +154,7 @@ class DeveloperInfoDialog(QDialog):
         super().__init__()
 
         self.title = '프로그램 정보'
-        self.icon_path = utils.resource_path('img/developer.ico')
+        self.icon_path = resource_path('img/developer.ico')
 
         self.setupUI()
 
@@ -167,7 +167,7 @@ class DeveloperInfoDialog(QDialog):
         label0_a = QLabel(VERSION_INFO)
         label1 = QLabel('개발자:')
         label1.setAlignment(Qt.AlignTop)
-        label1_a = QLabel("안태영")
+        label1_a = QLabel("안태영(Collin Ahn)")
         label2 = QLabel('연락처:')
         label2.setAlignment(Qt.AlignTop)
         label2_a = QLabel('collinahn@gmail.com')
@@ -204,7 +204,7 @@ class AddrInfoDialog(QDialog):
         super().__init__()
 
         self.title = '사진 상세'
-        self.icon_path = utils.resource_path('img/frog.ico')
+        self.icon_path = resource_path('img/frog.ico')
 
         self.clsNc = NameChanger()
         self.clsGI = GPSInfo()

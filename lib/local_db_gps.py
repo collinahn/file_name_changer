@@ -4,8 +4,8 @@ import sqlite3
 from sqlite3.dbapi2 import Connection
 from haversine import haversine
 
-from meta_data import GPSInfo
-import utils
+from .meta_data import GPSInfo
+from . import utils
 
 class LocalDB(object):
     def __new__(cls, *args):

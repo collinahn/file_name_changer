@@ -1,6 +1,6 @@
 # 현재 위치에서 파일 목록을 찾아서 보유한다.
 
-import utils
+from . import utils
 
 class FileDetector(object):
     def __new__(cls):

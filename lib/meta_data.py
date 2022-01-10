@@ -7,7 +7,7 @@ from pyproj import Proj
 from pyproj import transform
 from functools import partial
 
-from file_detect import FileDetector
+from .file_detect import FileDetector
 
 
 class GPSInfo(object):

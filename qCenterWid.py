@@ -19,9 +19,9 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 
-from change_name import NameChanger
-from meta_data import GPSInfo
-import utils
+from lib.change_name import NameChanger
+from lib.meta_data import GPSInfo
+from lib.utils import resource_path
 
 TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
 
@@ -77,7 +77,7 @@ class GongikWidget(QWidget):
         self.setLayout(layout)
 
         # 0번 레이아웃
-        self.currentPath = QLabel(f'실행 경로: {utils.resource_path()}')
+        self.currentPath = QLabel(f'실행 경로: {resource_path()}')
         layout.addWidget(self.currentPath, 0, 0, 1, 2)
         self.totalPics = QLabel(f'총 사진 개수: {len(self.dctName2AddrStorage)}')
         self.totalPics.setAlignment(Qt.AlignCenter)

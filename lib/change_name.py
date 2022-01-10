@@ -2,8 +2,8 @@
 
 import os
 
-import utils
-from get_name import Name
+from . import utils
+from .get_name import Name
 
 class NameChanger(object):
     def __new__(cls):

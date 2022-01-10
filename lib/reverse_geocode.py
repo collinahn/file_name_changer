@@ -4,8 +4,8 @@
 import requests
 import json
 
-from __api import API_KEY
-from meta_data import GPSInfo
+from .__api import API_KEY
+from .meta_data import GPSInfo
 
 
 class LocationRequest(object):
