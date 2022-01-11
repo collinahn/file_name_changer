@@ -7,7 +7,7 @@ class FileDetector(object):
     __dctArg2Instance: dict = {}
     __setIsInit: set = set()
 
-    def __new__(cls, targetDir=utils.extract_parent_dir(), *args):
+    def __new__(cls, targetDir=utils.extract_dir(), *args):
         if targetDir in cls.__dctArg2Instance:
             return cls.__dctArg2Instance[targetDir]
 
@@ -16,7 +16,7 @@ class FileDetector(object):
         print(f'FILE_DECTECTOR {targetDir =}', cls._instance)
         return cls._instance
 
-    def __init__(self, targetDir=utils.extract_parent_dir(), *args):
+    def __init__(self, targetDir=utils.extract_dir(), *args):
         cls = type(self)
         if targetDir not in cls.__setIsInit:
             self.lstPic: list[str] = utils.extract_file_name_sorted(targetDir)

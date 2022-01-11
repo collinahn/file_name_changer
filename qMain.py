@@ -1,11 +1,16 @@
 # v1.3
-# 시간순으로 정렬, 같은 시간대에 찍힌거면 맨 처음 지정한 위치로 통일 - 완료(v1.3)
-# 다음 보는 버튼이 사진에 가려서 안보임 레이아웃 조정 완료(v1.3)
-# 같은 위치에 찍힌 사진 수량 보여주기 -완료(v1.3)
-# 스펙시트 보여주기
+# 시간순으로 정렬, 같은 시간대에 찍힌거면 맨 처음 지정한 위치로 통일 - 완료(v1.3.2)
+# 다음 보는 버튼이 사진에 가려서 안보임 레이아웃 조정 완료(v1.3.1)
+# 같은 위치에 찍힌 사진 수량 보여주기 -완료(v1.3.1)
+# 스펙시트 보여주기(v1.3.1)
 
-# v1.3a
+# v1.4.0a
 # 파일이 없으면 지정된 경로에서 파일을 옮겨옴
+# pip install PyMTP (0.0.6)
+# pip install wmdlib(0.1dev-r17)
+
+
+# pip install pyproj pillow requests haversine pyinstaller pyqt5 comtypes
 
 import sys
 from PyQt5.QtWidgets import (
@@ -34,6 +39,7 @@ pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" -
 
 VERSION_INFO = 'v1.4.0a(2022-01-11)'
 
+
 class Gongik(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -54,9 +60,9 @@ class Gongik(QMainWindow):
         failDlg = InitFailDialogue()
         failDlg.exec_()
         if failDlg.getFilesFmPhone:
-            QMessageBox.warning(self, '경고', '개발중인 기능입니다.\n수동으로 사진을 옮기세요.')
+            QMessageBox.warning(self, '알림', '개발중인 기능입니다.\n수동으로 사진을 옮기세요.')
         else:
-            QMessageBox.warning(self, '경고', '종료합니다.')
+            QMessageBox.warning(self, '알림', '종료합니다.')
         sys.exit()
 
     def init_ui(self):
@@ -212,22 +218,31 @@ class AddrInfoDialog(QDialog):
         self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time_as_str
+        self.dctFinalResult = self.clsNc.dctFinalResult
 
         self.setupUI()
+
+    @staticmethod
+    def check_key_error(dctDataSet: dict[str, str], key: str) -> str:
+        try:
+            return dctDataSet[key]
+        except KeyError:
+            return '지정되지 않음'
 
     def setupUI(self):
         # self.setGeometry(1100, 200, 300, 100)
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 
-        lstNameAddrTime = [(QLabel('파일 이름'), QLabel('사진 위치'), QLabel('촬영 시각'))]
+        lstNameAddrTime = [(QLabel('파일 이름'), QLabel('사진 위치'), QLabel('촬영 시각'), QLabel('최종 이름'))]
         lstNameAddrTime[-1][0].setAlignment(Qt.AlignCenter)
         lstNameAddrTime[-1][1].setAlignment(Qt.AlignCenter)
         lstNameAddrTime[-1][2].setAlignment(Qt.AlignCenter)
+        lstNameAddrTime[-1][3].setAlignment(Qt.AlignCenter)
 
         # QLabel 객체 삽입
         for name, addr in self.dctName2AddrStorage.items():
-            lstNameAddrTime.append((QLabel(f'{name}'), QLabel(f'{addr}'), QLabel(f'{self.dctName2Time[name]}')))
+            lstNameAddrTime.append((QLabel(f'{name}'), QLabel(f'{addr}'), QLabel(f'{self.check_key_error(self.dctName2Time, name)}'), QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')))
         lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
 
         # 확인버튼

@@ -13,7 +13,7 @@ def extract_file_name_sorted(dir='.'):
     return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ] 
 
 
-def extract_parent_dir(): # 부모 디렉터리 추출
+def extract_dir(): # 부모 디렉터리 추출
     return os.getcwd().replace('\\', '/')
     # res = None
     # try:
@@ -42,4 +42,4 @@ def open_image(name) -> Image:
 
 
 if __name__ == '__main__':
-    print(extract_parent_dir())
+    print(extract_dir())

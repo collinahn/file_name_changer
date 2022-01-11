@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (
 
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
-from lib.utils import extract_parent_dir
+from lib.utils import extract_dir
 
 TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
 
@@ -77,7 +77,7 @@ class GongikWidget(QWidget):
         self.setLayout(layout)
 
         # 0번 레이아웃
-        self.currentPath = QLabel(f'실행 경로: {extract_parent_dir()}')
+        self.currentPath = QLabel(f'실행 경로: {extract_dir()}')
         layout.addWidget(self.currentPath, 0, 0, 1, 2)
         self.totalPics = QLabel(f'총 사진 개수: {len(self.dctName2AddrStorage)}')
         self.totalPics.setAlignment(Qt.AlignCenter)
@@ -126,8 +126,8 @@ class GongikWidget(QWidget):
         self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(540, 360))#, Qt.KeepAspectRatio))
         layout.addWidget(self.picPreview, 2, 2, 3, -1)
 
-        self.btnNextAddr = QPushButton('다음 장소 보기\n(Alt+W)')
-        self.btnNextAddr.setShortcut('Alt+W')
+        self.btnNextAddr = QPushButton('다음 장소 보기\n(Alt+F)')
+        self.btnNextAddr.setShortcut('Alt+F')
         self.btnNextAddr.setToolTip('같은 장소에서 찍힌 사진들은 상기 등록된 이름 형식으로 저장되고, 다른 장소에서 찍은 사진을 불러옵니다.')
         self.btnNextAddr.clicked.connect(self.onBtnShowNextAddr)
         layout.addWidget(self.btnNextAddr, 3, 0)
@@ -153,18 +153,19 @@ class GongikWidget(QWidget):
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
         self.radioBtn2ndCar.setShortcut('Alt+2')
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
-        self.radioBtn2ndCar.setChecked(True)
+        if self.clsNc.gubun == '2': self.radioBtn2ndCar.setChecked(True)
+        else: self.radioBtn1stCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
         self.btn2Change = QPushButton('완료 및 이름 바꾸기\n(Ctrl+Shift+S)')
         self.btn2Change.setShortcut('Ctrl+Shift+S')
         self.btn2Change.setMinimumHeight(70)
         self.btn2Change.setToolTip('현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.')
-        self.btn2Change.clicked.connect(self.onBtnChange)
+        self.btn2Change.clicked.connect(self.onBtnChangeLocation)
         layout.addWidget(self.btn2Change, 5, 0, -1, 2)
 
-        self.btnNextPicSameAddr = QPushButton('같은 장소 다른 사진 보기\n(Alt+F)')
-        self.btnNextPicSameAddr.setShortcut('Alt+F')
+        self.btnNextPicSameAddr = QPushButton('같은 장소 다른 사진 보기\n(Alt+W)')
+        self.btnNextPicSameAddr.setShortcut('Alt+W')
         self.btnNextPicSameAddr.setToolTip('같은 장소에서 찍힌 사진 중 다른 사진으로 미리보기를 교체합니다.')
         self.btnNextPicSameAddr.clicked.connect(self.onBtnNextPreview)
         layout.addWidget(self.btnNextPicSameAddr, 5, 2)
@@ -292,6 +293,17 @@ class GongikWidget(QWidget):
         print(f'onChange {self.tempImgPreview = }')
 
 
+    #라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
+    def setRadioBtnAsChecked(self):
+        if self.tempImgPreview not in self.dctOldName2BeforeAfter:
+            self.radioBtnDefault.setChecked(True)
+            return
+
+        if self.dctOldName2BeforeAfter[self.tempImgPreview] == '전':
+            self.radioBtnBefore.setChecked(True)
+        elif self.dctOldName2BeforeAfter[self.tempImgPreview] == '후':
+            self.radioBtnAfter.setChecked(True)
+
 
     def onBtnNextPreview(self):
         self.store_preview_history(self.currentPreview, storeEntireLoc=False)
@@ -307,13 +319,7 @@ class GongikWidget(QWidget):
         self.update_pixmap(self.tempImgPreview)
 
         # 라디오버튼 기억
-        if self.tempImgPreview in self.dctOldName2BeforeAfter:
-            if self.dctOldName2BeforeAfter[self.tempImgPreview] == '전':
-                self.radioBtnBefore.setChecked(True)
-            elif self.dctOldName2BeforeAfter[self.tempImgPreview] == '후':
-                self.radioBtnAfter.setChecked(True)
-        else:
-            self.radioBtnDefault.setChecked(True)
+        self.setRadioBtnAsChecked()
 
         # 사진 개수 트래킹
         self.currentPos4Preview = (self.currentPos4Preview + 1) % self.dctLoc2LocNumber[self.dctName2AddrStorage[self.currentPreview]] # 0부터 시작
@@ -323,8 +329,7 @@ class GongikWidget(QWidget):
 
         print(f'onChangePreview {self.tempImgPreview = }')
 
-    #TODO: 리팩토링좀
-    def onBtnChange(self):
+    def onBtnChangeLocation(self):
         self.register_unmanaged_filenames() # 처리되지 않고 넘어간 파일 이름 처리
 
         while True: # 디테일을 전부 다 지정하지 않고 넘어가는 경우
@@ -338,7 +343,7 @@ class GongikWidget(QWidget):
         else:
             QMessageBox.warning(self, '경고', '문제가 있어 일부 파일을 처리하지 못했습니다.(수동 확인 필요)')
 
-        QMessageBox.information(self, '알림', '프로그램을 종료하고 퇴근합니다.')
+        QMessageBox.information(self, '알림', '프로그램을 종료합니다.\n일부 중복된 장소를 확인해주세요.')
         sys.exit()
 
 

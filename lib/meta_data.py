@@ -15,7 +15,7 @@ class TimeInfo(object):
     __dctDir2Instance: dict = {}
     __setIsInit: set = set()
 
-    def __new__(cls, targetDir=utils.extract_parent_dir()):
+    def __new__(cls, targetDir=utils.extract_dir()):
         if targetDir in cls.__dctDir2Instance:
             return cls.__dctDir2Instance[targetDir]
 
@@ -24,7 +24,7 @@ class TimeInfo(object):
         print(f'TIME_INFO {targetDir =}', cls._instance)
         return cls._instance
 
-    def __init__(self, targetDir=utils.extract_parent_dir()):
+    def __init__(self, targetDir=utils.extract_dir()):
         cls = type(self)
         if targetDir not in cls.__setIsInit:
             self.targetDir = targetDir

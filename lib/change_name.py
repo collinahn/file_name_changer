@@ -31,8 +31,8 @@ class NameChanger(object):
             cls._init = True
 
     @staticmethod
-    def _change_name(oldName, addr, cnt, header=2):
-        newName = str(header) + '_' + addr + ' ' + str(oldName.split('.')[0]) + ' (' + str(cnt) + ')' + '.jpg'
+    def _change_name(oldName, addr, cnt, header='2'):
+        newName = header + '_' + addr + ' ' + str(oldName.split('.')[0]) + ' (' + str(cnt) + ')' + '.jpg'
         os.rename(oldName, newName)
 
     # 이미 필터링된 주소를 넘기는 것으로 수정
@@ -40,41 +40,41 @@ class NameChanger(object):
     def _simplify_address(origin):
         return origin
 
-    def process_cli(self):
+    @staticmethod
+    def extract_parent_dir(dir):
+        try:
+            return dir.rsplit('/', 1)[1]
+        except (IndexError, AttributeError) as e:
+            print(e)
+        return '2'
+
+
+    def get_car_no_from_parent_dir(self) -> str:
         gubun = 2
-        parentFolderName = utils.extract_parent_dir()
+        parentFolderName = self.extract_parent_dir(utils.extract_dir())
 
         #호차 구분
         if '1' in parentFolderName:
             gubun = 6 #1조는 6으로
         elif '2' in parentFolderName:
             gubun = 2
-        elif '3' in parentFolderName:
-            gubun = 3
-        elif '4' in parentFolderName:
-            gubun = 4
+
+        return str(gubun)
+
+    def process_cli(self):
+        gubun = self.get_car_no_from_parent_dir()
 
         for cnt, (oldName, addr) in enumerate(self.dctName2Change.items(), start=1):
             self._change_name(oldName, addr, cnt, gubun)
 
+
     def get_final_name(self, oldName, detailInput):
-        # 현재 폴더 오류로 실행은 하되 마지막에 실제 호차구분으로 대체됨
-        gubun = 2
-        parentFolderName = utils.extract_parent_dir()
+        gubun = self.get_car_no_from_parent_dir()
 
-        #호차 구분
-        if '1' in parentFolderName:
-            gubun = 6 #1조는 6으로
-        elif '2' in parentFolderName:
-            gubun = 2
-        elif '3' in parentFolderName:
-            gubun = 3
-        elif '4' in parentFolderName:
-            gubun = 4
-
-        self.dctFinalResult[oldName] = str(gubun) + '_' + self.dctName2Change[oldName] + ' ' + detailInput
+        self.dctFinalResult[oldName] = gubun + '_' + self.dctName2Change[oldName] + ' ' + detailInput
         
         return self.dctFinalResult[oldName]
+
 
     def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter, carSpec='2') -> bool:
         ret = True
@@ -93,6 +93,10 @@ class NameChanger(object):
                 print(e, 'exception')
                 ret = False
         return ret
+
+    @property
+    def gubun(self):
+        return self.get_car_no_from_parent_dir()
 
 if __name__ == '__main__':
     cn = NameChanger()
