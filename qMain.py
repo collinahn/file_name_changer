@@ -1,16 +1,16 @@
 # v1.3
-# 시간순으로 정렬, 같은 시간대에 찍힌거면 맨 처음 지정한 위치로 통일 - 완료(v1.3.2)
 # 다음 보는 버튼이 사진에 가려서 안보임 레이아웃 조정 완료(v1.3.1)
 # 같은 위치에 찍힌 사진 수량 보여주기 -완료(v1.3.1)
 # 스펙시트 보여주기(v1.3.1)
+# 시간순으로 정렬, 같은 시간대에 찍힌거면 맨 처음 지정한 위치로 통일 - 완료(v1.3.2)
 
-# v1.4.0a
-# 파일이 없으면 지정된 경로에서 파일을 옮겨옴
-# pip install PyMTP (0.0.6)
-# pip install wmdlib(0.1dev-r17)
+# v1.4
+# 파일이 없으면 지정된 경로에서 파일을 옮겨옴(ppadb 이용)(v1.4.0)
+# 같은 폴더에 exif정보가 없는 사진이 있으면 예외처리를 못하던 문제 수정(v1.4.1)
+# 연결 전 adb 서버를 가동하여 USB footprint를 pc에 저장한다.(v1.4.2)
 
 
-# pip install pyproj pillow requests haversine pyinstaller pyqt5 comtypes
+# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
 import sys
 from PyQt5.QtWidgets import (
@@ -34,10 +34,11 @@ from lib.utils import resource_path
 
 '''
 exe 빌드하기
-pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --icon=img/frog.ico qMain.py
+pyinstaller -F --clean qMain.spec
+pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.4.0a(2022-01-11)'
+VERSION_INFO = 'v1.4.2(2022-01-13)'
 
 
 class Gongik(QMainWindow):
@@ -53,17 +54,36 @@ class Gongik(QMainWindow):
 
         if not self.dctNameStorage:
             self.handle_failure()
+            sys.exit()
 
         self.init_ui()
-        
-    def handle_failure(self):
+    
+    def _handle_ADB_failure(self, cls):
+        if not cls.connected:
+            QMessageBox.warning(self, '경고', '연결된 기기가 없거나\nUSB디버깅 모드가 활성화되지 않았습니다.')
+            sys.exit()
+        if not cls.executable:
+            QMessageBox.warning(self, '경고', '연결된 기기가 하나 이상입니다.')
+            sys.exit()
+
+    def handle_failure(self) -> bool:
         failDlg = InitFailDialogue()
         failDlg.exec_()
-        if failDlg.getFilesFmPhone:
-            QMessageBox.warning(self, '알림', '개발중인 기능입니다.\n수동으로 사진을 옮기세요.')
-        else:
-            QMessageBox.warning(self, '알림', '종료합니다.')
-        sys.exit()
+
+        if not failDlg.getFilesFmPhone:
+            QMessageBox.information(self, '알림', '종료합니다.')
+            return False
+
+        from lib.file_copy import BridgePhone
+        clsBP = BridgePhone()
+        self._handle_ADB_failure(clsBP)
+        if not clsBP.transfer_files():
+            QMessageBox.information(self, '알림', '연결이 불안정하여 사진을 옮기지 못하였습니다.\nuser/.adroid폴더 내부 adbkey를 확인해주세요.\n혹은 핸드폰에 표시된 팝업창 중 "이 컴퓨터에서 항상 허용"을 체크하고 다시 실행해주세요.')
+            return False
+            
+        QMessageBox.information(self, '알림', '사진 옮기기가 완료되었습니다.\n프로그램을 다시 시작해주세요.')
+
+        return True
 
     def init_ui(self):
         # 기본 설정
@@ -103,7 +123,6 @@ class Gongik(QMainWindow):
         additionalMenu.addAction(infoAction)
         additionalMenu.addAction(checkAction)
 
-        # self.setGeometry(540, 300, 300, 200)
         self.show()
 
     def onModalDeveloperInfo(self):
@@ -230,7 +249,6 @@ class AddrInfoDialog(QDialog):
             return '지정되지 않음'
 
     def setupUI(self):
-        # self.setGeometry(1100, 200, 300, 100)
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 

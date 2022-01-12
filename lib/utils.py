@@ -3,10 +3,14 @@ import os
 from PIL import Image
 from PIL import UnidentifiedImageError
 
+# 취급하는 파일 확장자 표시
+def get_valid_file_ext():
+    return ( r'.jpg', r'.jpeg' )
+
 # 파일 목록 추출
 # jpg 확장자가 아니거나 이미 바꾼 목록은 건들지 않음
 def extract_file_name_sorted(dir='.'):
-    fileExt = ( r'.jpg', r'.jpeg' )
+    fileExt = get_valid_file_ext()
     alreadyHandled = ( r'6_', r'2_', r'3_', r'4_' )
 
     lstRes: list[str] = os.listdir(dir)

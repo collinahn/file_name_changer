@@ -123,9 +123,10 @@ class GPSInfo(object):
 
             # if not fileImage:
             #     continue
-
-            self.dctMetaData[fileName] = fileImage._getexif()
-
+            try:
+                self.dctMetaData[fileName] = fileImage._getexif()
+            except AttributeError:
+                continue
         # print(f"{self.dctMetaData = }")
 
     def decode_meta_data(self, metadata):
