@@ -17,5 +17,14 @@
 * PyQt5 5.15.6
 * pyinstaller 4.7
 
-### Files
+### Usage
+exe 빌드하기 
+```
+pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
+```
+
+* 실행 파일이 있는 폴더에 사진 파일이 없는 경우
+  * 연결된 핸드폰 기본 사진 폴더(/sdcard/DCIM/Camera)에서 오늘 찍은 사진을 가져온다.
+* 사진 파일이 있는 경우
+  * 사진의 위치와 시간을 고려하여 특정 기준으로 분류한 뒤 GUI프로그램 실행
 
