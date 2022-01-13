@@ -157,8 +157,8 @@ class GongikWidget(QWidget):
         else: self.radioBtn1stCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
-        self.btn2Change = QPushButton('완료 및 이름 바꾸기\n(Ctrl+Shift+S)')
-        self.btn2Change.setShortcut('Ctrl+Shift+S')
+        self.btn2Change = QPushButton('완료 및 이름 바꾸기\n(Ctrl+Shift+E)')
+        self.btn2Change.setShortcut('Ctrl+Shift+E')
         self.btn2Change.setMinimumHeight(70)
         self.btn2Change.setToolTip('현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.')
         self.btn2Change.clicked.connect(self.onBtnChangeLocation)

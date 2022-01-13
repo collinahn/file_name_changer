@@ -38,7 +38,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.4.2(2022-01-13)'
+VERSION_INFO = 'v1.4.3(2022-01-13)'
 
 
 class Gongik(QMainWindow):
