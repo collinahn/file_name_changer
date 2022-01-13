@@ -68,7 +68,7 @@ class TimeInfo(object):
             self.dctTimeFilesMade[fName] = timeFile
     
     @property
-    def time_as_str(self):
+    def time_as_dct(self):
         return self.dctTimeFilesMade
 
     @property
@@ -228,5 +228,5 @@ if __name__ == '__main__':
     time2 = TimeInfo(".")
     time4 = TimeInfo(".")
     print(time.dctTimeFilesMade)
-
+    print(time.time_as_dct)
 

@@ -236,7 +236,7 @@ class AddrInfoDialog(QDialog):
         self.clsGI = GPSInfo()
         self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
-        self.dctName2Time = self.clsTI.time_as_str
+        self.dctName2Time = self.clsTI.time_as_dct
         self.dctFinalResult = self.clsNc.dctFinalResult
 
         self.setupUI()

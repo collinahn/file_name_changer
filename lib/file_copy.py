@@ -64,12 +64,9 @@ class BridgePhone(object):
             
         return dctRet
 
-    def _get_today_date(self) -> str:
-        return datetime.now().strftime('%Y-%m-%d') #2022-01-12
-
     # 오늘 날짜의 파일을 리스트로 리턴
     def _init_filter_today_pic(self) -> list:
-        todayDate = self._get_today_date()
+        todayDate = utils.get_today_date_formated('-')
 
         return [ fName for fName, fDate in self._dctName2Date.items() if fDate==todayDate ]
 

@@ -21,7 +21,10 @@ from PyQt5.QtWidgets import (
 
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
-from lib.utils import extract_dir
+from lib.utils import (
+    extract_dir, 
+    get_today_date_formated
+)
 
 TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
 
@@ -183,6 +186,7 @@ class GongikWidget(QWidget):
         lstTimePicTakenSorted = sorted(list(self.dctName2Time.values()))
         dctTimeLaps: dict[int,str] = {} # 기준이 되는 시간과 주소를 기록한다
         timeStandard = 0 # for루프를 돌 때 기준이 되는 시간점
+        todaysDate = get_today_date_formated(':')
 
         # 시간 기준으로 첫 사진이 찍히고 상당 기간 내에 사진이 찍히지 않을 경우 
         # 첫 사진의 주소로 상당 기간 내에 찍힌 그 이후 사진들의 주소를 대체한다 
@@ -194,6 +198,8 @@ class GongikWidget(QWidget):
                         dctTimeLaps[timeStandard] = self.dctName2AddrStorage[fName4Init] # 기준들 저장
 
         for fName, time in self.dctName2Time.items():
+            if todaysDate not in self.clsTI.dctTimeFilesMade[fName]:
+                continue # 오늘 날짜가 아니면 시간 제한을 적용하지 않는다
             for tMin, roadAddr in dctTimeLaps.items():
                 if time - tMin < TIME_GAP and time - tMin >= 0: # 기준점을 기준으로 기준 시간 내에 드는경우
                     self.dctName2AddrStorage[fName] = roadAddr

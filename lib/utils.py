@@ -1,7 +1,11 @@
+from datetime import datetime
 import sys
 import os
 from PIL import Image
 from PIL import UnidentifiedImageError
+
+def get_today_date_formated(separator) -> str:
+    return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
 
 # 취급하는 파일 확장자 표시
 def get_valid_file_ext():
@@ -19,13 +23,6 @@ def extract_file_name_sorted(dir='.'):
 
 def extract_dir(): # 부모 디렉터리 추출
     return os.getcwd().replace('\\', '/')
-    # res = None
-    # try:
-    #     res = resource_path('.').rsplit('\\', 1)[-2]
-    # except (IndexError, AttributeError) as e:
-    #     print(e)
-    
-    # return res
 
 def resource_path(relative_path):
     try:
