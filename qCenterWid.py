@@ -48,7 +48,7 @@ class GongikWidget(QWidget):
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time # {이름:초로 나타낸 시간}
         self.lstOldName = list(self.dctName2AddrStorage.keys())
-        self._correct_road_addr_with_time() # 위치 보정
+        self._correct_addr_with_time() # 위치 보정
 
         self.lstTempNamePool = [] # 파일 미리보기를 위한 임시 리스트
         self.currentPos4Preview = 0 # 파일 미리보기 인덱스
@@ -65,7 +65,7 @@ class GongikWidget(QWidget):
         self.setProcessedName = set()
         self.setProcessedAddr = set()
         self.dctOldName2BeforeAfter = {}
-        self.carNumber = '2' # 호차 구분 (1호차: 6, 2호차: 2)
+        self.carNumber = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
 
         self.currentPreview = self.lstOldName[0]
         self.tempImgPreview = self.currentPreview # 장소별/같은 장소 내의 임시 프리뷰 통합 관리/ currentPreview는 다음 장소 업데이트를 위해.. temp는 같은 장소 내에서.
@@ -182,7 +182,7 @@ class GongikWidget(QWidget):
         return result
 
     # 초기화 시 시간을 기준으로 주소를 교정한다.
-    def _correct_road_addr_with_time(self):
+    def _correct_addr_with_time(self):
         lstTimePicTakenSorted = sorted(list(self.dctName2Time.values()))
         dctTimeLaps: dict[int,str] = {} # 기준이 되는 시간과 주소를 기록한다
         timeStandard = 0 # for루프를 돌 때 기준이 되는 시간점
@@ -239,25 +239,25 @@ class GongikWidget(QWidget):
 
 
     # 추적 흔적을 남긴다, 추후 조회하여 다시 리뷰할 것인지 판단할 때 사용.
-    def store_preview_history(self, name, storeEntireLoc=True):
+    def _store_preview_history(self, name, storeEntireLoc=True):
         self.setProcessedName.add(name)
         if storeEntireLoc:
             self.setProcessedAddr.add(self.dctName2AddrStorage[name])
 
-    def register_unmanaged_filenames(self):
+    def _register_unmanaged_names(self):
         # 현재 커서의 지정 이름 저장
         targetFileName = self.currentPreview
-        self.store_preview_history(targetFileName)
+        self._store_preview_history(targetFileName)
         self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]] = self.clsNc.get_final_name(targetFileName, self.nameInput.text())
         self.log.INFO('filename =', targetFileName, ':', self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]])
 
     # 사진과 설명을 업데이트한다.
-    def update_pixmap(self, srcName):
+    def _update_pixmap(self, srcName):
         self.picPreview.setPixmap(QPixmap(srcName).scaled(540, 360))# , Qt.KeepAspectRatio))
     
     def onBtnRegName(self):
         oldFileName = self.currentPreview
-        self.store_preview_history(oldFileName)
+        self._store_preview_history(oldFileName)
 
         text = self.nameInput.text()
         newFileName = self.clsNc.get_final_name(oldFileName, text)
@@ -271,7 +271,7 @@ class GongikWidget(QWidget):
         self.lstTempNamePool = [] # 장소 단위 리스트 초기화
         self.currentPos4Preview = 0
 
-        self.register_unmanaged_filenames() # 처리되지 않은 파일 이름들 처리
+        self._register_unmanaged_names() # 처리되지 않은 파일 이름들 처리
 
         nextFileName = self._point_file_name()
         if not nextFileName:
@@ -290,7 +290,7 @@ class GongikWidget(QWidget):
             self.log.INFO('preview list updated')
             self.lstTempNamePool.remove(self.currentPreview)
 
-        self.update_pixmap(self.currentPreview)
+        self._update_pixmap(self.currentPreview)
         self.fileNamePreview.setText('')
         self.textPointer4SameLoc = self._generate_text_for_indicator()
         self.labelPointer4SameLoc.setText(self.textPointer4SameLoc)
@@ -313,7 +313,7 @@ class GongikWidget(QWidget):
 
 
     def onBtnNextPreview(self):
-        self.store_preview_history(self.currentPreview, storeEntireLoc=False)
+        self._store_preview_history(self.currentPreview, storeEntireLoc=False)
         currentLoc = self.dctName2AddrStorage[self.currentPreview]
         if not self.lstTempNamePool: #이 리스트가 비어있으면 업데이트
             for oldName, roadAddr in self.dctName2AddrStorage.items():
@@ -323,7 +323,7 @@ class GongikWidget(QWidget):
 
         self.tempImgPreview = self.lstTempNamePool.pop()
 
-        self.update_pixmap(self.tempImgPreview)
+        self._update_pixmap(self.tempImgPreview)
 
         # 라디오버튼 기억
         self.setRadioBtnAsChecked()
@@ -337,7 +337,7 @@ class GongikWidget(QWidget):
         self.log.INFO('onBtnNextPreview', self.tempImgPreview, 'Location =', currentLoc)
 
     def onBtnChangeFileName(self):
-        self.register_unmanaged_filenames() # 처리되지 않고 넘어간 파일 이름 처리
+        self._register_unmanaged_names() # 처리되지 않고 넘어간 파일 이름 처리
 
         while True: # 디테일을 전부 다 지정하지 않고 넘어가는 경우
             self.currentPreview = self._point_file_name()

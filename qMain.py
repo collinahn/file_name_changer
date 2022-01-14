@@ -10,7 +10,10 @@
 # 연결 전 adb 서버를 가동하여 USB footprint를 pc에 저장한다.(v1.4.2)
 # 충돌 있는 키보드 단축키 변경(v1.4.3)
 # Logger 추가(v1.4.3)
+# 1호차 구분이 제대로 되지 않는 버그 수정(v1.4.4)
 
+# v1.5(예정)
+# 카카오API로 주소를 받아온다
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -41,7 +44,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.4.3(2022-01-13)'
+VERSION_INFO = 'v1.4.4(2022-01-14)'
 
 
 class Gongik(QMainWindow):
@@ -49,9 +52,15 @@ class Gongik(QMainWindow):
         super().__init__()
 
         self.log = Logger()
-        self.log.INFO('========program started===========')
+        self.log.INFO('')
+        self.log.INFO('')
+        self.log.INFO('')
+        self.log.INFO('==============program started=================')
         self.log.INFO('version:', VERSION_INFO)
-        self.log.INFO('========program started===========')
+        self.log.INFO('==============program started=================')
+        self.log.INFO('')
+        self.log.INFO('')
+        self.log.INFO('')
 
         self.title = 'Gongik'
         self.main_icon_path = utils.resource_path('img/frog.ico')
@@ -86,11 +95,11 @@ class Gongik(QMainWindow):
 
         return True
 
-    def _handle_ADB_failure(self, cls):
-        if not cls.connected:
+    def _handle_ADB_failure(self, clsBridgePhone):
+        if not clsBridgePhone.connected:
             self._pop_warn_msg('연결된 기기가 없거나 USB디버깅 모드가 활성화되지 않았습니다.')
 
-        if not cls.executable:
+        if not clsBridgePhone.executable:
             self._pop_warn_msg('연결된 기기가 하나 이상입니다.')
 
     def _pop_warn_msg(self, msg):
@@ -267,13 +276,6 @@ class AddrInfoDialog(QDialog):
 
         self.setupUI()
 
-    @staticmethod
-    def check_key_error(dctDataSet: dict[str, str], key: str) -> str:
-        try:
-            return dctDataSet[key]
-        except KeyError:
-            return '지정되지 않음'
-
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
@@ -302,6 +304,13 @@ class AddrInfoDialog(QDialog):
         layout.addWidget(self.pushButton1, len(lstNameAddrTime)+1, 0, -1, -1)
 
         self.setLayout(layout)
+
+    @staticmethod
+    def check_key_error(dctDataSet: dict[str, str], key: str) -> str:
+        try:
+            return dctDataSet[key]
+        except KeyError:
+            return '지정되지 않음'
 
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')

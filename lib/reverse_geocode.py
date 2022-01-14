@@ -4,7 +4,9 @@
 import requests
 import json
 
+
 from .__api import API_KEY
+from .log_gongik import Logger
 from .meta_data import GPSInfo
 
 
@@ -13,7 +15,8 @@ class LocationRequest(object):
         if not hasattr(cls, '_instance'):
             cls._instance = super().__new__(cls)
 
-        print('LOCATION_REQUEST', cls._instance)
+        cls.log = Logger()
+        cls.log.INFO(cls._instance)
         return cls._instance
 
     def __init__(self):
@@ -69,13 +72,13 @@ class LocationRequest(object):
             'y': y
         }
 
-        print(f'{params = }')
-
-        if not option:
+        if option:
             params['input_coord'] = option
 
         res = requests.get(self.URL_03, headers=self.headers, params=params)
-        print(f'{json.loads(res.text) = }')
+
+        self.log.INFO(f'{params = } / {json.loads(res.text) = }')
+
         return json.loads(res.text)
 
     # 들어온 정보가 없으면 False
@@ -84,38 +87,39 @@ class LocationRequest(object):
             if json['meta']['total_count'] == 0:
                 return False
         except (AttributeError, KeyError) as ae:
-            print(ae)
+            self.log.ERROR(ae)
 
         return True
 
     # 도로명주소가 있으면 도로명 주소를, 없으면 지번주소를 반환한다
     def parse_addr_response(self, x, y, option=None):
         jsonData = self._send_request_addr4gps(x, y, option)
-        # print(f'{jsonData = }')
         ret = 'Undefined'
 
         if not self._check_valid(jsonData):
             return ret
 
         try:
-            if jsonData['documents'][0]['road_address'] is not None: #도로명 주소인경우
-                addrAll = jsonData['documents'][0]['road_address']['address_name']
-                addrRoad = addrAll.split(' ', -1)[-2:]
-                ret = ' '.join(addrRoad)
+            # if jsonData['documents'][0]['road_address'] is not None: #도로명 주소인경우
+            #     addrAll = jsonData['documents'][0]['road_address']['address_name']
+            #     addrRoad = addrAll.split(' ', -1)[-2:]
+            #     ret = ' '.join(addrRoad)
 
-            else: # 지번 주소인 경우(인천은 주로 지번주소)
-                ret = jsonData['documents'][0]['address']['address_name']
-                filterCity = jsonData['documents'][0]['address']['region_1depth_name']
-                filterProvince = jsonData['documents'][0]['address']['region_2depth_name']
+            # else: # 지번 주소인 경우(인천은 주로 지번주소)
+            ret = jsonData['documents'][0]['address']['address_name']
+            filterCity = jsonData['documents'][0]['address']['region_1depth_name']
+            filterProvince = jsonData['documents'][0]['address']['region_2depth_name']
 
-                cnt2Reduce = len(filterCity) + len(filterProvince) + 2 # 띄어쓰기 포함
+            cnt2Reduce = len(filterCity) + len(filterProvince) + 2 # 띄어쓰기 포함
 
-                ret = ret[cnt2Reduce:]
+            ret = ret[cnt2Reduce:]
             
             # ret = jsonData['documents'][0]['road_address']['address_name'] or jsonData['documents'][0]['address']['address_name']
 
-        except (AttributeError, IndexError, KeyError) as e:
-            print(e)
+        except (AttributeError, IndexError, KeyError) as es:
+            self.log.ERROR(es)
+        except Exception as e:
+            self.log.CRITICAL(e)
 
         return ret
 

@@ -4,6 +4,8 @@ import sqlite3
 from sqlite3.dbapi2 import Connection
 from haversine import haversine
 
+
+from .log_gongik import Logger
 from .meta_data import GPSInfo
 from . import utils
 
@@ -12,7 +14,8 @@ class LocalDB(object):
         if not hasattr(cls, '_instance'):
             cls._instance = super().__new__(cls)
 
-        print('LOCALDB', cls._instance)
+        cls.log = Logger()
+        cls.log.INFO(cls._instance)
         return cls._instance
 
     def __init__(self, flagThread=None):
@@ -29,32 +32,9 @@ class LocalDB(object):
     def gps_radius(self):
         return 130
 
-    # 도로명주소를 반환한다.
-    def get_addr(self, tplCoord: tuple[float,float]) -> str:
-        lstDBRet = self.__query_db(tplCoord)
-
-        if not lstDBRet:
-            return 'Undefined'
-
-        minDistance = 999_999_999_999
-        minIdx = 0
-
-        for tryIdx, record in enumerate(lstDBRet):
-            # 타깃 x, y좌표
-            coordFmDB = record[-2:]
-            distance = haversine(tplCoord, coordFmDB)
-            if minDistance > distance:
-                minDistance = distance
-                minIdx = tryIdx # 인덱스 추적
-
-        # 도로명 + 공백 + 건물번호
-        return lstDBRet[minIdx][7] + " " + lstDBRet[minIdx][9]
-
-            
-
     
     # 지정된 범위 내의 좌표를 가진 레코드들을 전부 불러온다
-    def __query_db(self, tplCoord: tuple[float,float]) -> list[tuple]:
+    def _query_db(self, tplCoord: tuple[float,float]) -> list[tuple]:
         conn: Connection = None
         lstRet: list = []
 
@@ -73,14 +53,47 @@ class LocalDB(object):
             lstRet = curs.fetchall()
 
         except sqlite3.Error as e: 
-            print(e)
+            self.log.ERROR(e)
         finally:
             if conn: 
                 conn.close()
 
-        # print(f'{lstRet = }')
-        print(f'{len(lstRet) = }')
+        # print(f'{len(lstRet) = }')
         return lstRet
+
+
+    # 도로명주소를 반환한다.
+    def get_addr(self, tplCoord: tuple[float,float]) -> str:
+        lstDBRet = self._query_db(tplCoord)
+
+        if not lstDBRet:
+            return 'Undefined'
+
+        minDistance = 999_999_999_999
+        minIdx = 0
+
+        for tryIdx, record in enumerate(lstDBRet):
+            # 타깃 x, y좌표
+            coordFmDB = record[-2:]
+            distance = haversine(tplCoord, coordFmDB)
+            if minDistance > distance:
+                minDistance = distance
+                minIdx = tryIdx # 인덱스 추적
+
+        try:
+            roadName = lstDBRet[minIdx][7]
+        except (AttributeError, IndexError) as es:
+            self.log.ERROR(es)
+            roadName = 'UndefinedRoadName'
+
+        try:
+            buildingNo = lstDBRet[minIdx][9]
+        except (AttributeError, IndexError) as es:
+            self.log.ERROR(es)
+            buildingNo = 'UndefinedBuildingNo'
+
+        # 도로명 + 공백 + 건물번호
+        return roadName + " " + buildingNo
 
 
 

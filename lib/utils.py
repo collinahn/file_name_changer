@@ -1,8 +1,10 @@
-from datetime import datetime
 import sys
 import os
 from PIL import Image
 from PIL import UnidentifiedImageError
+from datetime import datetime
+
+from .log_gongik import Logger
 
 def get_today_date_formated(separator) -> str:
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
@@ -18,7 +20,7 @@ def extract_file_name_sorted(dir='.'):
     alreadyHandled = ( r'6_', r'2_', r'3_', r'4_' )
 
     lstRes: list[str] = os.listdir(dir)
-    return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ] 
+    return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ]
 
 
 def extract_dir(): # 부모 디렉터리 추출

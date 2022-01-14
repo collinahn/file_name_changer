@@ -1,45 +1,65 @@
 # 유선으로 연결된 핸드폰(mtp)에서 파일을 가저온다.
-# TODO: TimeInfo클래스를 이용해서 가져올 파일들 확인
+# ADB 서버를 통해 파일을 가져옴
 
 import os
-from datetime import datetime
 from ppadb.client import Client as AdbClient
 
 from . import utils
-
+from .log_gongik import Logger
 
 
 class BridgePhone(object):
     def __init__(self):
 
+        self.log = Logger()
+
         self.DCIMpath = '/sdcard/DCIM/Camera'
         self.PCpath  = '.'
         self.adbServerPath = utils.resource_path('') + '\\platform-tools\\adb.exe'
         
-        try:
-            os.system(f'{self.adbServerPath} devices')
-            # Default is "127.0.0.1" and 5037
-            self._client = AdbClient(host="127.0.0.1", port=5037)
-            print(self._client.version())
-            self._devices = self._client.devices()
-        except RuntimeError:
-            self._devices = [ 1 ]
-            print('adb init failed')
-            return
+        self._init_start_adb_server()
+        self._devices = self._init_get_adb_devices()
 
         # 연결된 장치가 없으면 더 이상 초기화하지 않는다.
         if not self._devices:
+            self.log.WARNING('there is no device connected')
             return
         
+        self.log.INFO('ADB connect success')
         self._dctName2Date = self._init_get_pics()
         self.lstNamesTookToday = self._init_filter_today_pic()
+        self.log.INFO('pictures from today:', self.lstNamesTookToday)
         
-        # print(f'files from phone = {self._dctName2Date}')
-        print(f'BRIDGE_PHONE files today = {self.lstNamesTookToday}')
-
     def __del__(self):
-        os.system(f'"{self.adbServerPath}" kill-server')
-        print('adb server killed')
+        try:
+            os.system(f'"{self.adbServerPath}" kill-server')
+        except RuntimeError:
+            pass
+
+    def _init_start_adb_server(self):
+        try:
+            self.log.INFO('ADB server start')
+            os.system(f'"{self.adbServerPath}" devices')
+        except RuntimeError as re:
+            self.log.ERROR(re)
+        except Exception as e:
+            self.log.CRITICAL(e)
+
+    def _init_get_adb_devices(self) -> list:
+        try:
+            self.log.INFO('ADB bridge exec')
+            # Default is "127.0.0.1" and 5037
+            client = AdbClient(host="127.0.0.1", port=5037)
+            devices = client.devices()
+            self.log.INFO('client version:', client.version())
+            self.log.INFO('device list:', devices)
+        except RuntimeError as re:
+            devices = [ 1 ]
+            self.log.ERROR(re, 'device connected but ADB bridge failed')
+        except Exception as e:
+            self.log.CRITICAL(e)
+
+        return devices
 
     # 전체 파일을 리턴
     def _init_get_pics(self) -> dict[str,str]:
@@ -47,8 +67,11 @@ class BridgePhone(object):
         fileExt = utils.get_valid_file_ext()
         try:
             lsRet = self._devices[0].shell(f'ls -hal {self.DCIMpath}').split('\n')
-        except RuntimeError:
-            print('usb debugging not allowed')
+        except RuntimeError as re:
+            self.log.ERROR(re, 'USB debugging not allowed')
+            return dctRet
+        except Exception as e:
+            self.log.CRITICAL(e)
             return dctRet
 
         for line in lsRet:
@@ -60,7 +83,9 @@ class BridgePhone(object):
                     continue
                 dctRet[fName] = fDate
             except IndexError as ie:
-                print(ie)
+                self.log.WARNING(ie, '/ ignoring meaningless standard output, "', line, '"')
+            except Exception as e:
+                self.log.CRITICAL(e)
             
         return dctRet
 
@@ -84,7 +109,12 @@ class BridgePhone(object):
 
     @staticmethod
     def _get_root_permission(device):
-        device.shell('root')
+        try:
+            device.shell('root')
+        except RuntimeError as re:
+            Logger.ERROR(re)
+        except Exception as e:
+            Logger.CRITICAL(e)
 
     def transfer_files(self) -> bool:
         try: 
@@ -95,51 +125,16 @@ class BridgePhone(object):
             for fName in self.files:
                 targetPath = self.DCIMpath + '/' + fName
                 dstPath = dst + '/' + fName
-                print(targetPath)
-                # print(phone.shell(f'pull {targetPath} {dstPath}'))
                 phone.pull(targetPath, dstPath)
-            
-        except Exception:
-            print('transfer file failed')
+                self.log.INFO('file transfered', targetPath, '->', dstPath)
+
+        except Exception as e:
+            self.log.ERROR('file transfer failed,', e)
             return False
 
         return True
 
-
-'''
-import shutil
-import os
-
-filename = 'moveTest'
-fileFormat = '.txt'
-src = "C:/Users/Users/Desktop/"
-destination = "F:/test/"
-
-try:
-	
-    isCurrentPathFileExist = os.path.isfile(src + filename + fileFormat)
-    #현재경로에 옮기려는 파일이 존재하는지 확인
-    isDestinationFileExist = os.path.isfile(destination + filename + fileFormat)
-    #도착경로에 동일한 파일이 존재하는지 확인
-    if isCurrentPathFileExist:
-    	#도착경로에 동일한 파일이 존재하지 않는 경우에는 옮긴다.
-        if not isDestinationFileExist:
-            shutil.move(src + filename + fileFormat, destination + filename + fileFormat)
-        #도착경로에 동일한 파일이 존재하는 경우
-        else:
-            i = 1
-            while True:
-                if os.path.isfile(destination + filename + " ({})".format(i) + fileFormat):
-                    i += 1
-                else:
-                    break
-            shutil.move(src + filename + fileFormat, destination + filename + " ({})".format(i) + fileFormat)
-
-except Exception as e:
-    print(e)
-'''
-
 if __name__ == '__main__':
     bc = BridgePhone()
 
-    # bc.transfer_files()
+    bc.transfer_files()

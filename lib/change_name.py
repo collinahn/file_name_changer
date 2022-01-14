@@ -2,15 +2,18 @@
 
 import os
 
+
 from . import utils
+from .log_gongik import Logger
 from .get_name import Name
 
 class NameChanger(object):
     def __new__(cls):
         if not hasattr(cls, '_instance'):
             cls._instance = super().__new__(cls)
+            cls.log = Logger()
 
-        print('GPSINFO', cls._instance)
+        cls.log.INFO(cls._instance)
         return cls._instance
 
     def __init__(self):
@@ -21,55 +24,32 @@ class NameChanger(object):
 
             self.dctFinalResult: dict[str, str] = {} #최종 결과 담아놓기
 
-            processedFileNames = set(self.dctName2Change.keys())
-            currentDirFileNames = set(utils.extract_file_name_sorted())
-
-            if not processedFileNames.issubset(currentDirFileNames):
-                print('init failed - file unstable')
-                return
-
             cls._init = True
 
     @staticmethod
-    def _change_name(oldName, addr, cnt, header='2'):
-        newName = header + '_' + addr + ' ' + str(oldName.split('.')[0]) + ' (' + str(cnt) + ')' + '.jpg'
-        os.rename(oldName, newName)
-
-    # 이미 필터링된 주소를 넘기는 것으로 수정
-    @staticmethod
-    def _simplify_address(origin):
-        return origin
-
-    @staticmethod
-    def extract_parent_dir(dir):
+    def extract_parent_folder(dir) -> str:
         try:
             return dir.rsplit('/', 1)[1]
-        except (IndexError, AttributeError) as e:
-            print(e)
-        return '2'
+        except (IndexError, AttributeError) as es:
+            Logger.ERROR(es)
+        except Exception as e:
+            Logger.CRITICAL(e, 'input =', dir)
+        return '2구역'
 
-
-    def get_car_no_from_parent_dir(self) -> str:
-        gubun = 2
-        parentFolderName = self.extract_parent_dir(utils.extract_dir())
+    def _get_car_no_from_parent_dir(self) -> str:
+        gubun = '2'
+        parentFolderName = self.extract_parent_folder(utils.extract_dir())
 
         #호차 구분
         if '1' in parentFolderName:
-            gubun = 6 #1조는 6으로
+            gubun = '6' #1조는 6으로
         elif '2' in parentFolderName:
-            gubun = 2
+            gubun = '2'
 
         return str(gubun)
 
-    def process_cli(self):
-        gubun = self.get_car_no_from_parent_dir()
-
-        for cnt, (oldName, addr) in enumerate(self.dctName2Change.items(), start=1):
-            self._change_name(oldName, addr, cnt, gubun)
-
-
     def get_final_name(self, oldName, detailInput):
-        gubun = self.get_car_no_from_parent_dir()
+        gubun = self._get_car_no_from_parent_dir()
 
         self.dctFinalResult[oldName] = gubun + '_' + self.dctName2Change[oldName] + ' ' + detailInput
         
@@ -89,14 +69,17 @@ class NameChanger(object):
                     newName = frontName + ' (' + str(i) + ').jpg' 
                 os.rename(target, newName)
                 i += 1
+            except (AttributeError, IndexError, KeyError) as es:
+                self.log.ERROR(es)
+                ret = False
             except Exception as e:
-                print(e, 'exception')
+                self.log.CRITICAL(e)
                 ret = False
         return ret
 
     @property
     def gubun(self):
-        return self.get_car_no_from_parent_dir()
+        return self._get_car_no_from_parent_dir()
 
 if __name__ == '__main__':
     cn = NameChanger()
@@ -106,6 +89,5 @@ if __name__ == '__main__':
     # print(header.parent)
     # print(str(header).split('\\', -1)[-2])
 
-    cn.process_cli()
 
 
