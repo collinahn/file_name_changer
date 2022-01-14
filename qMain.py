@@ -8,6 +8,8 @@
 # 파일이 없으면 지정된 경로에서 파일을 옮겨옴(ppadb 이용)(v1.4.0)
 # 같은 폴더에 exif정보가 없는 사진이 있으면 예외처리를 못하던 문제 수정(v1.4.1)
 # 연결 전 adb 서버를 가동하여 USB footprint를 pc에 저장한다.(v1.4.2)
+# 충돌 있는 키보드 단축키 변경(v1.4.3)
+# Logger 추가(v1.4.3)
 
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
@@ -27,10 +29,11 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
+import lib.utils as utils
+from lib.log_gongik import Logger
 from qCenterWid import GongikWidget
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
-from lib.utils import resource_path
 
 '''
 exe 빌드하기
@@ -45,26 +48,24 @@ class Gongik(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.log = Logger()
+        self.log.INFO('========program started===========')
+        self.log.INFO('version:', VERSION_INFO)
+        self.log.INFO('========program started===========')
+
         self.title = 'Gongik'
-        self.main_icon_path = resource_path('img/frog.ico')
-        self.exit_icon_path = resource_path('img/exit.ico')
+        self.main_icon_path = utils.resource_path('img/frog.ico')
+        self.exit_icon_path = utils.resource_path('img/exit.ico')
 
         self.clsNc = NameChanger()
         self.dctNameStorage = self.clsNc.dctName2Change
 
         if not self.dctNameStorage:
+            self.log.WARNING('현재 폴더에 처리할 수 있는 파일 없음')
             self.handle_failure()
             sys.exit()
 
         self.init_ui()
-    
-    def _handle_ADB_failure(self, cls):
-        if not cls.connected:
-            QMessageBox.warning(self, '경고', '연결된 기기가 없거나\nUSB디버깅 모드가 활성화되지 않았습니다.')
-            sys.exit()
-        if not cls.executable:
-            QMessageBox.warning(self, '경고', '연결된 기기가 하나 이상입니다.')
-            sys.exit()
 
     def handle_failure(self) -> bool:
         failDlg = InitFailDialogue()
@@ -84,6 +85,19 @@ class Gongik(QMainWindow):
         QMessageBox.information(self, '알림', '사진 옮기기가 완료되었습니다.\n프로그램을 다시 시작해주세요.')
 
         return True
+
+    def _handle_ADB_failure(self, cls):
+        if not cls.connected:
+            self._pop_warn_msg('연결된 기기가 없거나 USB디버깅 모드가 활성화되지 않았습니다.')
+
+        if not cls.executable:
+            self._pop_warn_msg('연결된 기기가 하나 이상입니다.')
+
+    def _pop_warn_msg(self, msg):
+        warnMsg = msg
+        self.log.WARNING(warnMsg)
+        QMessageBox.warning(self, '경고', warnMsg)
+        sys.exit()
 
     def init_ui(self):
         # 기본 설정
@@ -138,8 +152,11 @@ class InitFailDialogue(QDialog):
     def __init__(self):
         super().__init__()
 
+        self.log = Logger()
+        self.log.INFO('Fail Info Dialogue')
+
         self.title = '알림'
-        self.icon_path = resource_path('img/frog.ico')
+        self.icon_path = utils.resource_path('img/frog.ico')
 
         self.getFilesFmPhone: bool = False
 
@@ -169,18 +186,23 @@ class InitFailDialogue(QDialog):
 
     def onBtnYesClicked(self):
         self.getFilesFmPhone = True
+        self.log.INFO('User Selected Getting Files From Phone')
         self.close()
 
     def onBtnNoClicked(self):
         self.getFilesFmPhone = False
+        self.log.INFO('User Selected Not to Transfer')
         self.close()
 
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
 
+        self.log = Logger()
+        self.log.INFO('Developer Info Dialog')
+
         self.title = '프로그램 정보'
-        self.icon_path = resource_path('img/developer.ico')
+        self.icon_path = utils.resource_path('img/developer.ico')
 
         self.setupUI()
 
@@ -223,14 +245,18 @@ class DeveloperInfoDialog(QDialog):
 
 
     def onBtnClicked(self):
+        self.log.INFO('Developer Info Dialog closed')
         self.close()
 
 class AddrInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
 
+        self.log = Logger()
+        self.log.INFO('Addr Info Dialog')
+
         self.title = '사진 상세'
-        self.icon_path = resource_path('img/frog.ico')
+        self.icon_path = utils.resource_path('img/frog.ico')
 
         self.clsNc = NameChanger()
         self.clsGI = GPSInfo()
@@ -278,6 +304,7 @@ class AddrInfoDialog(QDialog):
         self.setLayout(layout)
 
     def onBtnClicked(self):
+        self.log.INFO('Addr Info Dialog closed')
         self.close()
 
 
