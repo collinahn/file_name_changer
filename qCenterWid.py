@@ -64,7 +64,7 @@ class GongikWidget(QWidget):
         self.dctLocation2Details = {}
         self.setProcessedName = set()
         self.setProcessedAddr = set()
-        self.dctOldName2BeforeAfter = {}
+        self.dctOldName2Suffix = {}
         self.carNumber = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
 
         self.currentPreview = self.lstOldName[0]
@@ -105,11 +105,12 @@ class GongikWidget(QWidget):
         self.radioBoxLayout = QHBoxLayout()
         self.radioGroupBox.setLayout(self.radioBoxLayout)
 
-        shortCut = ['Alt+A', 'Alt+S', 'Alt+D']
-        txtRadioBtn = [f'전({shortCut[0]})', f'후({shortCut[1]})', f'지정안함({shortCut[2]})']
-        self.radioBtnBefore = self._make_radio_btn_for_footer(txtRadioBtn, shortCut, 0)
-        self.radioBtnAfter = self._make_radio_btn_for_footer(txtRadioBtn, shortCut, 1)
-        self.radioBtnDefault = self._make_radio_btn_for_footer(txtRadioBtn, shortCut, 2)
+        shortCut = ['Alt+A', 'Alt+S', 'Alt+D', 'Alt+X']
+        txtRadioBtn = [f'전({shortCut[0]})', f'후({shortCut[1]})',f'안내장 부착({shortCut[2]})', f'지정안함({shortCut[3]})']
+        self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 0)
+        self.radioBtnAfter = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 1)
+        self.radioBtnAttached = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 2)
+        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 3)
         self.radioBtnDefault.setChecked(True)
         self.radioBoxLayout.addStretch()
 
@@ -131,7 +132,7 @@ class GongikWidget(QWidget):
 
         self.btnNextAddr = QPushButton('다음 장소 보기\n(Alt+F)')
         self.btnNextAddr.setShortcut('Alt+F')
-        self.btnNextAddr.setToolTip('같은 장소에서 찍힌 사진들은 상기 등록된 이름 형식으로 저장되고, 다른 장소에서 찍은 사진을 불러옵니다.')
+        self.btnNextAddr.setToolTip('같은 장소에서 찍힌 사진들은 입력된 이름으로 임시 저장되고, 다른 장소에서 찍은 사진을 불러옵니다.')
         self.btnNextAddr.clicked.connect(self.onBtnShowNextAddr)
         layout.addWidget(self.btnNextAddr, 3, 0)
 
@@ -174,9 +175,9 @@ class GongikWidget(QWidget):
         layout.addWidget(self.btnNextPicSameAddr, 5, 2)
 
     # 이름 뒤 구분 명칭을 결정하는 라디오 버튼을 만든다
-    def _make_radio_btn_for_footer(self, tplRadioBtn, tplShortCut, seq):
+    def _make_suffix_radio_btn(self, tplRadioBtn, tplShortCut, seq):
         result = QRadioButton(tplRadioBtn[seq], self)
-        result.clicked.connect(self.onRadioBtnBeforeAfter)
+        result.clicked.connect(self.onRadioBtnSuffix)
         result.setShortcut(tplShortCut[seq])
         self.radioBoxLayout.addWidget(result, alignment=Qt.AlignTop)
         return result
@@ -302,14 +303,16 @@ class GongikWidget(QWidget):
 
     #라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
     def setRadioBtnAsChecked(self):
-        if self.tempImgPreview not in self.dctOldName2BeforeAfter:
+        if self.tempImgPreview not in self.dctOldName2Suffix:
             self.radioBtnDefault.setChecked(True)
             return
 
-        if self.dctOldName2BeforeAfter[self.tempImgPreview] == '전':
+        if self.dctOldName2Suffix[self.tempImgPreview] == '전':
             self.radioBtnBefore.setChecked(True)
-        elif self.dctOldName2BeforeAfter[self.tempImgPreview] == '후':
+        elif self.dctOldName2Suffix[self.tempImgPreview] == '후':
             self.radioBtnAfter.setChecked(True)
+        elif self.dctOldName2Suffix[self.tempImgPreview] == '안내장 부착':
+            self.radioBtnAttached.setChecked(True)
 
 
     def onBtnNextPreview(self):
@@ -345,41 +348,44 @@ class GongikWidget(QWidget):
                 break
             self.dctLocation2Details[self.dctName2AddrStorage[self.currentPreview]] = self.clsNc.get_final_name(self.currentPreview, '') # {주소: 바뀔 이름(초기화)}
 
-        if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2BeforeAfter, self.carNumber):
-            self.log.INFO('complete')
+        if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.carNumber):
+            self.log.INFO('mission complete')
             QMessageBox.information(self, '알림', '처리가 완료되었습니다.')
         else:
-            self.log.ERROR('fail')
+            self.log.ERROR('mission fail')
             QMessageBox.warning(self, '경고', '문제가 있어 일부 파일을 처리하지 못했습니다.(수동 확인 필요)')
 
         QMessageBox.information(self, '알림', '프로그램을 종료합니다.\n일부 중복된 장소를 확인해주세요.')
-        self.log.INFO('==========================')
-        self.log.INFO('=======program exit=======')
-        self.log.INFO('==========================')
+        self.log.INFO('==================================')
+        self.log.INFO('===========program exit===========')
+        self.log.INFO('==================================')
         sys.exit()
 
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.
-    def onRadioBtnBeforeAfter(self):
+    def onRadioBtnSuffix(self):
         if self.radioBtnBefore.isChecked():
             self.log.INFO(f'{self.tempImgPreview = }, 전')
-            self.dctOldName2BeforeAfter[self.tempImgPreview] = '전'
+            self.dctOldName2Suffix[self.tempImgPreview] = '전'
         elif self.radioBtnAfter.isChecked():
             self.log.INFO(f'{self.tempImgPreview = }, 후')
-            self.dctOldName2BeforeAfter[self.tempImgPreview] = '후'
+            self.dctOldName2Suffix[self.tempImgPreview] = '후'
+        elif self.radioBtnAttached.isChecked():
+            self.log.INFO(f'{self.tempImgPreview = }, 안내장 부착')
+            self.dctOldName2Suffix[self.tempImgPreview] = '안내장 부착'
         elif self.radioBtnDefault.isChecked():
             self.log.INFO(f'{self.tempImgPreview = }, 전/후 정보 제거')
-            self.dctOldName2BeforeAfter[self.tempImgPreview] = ''
+            self.dctOldName2Suffix[self.tempImgPreview] = ''
 
-        self.log.INFO(f'onRadio {self.dctOldName2BeforeAfter = }')
+        self.log.INFO(f'onRadio {self.dctOldName2Suffix = }')
         
 
     def onRadioBtnCar(self):
         if self.radioBtn1stCar.isChecked():
-            self.log.INFO('1호차 선택됨')
+            self.log.INFO('selected 1호차')
             self.carNumber = '6'
         elif self.radioBtn2ndCar.isChecked():
-            self.log.INFO('2호차 선택됨')
+            self.log.INFO('selected 2호차')
             self.carNumber = '2'
 
 if __name__ == '__main__':
