@@ -18,6 +18,10 @@
 # 로딩 중일 시 알려주는 다이얼로그와 프로그레스 바를 띄워준다(v1.5.0)
 # 카카오API로 주소를 받아온다(v1.5.1)
 # 계고장 부착(v1.5.1)
+# 파일명 미리보기 기능 추가(v1.5.2)
+# 사진 상세에서 제목이 가운데 정렬 되지 않는 버그 수정(v1.5.2)
+# QLineEdit입력 시 즉시 미리보기 업데이트되도록 수정(v1.5.3)
+
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -46,6 +50,7 @@ from lib.log_gongik import Logger
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
 from qCenterWid import GongikWidget
+import qWordBook as const
 
 '''
 exe 빌드하기
@@ -53,7 +58,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.5.1(2022-01-15)'
+VERSION_INFO = 'v1.5.3(2022-01-17)'
 
 
 class Gongik(QMainWindow):
@@ -102,31 +107,30 @@ class Gongik(QMainWindow):
         failDlg.exec_()
 
         if not failDlg.getFilesFmPhone:
-            QMessageBox.information(self, '알림', '종료합니다.')
+            QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
             return False
 
         from lib.file_copy import BridgePhone
         clsBP = BridgePhone()
         self._handle_ADB_failure(clsBP)
         if not clsBP.transfer_files():
-            QMessageBox.information(self, '알림', '연결이 불안정하여 사진을 옮기지 못하였습니다.\nuser/.adroid폴더 내부 adbkey를 확인해주세요.\n혹은 핸드폰에 표시된 팝업창 중 "이 컴퓨터에서 항상 허용"을 체크하고 다시 실행해주세요.')
+            QMessageBox.information(self, 'TRANSFER_FAIL', const.MSG_INFO['TRANSFER_FAIL'])
             return False
             
-        QMessageBox.information(self, '알림', '사진 옮기기가 완료되었습니다.\n프로그램을 다시 시작해주세요.')
+        QMessageBox.information(self, 'TRANSFER_SUCCESS', const.MSG_INFO['TRANSFER_SUCCESS'])
 
         return True
 
     def _handle_ADB_failure(self, clsBridgePhone):
         if not clsBridgePhone.connected:
-            self._pop_warn_msg('연결된 기기가 없거나 USB디버깅 모드가 활성화되지 않았습니다.')
+            self._pop_warn_msg('CONNECTION_ERROR')
 
         if not clsBridgePhone.executable:
-            self._pop_warn_msg('연결된 기기가 하나 이상입니다.')
+            self._pop_warn_msg('MULTI_CONNECTION_ERROR')
 
-    def _pop_warn_msg(self, msg):
-        warnMsg = msg
-        self.log.WARNING(warnMsg)
-        QMessageBox.warning(self, '경고', warnMsg)
+    def _pop_warn_msg(self, code):
+        self.log.WARNING(const.MSG_WARN[code])
+        QMessageBox.warning(self, code, const.MSG_WARN[code])
         sys.exit()
 
     def init_ui(self):
@@ -140,20 +144,20 @@ class Gongik(QMainWindow):
 
         #메뉴 바 - progMenu - Exit
         exitAction = QAction(QIcon(self.exit_icon_path), '퇴근하기', self)
-        exitAction.setShortcut('Ctrl+Shift+Q')
-        exitAction.setStatusTip('프로그램을 종료합니다. 완료 버튼을 누르지 않았다면 진행 상황이 저장되지 않습니다.')
+        exitAction.setShortcut(const.MSG_SHORTCUT['EXIT'])
+        exitAction.setStatusTip(const.MSG_TIP['EXIT'])
         exitAction.triggered.connect(qApp.quit)
 
         #메뉴 바 - progMenu - info
         infoAction = QAction(QIcon(self.main_icon_path), '프로그램 정보', self)
-        infoAction.setShortcut('Ctrl+I')
-        infoAction.setStatusTip('프로그램의 정보를 확인합니다.')
+        infoAction.setShortcut(const.MSG_SHORTCUT['INFO'])
+        infoAction.setStatusTip(const.MSG_TIP['INFO'])
         infoAction.triggered.connect(self.onModalDeveloperInfo)
 
         # 참고 정보 표시
         checkAction = QAction(QIcon(self.main_icon_path), '위치 목록 확인', self)
-        checkAction.setShortcut('Ctrl+G')
-        checkAction.setStatusTip('사진 정보 목록을 불러옵니다.')
+        checkAction.setShortcut(const.MSG_SHORTCUT['LIST'])
+        checkAction.setStatusTip(const.MSG_TIP['LIST'])
         checkAction.triggered.connect(self.onModalAddrInfo)
 
         self.statusBar()
@@ -312,10 +316,8 @@ class AddrInfoDialog(QDialog):
             QLabel('처리 위치'), 
             QLabel('촬영 시각'), 
             QLabel('최종 이름'))]
-        lstNameAddrTime[-1][0].setAlignment(Qt.AlignCenter)
-        lstNameAddrTime[-1][1].setAlignment(Qt.AlignCenter)
-        lstNameAddrTime[-1][2].setAlignment(Qt.AlignCenter)
-        lstNameAddrTime[-1][3].setAlignment(Qt.AlignCenter)
+        for label in lstNameAddrTime[-1]:
+            label.setAlignment(Qt.AlignCenter)
 
         # QLabel 객체 삽입
         for name, addr in self.dctName2AddrStorage.items():

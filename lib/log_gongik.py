@@ -39,7 +39,7 @@ LOG_FILE_NAME = 'gongik.log'
 LOG_FILE_PATH = LOG_FOLDER_PATH + LOG_FILE_NAME
 STACK_LV = 2
 MAX_BYTES_PER_FILE = 10*1024*1024
-BACKUP_FILE_CNT = 2
+BACKUP_FILE_CNT = 10
 
 
 class Logger:
@@ -65,7 +65,7 @@ class Logger:
             cls.__logger = logging.getLogger('LoggerGongik')
             cls.__logger.setLevel(logging.DEBUG)
 
-            cls.formatter = logging.Formatter('%(asctime)s [%(filename)-15s:%(funcName)-20s:%(lineno)-5s] [%(levelname)s] >> %(message)s')
+            cls.formatter = logging.Formatter('%(asctime)s [%(filename)-25s:%(funcName)-25s:%(lineno)-5s] [%(levelname)s] >> %(message)s')
             cls.fileHandler = logging.handlers.RotatingFileHandler(
                 LOG_FILE_PATH, 
                 maxBytes=MAX_BYTES_PER_FILE, 

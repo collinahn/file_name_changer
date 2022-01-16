@@ -51,8 +51,11 @@ class NameChanger(object):
     def get_final_name(self, oldName, detailInput):
         gubun = self._get_car_no_from_parent_dir()
 
-        self.dctFinalResult[oldName] = gubun + '_' + self.dctName2Change[oldName] + ' ' + detailInput
-        
+        res = gubun + '_' + self.dctName2Change[oldName]
+        if detailInput:
+            res += ' ' + detailInput
+            
+        self.dctFinalResult[oldName] = res
         return self.dctFinalResult[oldName]
 
 

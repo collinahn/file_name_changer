@@ -25,7 +25,7 @@ from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
 import qWordBook as const
 
-TIME_GAP = 180 #이 시간 내에 찍힌 사진들은 전부 같은 장소 취급
+# TIME_GAP
 
 class QPushButton(QPushButton):
     def __init__(self, parent = None):
@@ -92,10 +92,11 @@ class GongikWidget(QWidget):
         layout.addWidget(self.instruction, 1, 0)
 
         self.nameInput = QLineEdit()
-        self.nameInput.setPlaceholderText('상세 정보 입력(예> "불법적치물"만 작성)')
+        self.nameInput.setPlaceholderText('상세 정보 입력(예> "불법적치물"만 입력)')
         self.nameInput.setMaxLength(100)
         self.nameInput.setMinimumWidth(500)
         self.nameInput.setMinimumHeight(50)
+        self.nameInput.textChanged.connect(self._update_file_name_preview)
         self.nameInput.returnPressed.connect(self.onBtnRegName)
         layout.addWidget(self.nameInput, 1, 1)
 
@@ -106,39 +107,32 @@ class GongikWidget(QWidget):
         self.radioBoxLayout = QHBoxLayout()
         self.radioGroupBox.setLayout(self.radioBoxLayout)
 
-        shortCut = [
-            'Alt+A', 
-            'Alt+S', 
-            'Alt+D', 
-            'Alt+1', 
-            'Alt+2', 
-            'Alt+X'
-        ]
         txtRadioBtn = [
-            f'정비 전\n({shortCut[0]})', 
-            f'정비 후\n({shortCut[1]})',
-            f'안내장\n({shortCut[2]})',
-            f'1차계고장\n({shortCut[3]})',
-            f'2차계고장\n({shortCut[4]})',
-            f'지정안함\n({shortCut[5]})'
+            f'정비 전\n({const.MSG_SHORTCUT["BEFORE_FIX"]})', 
+            f'정비 후\n({const.MSG_SHORTCUT["AFTER_FIX"]})',
+            f'안내장\n({const.MSG_SHORTCUT["ATTACH_FLYER"]})',
+            f'1차계고장\n({const.MSG_SHORTCUT["WARN_1ST"]})',
+            f'2차계고장\n({const.MSG_SHORTCUT["WARN_2ST"]})',
+            f'지정안함\n({const.MSG_SHORTCUT["SET_NONE"]})'
         ]
-        self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 0)
-        self.radioBtnAfter = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 1)
-        self.radioBtnAttached = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 2)
-        self.radioBtn1stWarn = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 3)
-        self.radioBtn2ndWarn = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 4)
-        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, shortCut, 5)
+        self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FIX', 0)
+        self.radioBtnAfter = self._make_suffix_radio_btn(txtRadioBtn, 'AFTER_FIX', 1)
+        self.radioBtnAttached = self._make_suffix_radio_btn(txtRadioBtn, 'ATTACH_FLYER', 2)
+        self.radioBtn1stWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_1ST', 3)
+        self.radioBtn2ndWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_2ST', 4)
+        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, 'SET_NONE', 5)
         self.radioBtnDefault.setChecked(True)
         self.radioBoxLayout.addStretch()
 
 
-        self.btnPreview = QPushButton('파일명 등록 및 수정\n(Alt+N)')
-        self.btnPreview.setShortcut('Alt+N')
-        self.btnPreview.setToolTip('텍스트 박스에 입력된 텍스트가 파일명의 일부로 저장됩니다.')
+        self.btnPreview = QPushButton(f'파일명 등록 및 수정\n({const.MSG_SHORTCUT["MODIFY"]})')
+        self.btnPreview.setShortcut(const.MSG_SHORTCUT['MODIFY'])
+        self.btnPreview.setToolTip(const.MSG_TIP['MODIFY'])
         self.btnPreview.clicked.connect(self.onBtnRegName)
         layout.addWidget(self.btnPreview, 2, 0)
 
         self.fileNamePreview = QLabel() # 변환된 파일명의 미리보기
+        self.fileNamePreview.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.fileNamePreview, 2, 1)
 
         self.picPreview = QLabel('사진 미리보기')
@@ -147,9 +141,9 @@ class GongikWidget(QWidget):
         self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(540, 360))#, Qt.KeepAspectRatio))
         layout.addWidget(self.picPreview, 2, 2, 3, -1)
 
-        self.btnNextAddr = QPushButton('다음 장소 보기\n(Alt+F)')
-        self.btnNextAddr.setShortcut('Alt+F')
-        self.btnNextAddr.setToolTip('같은 장소에서 찍힌 사진들은 입력된 이름으로 임시 저장되고, 다른 장소에서 찍은 사진을 불러옵니다.')
+        self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT["FORWARD"]})')
+        self.btnNextAddr.setShortcut(const.MSG_SHORTCUT['FORWARD'])
+        self.btnNextAddr.setToolTip(const.MSG_TIP['FORWARD'])
         self.btnNextAddr.clicked.connect(self.onBtnShowNextAddr)
         layout.addWidget(self.btnNextAddr, 3, 0)
 
@@ -166,36 +160,36 @@ class GongikWidget(QWidget):
         self.radioBoxCarLayout = QHBoxLayout()
         self.radioGroupCar.setLayout(self.radioBoxCarLayout)
 
-        self.radioBtn1stCar = QRadioButton('1호차(Ctrl+1)', self)
+        self.radioBtn1stCar = QRadioButton(f'1호차({const.MSG_SHORTCUT["1CAR"]})', self)
         self.radioBtn1stCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn1stCar.setShortcut('Ctrl+1')
+        self.radioBtn1stCar.setShortcut(const.MSG_SHORTCUT['1CAR'])
         self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=Qt.AlignTop)
-        self.radioBtn2ndCar = QRadioButton('2호차(Ctrl+2)', self)
+        self.radioBtn2ndCar = QRadioButton(f'2호차({const.MSG_SHORTCUT["2CAR"]})', self)
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn2ndCar.setShortcut('Ctrl+2')
+        self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT["2CAR"])
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
         if self.clsNc.gubun == '2': self.radioBtn2ndCar.setChecked(True)
         else: self.radioBtn1stCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
-        self.btn2Change = QPushButton('완료 및 이름 바꾸기\n(Ctrl+Shift+E)')
-        self.btn2Change.setShortcut('Ctrl+Shift+E')
+        self.btn2Change = QPushButton(f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT["FINISH"]})')
+        self.btn2Change.setShortcut(const.MSG_SHORTCUT['FINISH'])
         self.btn2Change.setMinimumHeight(70)
-        self.btn2Change.setToolTip('현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.')
+        self.btn2Change.setToolTip(const.MSG_TIP['FINISH'])
         self.btn2Change.clicked.connect(self.onBtnChangeFileName)
         layout.addWidget(self.btn2Change, 5, 0, -1, 2)
 
-        self.btnNextPicSameAddr = QPushButton('같은 장소 다른 사진 보기\n(Alt+W)')
-        self.btnNextPicSameAddr.setShortcut('Alt+W')
-        self.btnNextPicSameAddr.setToolTip('같은 장소에서 찍힌 사진 중 다른 사진으로 미리보기를 교체합니다.')
+        self.btnNextPicSameAddr = QPushButton(f'같은 장소 다른 사진 보기\n({const.MSG_SHORTCUT["NEXT"]})')
+        self.btnNextPicSameAddr.setShortcut(const.MSG_SHORTCUT['NEXT'])
+        self.btnNextPicSameAddr.setToolTip(const.MSG_TIP['NEXT'])
         self.btnNextPicSameAddr.clicked.connect(self.onBtnNextPreview)
         layout.addWidget(self.btnNextPicSameAddr, 5, 2)
 
     # 이름 뒤 구분 명칭을 결정하는 라디오 버튼을 만든다
-    def _make_suffix_radio_btn(self, tplRadioBtn, tplShortCut, seq):
+    def _make_suffix_radio_btn(self, tplRadioBtn, shortcutCode, seq):
         result = QRadioButton(tplRadioBtn[seq], self)
         result.clicked.connect(self.onRadioBtnSuffix)
-        result.setShortcut(tplShortCut[seq])
+        result.setShortcut(const.MSG_SHORTCUT[shortcutCode])
         self.radioBoxLayout.addWidget(result, alignment=Qt.AlignTop)
         return result
 
@@ -209,7 +203,7 @@ class GongikWidget(QWidget):
         # 시간 기준으로 첫 사진이 찍히고 상당 기간 내에 사진이 찍히지 않을 경우 
         # 첫 사진의 주소로 상당 기간 내에 찍힌 그 이후 사진들의 주소를 대체한다 
         for timePic in lstTimePicTakenSorted:
-            if timePic - timeStandard > TIME_GAP:
+            if timePic - timeStandard > const.TIME_GAP:
                 timeStandard = timePic # 다시 반복문을 돌 때 계산을 위하여
                 for fName4Init, time4Init in self.dctName2Time.items():
                     if time4Init == timeStandard:
@@ -220,7 +214,7 @@ class GongikWidget(QWidget):
                 self.log.WARNING('different datetime', fName, self.clsTI.dctTimeFilesMade[fName])
                 continue # 오늘 날짜가 아니면 시간 제한을 적용하지 않는다
             for tMin, roadAddr in dctTimeLaps.items():
-                if time - tMin < TIME_GAP and time - tMin >= 0: # 기준점을 기준으로 기준 시간 내에 드는경우
+                if time - tMin < const.TIME_GAP and time - tMin >= 0: # 기준점을 기준으로 기준 시간 내에 드는경우
                     self.dctName2AddrStorage[fName] = roadAddr
 
         # 여기서 바꾸면 잘 동작하나 테스트코드
@@ -273,6 +267,13 @@ class GongikWidget(QWidget):
     def _update_pixmap(self, srcName):
         self.picPreview.setPixmap(QPixmap(srcName).scaled(540, 360))# , Qt.KeepAspectRatio))
     
+    @staticmethod
+    def _check_registered(dctDataSet, key) -> str:
+        try:
+            return dctDataSet[key]
+        except (KeyError, AttributeError, TypeError) as e:
+            return ''
+
     def onBtnRegName(self):
         oldFileName = self.currentPreview
         self._store_preview_history(oldFileName)
@@ -283,7 +284,7 @@ class GongikWidget(QWidget):
 
         self.dctLocation2Details[self.dctName2AddrStorage[oldFileName]] = newFileName # {주소: 바뀔 이름}
         
-        self.fileNamePreview.setText(f'{newFileName}(으)로 등록완료')
+        self.fileNamePreview.setText(f'<미리보기>\n{newFileName} {self._check_registered(self.dctOldName2Suffix, oldFileName)}')
         self.log.INFO(oldFileName, '->', newFileName)
 
     def onBtnShowNextAddr(self):
@@ -294,7 +295,7 @@ class GongikWidget(QWidget):
 
         nextFileName = self._point_file_name()
         if not nextFileName:
-            QMessageBox.warning(self, '경고', '마지막 장소입니다.')
+            QMessageBox.information(self, 'EOF', const.MSG_INFO['EOF'])
             return
 
         self.currentPreview = nextFileName
@@ -358,6 +359,7 @@ class GongikWidget(QWidget):
         position = self.currentPos4Preview + 1
         self.textPointer4SameLoc = self._generate_text_for_indicator(position)
         self.labelPointer4SameLoc.setText(self.textPointer4SameLoc)
+        self._update_file_name_preview()
 
         self.log.INFO('onBtnNextPreview', self.tempImgPreview, 'Location =', currentLoc)
 
@@ -372,38 +374,34 @@ class GongikWidget(QWidget):
 
         if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.carNumber):
             self.log.INFO('mission complete')
-            QMessageBox.information(self, '알림', '처리가 완료되었습니다.')
+            QMessageBox.information(self, 'COMPLETE', const.MSG_INFO['COMPLETE'])
         else:
             self.log.ERROR('mission fail')
-            QMessageBox.warning(self, '경고', '문제가 있어 일부 파일을 처리하지 못했습니다.(수동 확인 필요)')
+            QMessageBox.warning(self, 'OS_ERROR', const.MSG_WARN['OS_ERROR'])
 
-        QMessageBox.information(self, '알림', '프로그램을 종료합니다.\n일부 중복된 장소를 확인해주세요.')
+        QMessageBox.information(self, 'EXIT_END', const.MSG_INFO['EXIT_END'])
         self.log.INFO('==================================')
         self.log.INFO('program exit')
         self.log.INFO('==================================')
         sys.exit()
 
+    
+    def _update_file_name_preview(self):
+        self.fileNamePreview.setText(f'<미리보기>\n{self.carNumber}_{self.dctName2AddrStorage[self.tempImgPreview]} {self.nameInput.text().strip()} {self._check_registered(self.dctOldName2Suffix, self.tempImgPreview)}')
+    
+    def _update_suffix(self, suffix):
+        self.log.INFO(f'{self.tempImgPreview = }, "{suffix}"')
+        self.dctOldName2Suffix[self.tempImgPreview] = suffix
+        self._update_file_name_preview()
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.
     def onRadioBtnSuffix(self):
-        if self.radioBtnBefore.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.BEFORE_FIX}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.BEFORE_FIX
-        elif self.radioBtnAfter.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.AFTER_FIX}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.AFTER_FIX
-        elif self.radioBtnAttached.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.ATTACH_FLYER}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.ATTACH_FLYER
-        elif self.radioBtn1stWarn.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.WARN_1ST}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.WARN_1ST
-        elif self.radioBtn2ndWarn.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.WARN_2ND}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.WARN_2ND
-        elif self.radioBtnDefault.isChecked():
-            self.log.INFO(f'{self.tempImgPreview = }, "{const.EMPTY_STR}"')
-            self.dctOldName2Suffix[self.tempImgPreview] = const.EMPTY_STR
+        if self.radioBtnBefore.isChecked(): self._update_suffix(const.BEFORE_FIX)
+        elif self.radioBtnAfter.isChecked(): self._update_suffix(const.AFTER_FIX)
+        elif self.radioBtnAttached.isChecked(): self._update_suffix(const.ATTACH_FLYER)
+        elif self.radioBtn1stWarn.isChecked(): self._update_suffix(const.WARN_1ST)
+        elif self.radioBtn2ndWarn.isChecked(): self._update_suffix(const.WARN_2ND)
+        elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
 
     def onRadioBtnCar(self):
         if self.radioBtn1stCar.isChecked():
@@ -412,6 +410,7 @@ class GongikWidget(QWidget):
         elif self.radioBtn2ndCar.isChecked():
             self.log.INFO('selected 2호차')
             self.carNumber = '2'
+        self._update_file_name_preview()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
