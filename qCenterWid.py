@@ -66,7 +66,7 @@ class GongikWidget(QWidget):
         self.setProcessedName = set()
         self.setProcessedAddr = set()
         self.dctOldName2Suffix = {}
-        self.carNumber = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
+        self.prefix = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
 
         self.currentPreview = self.lstOldName[0]
         self.tempImgPreview = self.currentPreview # 장소별/같은 장소 내의 임시 프리뷰 통합 관리/ currentPreview는 다음 장소 업데이트를 위해.. temp는 같은 장소 내에서.
@@ -168,7 +168,7 @@ class GongikWidget(QWidget):
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
         self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT["2CAR"])
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
-        if self.clsNc.gubun == '2': self.radioBtn2ndCar.setChecked(True)
+        if self.prefix == '2': self.radioBtn2ndCar.setChecked(True)
         else: self.radioBtn1stCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
@@ -260,7 +260,7 @@ class GongikWidget(QWidget):
         # 현재 커서의 지정 이름 저장
         targetFileName = self.currentPreview
         self._store_preview_history(targetFileName)
-        self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]] = self.clsNc.get_final_name(targetFileName, self.nameInput.text())
+        self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]] = self.clsNc.get_final_name(self.prefix, targetFileName, self.nameInput.text())
         self.log.INFO('filename =', targetFileName, ':', self.dctLocation2Details[self.dctName2AddrStorage[targetFileName]])
 
     # 사진과 설명을 업데이트한다.
@@ -280,7 +280,7 @@ class GongikWidget(QWidget):
 
         text = self.nameInput.text()
         text = text.strip()
-        newFileName = self.clsNc.get_final_name(oldFileName, text)
+        newFileName = self.clsNc.get_final_name(self.prefix, oldFileName, text)
 
         self.dctLocation2Details[self.dctName2AddrStorage[oldFileName]] = newFileName # {주소: 바뀔 이름}
         
@@ -370,9 +370,9 @@ class GongikWidget(QWidget):
             self.currentPreview = self._point_file_name()
             if not self.currentPreview:
                 break
-            self.dctLocation2Details[self.dctName2AddrStorage[self.currentPreview]] = self.clsNc.get_final_name(self.currentPreview, '') # {주소: 바뀔 이름(초기화)}
+            self.dctLocation2Details[self.dctName2AddrStorage[self.currentPreview]] = self.clsNc.get_final_name(self.prefix, self.currentPreview, '') # {주소: 바뀔 이름(초기화)}
 
-        if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.carNumber):
+        if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.prefix):
             self.log.INFO('mission complete')
             QMessageBox.information(self, 'COMPLETE', const.MSG_INFO['COMPLETE'])
         else:
@@ -387,7 +387,7 @@ class GongikWidget(QWidget):
 
     
     def _update_file_name_preview(self):
-        self.fileNamePreview.setText(f'<미리보기>\n{self.carNumber}_{self.dctName2AddrStorage[self.tempImgPreview]} {self.nameInput.text().strip()} {self._check_registered(self.dctOldName2Suffix, self.tempImgPreview)}')
+        self.fileNamePreview.setText(f'<미리보기>\n{self.prefix}_{self.dctName2AddrStorage[self.tempImgPreview]} {self.nameInput.text().strip()} {self._check_registered(self.dctOldName2Suffix, self.tempImgPreview)}')
     
     def _update_suffix(self, suffix):
         self.log.INFO(f'{self.tempImgPreview = }, "{suffix}"')
@@ -406,10 +406,10 @@ class GongikWidget(QWidget):
     def onRadioBtnCar(self):
         if self.radioBtn1stCar.isChecked():
             self.log.INFO('selected 1호차')
-            self.carNumber = '6'
+            self.prefix = '6'
         elif self.radioBtn2ndCar.isChecked():
             self.log.INFO('selected 2호차')
-            self.carNumber = '2'
+            self.prefix = '2'
         self._update_file_name_preview()
 
 if __name__ == '__main__':
