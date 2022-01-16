@@ -23,6 +23,10 @@ class Name(object):
         if not hasattr(cls, '_init'):
             self.clsGPS = GPSInfo()
             self.clsDB = LocalDB()
+            self.clsAPI = LocationRequest()
+
+            self.dctName2GPS4API = self.clsGPS.dctGPSInfoWGS84
+            self.dctName2GPS4DB = self.clsGPS.dctGPSInfoGRS80
 
             self._dctName2Addr = {}
             self._dctName2Addr = self.run_thread_get_name()
@@ -37,16 +41,18 @@ class Name(object):
         return self._dctName2Addr
 
     # 스레드 재료
-    def _get_road_addr_fm_coord(self, orignName, tplLatLon):
-        addr = self.clsDB.get_addr(tplLatLon)
+    def _get_addr_fm_coord(self, orignName, tplGPS4API, tplGPS4DB):
+        addr = self.clsAPI.parse_addr_response(tplGPS4API)
+        if addr == 'Undefined':
+            addr = self.clsDB.get_addr(tplGPS4DB)
 
         self._dctName2Addr[orignName] = addr
 
     # TODO: 적당한 수의 스레드로 나눈다
     def run_thread_get_name(self) -> dict:
         lstThreads = [
-            Thread(target=self._get_road_addr_fm_coord, args=(orginName, tplGPS))
-            for orginName, tplGPS in self.clsGPS.gps_GRS80.items()
+            Thread(target=self._get_addr_fm_coord, args=(orginName, tplGPS4API, self.dctName2GPS4DB[orginName]))
+            for orginName, tplGPS4API in self.dctName2GPS4API.items()
         ]
 
         for thread in lstThreads:

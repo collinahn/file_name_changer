@@ -1,9 +1,13 @@
 # 추출된 gps 위도 및 경도 정보로 카카오맵 api를 활용하여 주소 이름을 가져온다.
 # 오프라인 환경으로 인해 진행하지 않고 로컬 저장소에서 검색하는 파이썬 파일로 대체함.
 
-import requests
 import json
-
+import requests
+from requests.exceptions import (
+    ConnectionError,
+    Timeout,
+    HTTPError,
+)
 
 from .__api import API_KEY
 from .log_gongik import Logger
@@ -62,20 +66,22 @@ class LocationRequest(object):
 #                 'main_address_no': '879', 
 #                 'sub_address_no': '', 
 #                 'zip_code': ''
-#             }
-#         }
-#     ]
+#             }}]
 # }        
-    def _send_request_addr4gps(self, x, y, option=None): #option = input coord
+    def _send_request_addr4gps(self, tplGPS, option=None): #option = input coord
         params = {
-            'x': x,
-            'y': y
+            'x': tplGPS[0],
+            'y': tplGPS[1]
         }
 
         if option:
             params['input_coord'] = option
-
-        res = requests.get(self.URL_03, headers=self.headers, params=params)
+        
+        try:
+            res = requests.get(self.URL_03, headers=self.headers, params=params)
+        except (ConnectionError, Timeout, HTTPError) as ce:
+            self.log.CRITICAL(ce)
+            return None
 
         self.log.INFO(f'{params = } / {json.loads(res.text) = }')
 
@@ -86,14 +92,14 @@ class LocationRequest(object):
         try:
             if json['meta']['total_count'] == 0:
                 return False
-        except (AttributeError, KeyError) as ae:
-            self.log.ERROR(ae)
+        except (AttributeError, KeyError, TypeError) as ae:
+            self.log.ERROR(ae, f'{json = }')
 
         return True
 
     # 도로명주소가 있으면 도로명 주소를, 없으면 지번주소를 반환한다
-    def parse_addr_response(self, x, y, option=None):
-        jsonData = self._send_request_addr4gps(x, y, option)
+    def parse_addr_response(self, tplCoord, option=None):
+        jsonData = self._send_request_addr4gps(tplCoord, option)
         ret = 'Undefined'
 
         if not self._check_valid(jsonData):
@@ -106,9 +112,9 @@ class LocationRequest(object):
             #     ret = ' '.join(addrRoad)
 
             # else: # 지번 주소인 경우(인천은 주로 지번주소)
-            ret = jsonData['documents'][0]['address']['address_name']
-            filterCity = jsonData['documents'][0]['address']['region_1depth_name']
-            filterProvince = jsonData['documents'][0]['address']['region_2depth_name']
+            ret = jsonData['documents'][0]['address']['address_name'] # 인천 부평구 갈산동 200
+            filterCity = jsonData['documents'][0]['address']['region_1depth_name'] # 인천
+            filterProvince = jsonData['documents'][0]['address']['region_2depth_name'] # 부평구
 
             cnt2Reduce = len(filterCity) + len(filterProvince) + 2 # 띄어쓰기 포함
 
@@ -116,7 +122,7 @@ class LocationRequest(object):
             
             # ret = jsonData['documents'][0]['road_address']['address_name'] or jsonData['documents'][0]['address']['address_name']
 
-        except (AttributeError, IndexError, KeyError) as es:
+        except (AttributeError, IndexError, KeyError, TypeError) as es:
             self.log.ERROR(es)
         except Exception as e:
             self.log.CRITICAL(e)
@@ -128,7 +134,7 @@ if __name__ == '__main__':
     lr = LocationRequest()
     print(next(iter(lr.gpsData.values())))
     # ret = lr.parse_addr_response(next(iter(lr.gpsData.values()))[0], next(iter(lr.gpsData.values()))[1])
-    ret = lr.parse_addr_response(127.1086228, 37.401219)
+    ret = lr.parse_addr_response((127.1086228, 37.401219))
     # ret = lr.send_request_addr4gps(124.74, 37.01)
 
     print(ret)

@@ -122,7 +122,7 @@ class GPSInfo(MetaData):
             self.clsFD: FileDetector = FileDetector()
             self.lstFiles: list[str] = self.clsFD.fileList
 
-            self.__dctGPSInfoWGS84: dict[str, tuple] = {}
+            self.dctGPSInfoWGS84: dict[str, tuple] = {}
             self.dctGPSInfoGRS80: dict[str, tuple] = {}
 
             self.__init_gps_WGS84() # 초기화
@@ -164,10 +164,10 @@ class GPSInfo(MetaData):
                 if exifGPS[3] == 'W': 
                     Lon = Lon * -1
 
-                self.__dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
+                self.dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
             except (ZeroDivisionError, KeyError) as es:
                 self.log.ERROR(fName, 'gps data not found', es)
-                self.__dctGPSInfoWGS84[fName] = (0, 0)
+                self.dctGPSInfoWGS84[fName] = (0, 0)
             
 
         self.log.INFO('decode to WGS84 complete')
@@ -195,7 +195,7 @@ class GPSInfo(MetaData):
         projGRS80 = Proj(**GRS80)
         trans = partial(transform, projWGS84, projGRS80)
 
-        for fName, WGS84xy in self.__dctGPSInfoWGS84.items():
+        for fName, WGS84xy in self.dctGPSInfoWGS84.items():
             # trans = Transformer(WGS84, GRS80)
             self.dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
         
@@ -204,7 +204,7 @@ class GPSInfo(MetaData):
 
     @property
     def gps(self):
-        return self.__dctGPSInfoWGS84
+        return self.dctGPSInfoWGS84
 
     @property
     def gps_GRS80(self):

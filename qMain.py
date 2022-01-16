@@ -14,11 +14,15 @@
 # 안내장부착 버튼 추가(v1.4.5)
 
 # v1.5(예정)
-# 카카오API로 주소를 받아온다
+# 하단 상태바에 현재 진행 중인 작업 표시(v1.5.0) --> cancelled
+# 로딩 중일 시 알려주는 다이얼로그와 프로그레스 바를 띄워준다(v1.5.0)
+# 카카오API로 주소를 받아온다(v1.5.1)
+# 계고장 부착(v1.5.1)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
 import sys
+import time
 from PyQt5.QtWidgets import (
     QApplication, 
     QDialog, 
@@ -28,16 +32,20 @@ from PyQt5.QtWidgets import (
     QAction,
     QMessageBox, 
     QPushButton, 
+    QProgressBar,
     qApp
 )
+from PyQt5.QtCore import (
+    Qt,
+    QTimer
+)
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
 
 import lib.utils as utils
 from lib.log_gongik import Logger
-from qCenterWid import GongikWidget
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
+from qCenterWid import GongikWidget
 
 '''
 exe 빌드하기
@@ -45,13 +53,11 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.4.4(2022-01-14)'
+VERSION_INFO = 'v1.5.1(2022-01-15)'
 
 
 class Gongik(QMainWindow):
     def __init__(self):
-        super().__init__()
-
         self.log = Logger()
         self.log.INFO('')
         self.log.INFO('')
@@ -63,21 +69,35 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
 
+        self.progressDlg = ProgressDialog()
+        self.progressDlg.show()
+
+        super().__init__()
+
         self.title = 'Gongik'
         self.main_icon_path = utils.resource_path('img/frog.ico')
         self.exit_icon_path = utils.resource_path('img/exit.ico')
 
+        self.progressDlg.mark_progress(30)
+
+
         self.clsNc = NameChanger()
         self.dctNameStorage = self.clsNc.dctName2Change
 
+        self.progressDlg.mark_progress(80)
+        
         if not self.dctNameStorage:
-            self.log.WARNING('현재 폴더에 처리할 수 있는 파일 없음')
-            self.handle_failure()
+            self.log.WARNING('current folder empty')
+            self._handle_failure()
             sys.exit()
+
+        self.progressDlg.mark_progress(100)
 
         self.init_ui()
 
-    def handle_failure(self) -> bool:
+        self.progressDlg.close()
+
+    def _handle_failure(self) -> bool:
         failDlg = InitFailDialogue()
         failDlg.exec_()
 
@@ -110,7 +130,7 @@ class Gongik(QMainWindow):
         sys.exit()
 
     def init_ui(self):
-        # 기본 설정
+        # 상단 정보 설정
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.main_icon_path))
 
@@ -194,7 +214,7 @@ class InitFailDialogue(QDialog):
         layout.addWidget(self.pushNoBtn)
 
 
-    def onBtnYesClicked(self):
+    def onBtnYesClicked(self):  # sourcery skip: class-extract-method
         self.getFilesFmPhone = True
         self.log.INFO('User Selected Getting Files From Phone')
         self.close()
@@ -229,9 +249,12 @@ class DeveloperInfoDialog(QDialog):
         label2 = QLabel('연락처:')
         label2.setAlignment(Qt.AlignTop)
         label2_a = QLabel('collinahn@gmail.com')
+        # labelSrc = QLabel('소스코드:')
+        # labelSrc.setAlignment(Qt.AlignTop)
+        # labelSrc_a = QLabel('https://github.com/collinahn/file_name_changer')
         label3 = QLabel('참고사항:')
         label3.setAlignment(Qt.AlignTop)
-        label3_a = QLabel('오프라인에서 내장된 로컬DB \n(출처: www.juso.go.kr)를 사용하여 \n위치를 추적하는 방식으로, 다소 부정확할 수 있습니다. \n개선 예정입니다.')
+        label3_a = QLabel('카카오맵 API를 이용하여 주소를 받아옵니다.(인터넷 필요)\n오프라인에서 실행 시 내장된 DB를 이용하므로 부정확한 결과를 얻을 수 있습니다.')
         label4 = QLabel('License:')
         label4.setAlignment(Qt.AlignTop)
         label4_a = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
@@ -274,6 +297,7 @@ class AddrInfoDialog(QDialog):
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time_as_dct
         self.dctFinalResult = self.clsNc.dctFinalResult
+        self.dctName2RealAddr = self.clsNc.dctName2Change
 
         self.setupUI()
 
@@ -281,7 +305,13 @@ class AddrInfoDialog(QDialog):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 
-        lstNameAddrTime = [(QLabel('파일 이름'), QLabel('사진 위치'), QLabel('촬영 시각'), QLabel('최종 이름'))]
+        lstNameAddrTime = [(
+            QLabel('파일 이름'), 
+            QLabel('실제 위치'),
+            QLabel(' '),
+            QLabel('처리 위치'), 
+            QLabel('촬영 시각'), 
+            QLabel('최종 이름'))]
         lstNameAddrTime[-1][0].setAlignment(Qt.AlignCenter)
         lstNameAddrTime[-1][1].setAlignment(Qt.AlignCenter)
         lstNameAddrTime[-1][2].setAlignment(Qt.AlignCenter)
@@ -289,7 +319,15 @@ class AddrInfoDialog(QDialog):
 
         # QLabel 객체 삽입
         for name, addr in self.dctName2AddrStorage.items():
-            lstNameAddrTime.append((QLabel(f'{name}'), QLabel(f'{addr}'), QLabel(f'{self.check_key_error(self.dctName2Time, name)}'), QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')))
+            lstNameAddrTime.append((
+                QLabel(f'{name}'),
+                QLabel(f'{self.check_key_error(self.dctName2RealAddr, name)}'),
+                QLabel('->'),
+                QLabel(f'{addr}'),
+                QLabel(f'{self.check_key_error(self.dctName2Time, name)}'),
+                QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')
+            ))
+
         lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
 
         # 확인버튼
@@ -316,6 +354,47 @@ class AddrInfoDialog(QDialog):
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
         self.close()
+
+class ProgressDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.log = Logger()
+        self.log.INFO('init')
+
+        self.title = '알림'
+        self.icon_path = utils.resource_path('img/developer.ico')
+
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.icon_path))
+
+        comment = QLabel('로딩 중입니다. 잠시만 기다려 주세요.')
+        comment.setAlignment(Qt.AlignTop)
+
+        self.pushBtnExit= QPushButton('확인')
+
+        self.pbar = QProgressBar(self)
+        self.pbar.setAlignment(Qt.AlignCenter)
+        self.__progress = 0
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+        layout.addWidget(comment, 0, 0)
+        layout.addWidget(self.pbar, 1, 0)
+
+    def mark_progress(self, percentage):
+        for i in range(self.__progress, percentage):
+            self.pbar.setValue(int(i))
+            self.__progress = percentage
+            time.sleep(0.01) # 좋지 않은 시각효과
+            
+
+
+
+
 
 
 if __name__ == '__main__':

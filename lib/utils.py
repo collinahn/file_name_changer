@@ -4,8 +4,6 @@ from PIL import Image
 from PIL import UnidentifiedImageError
 from datetime import datetime
 
-from .log_gongik import Logger
-
 def get_today_date_formated(separator) -> str:
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
 
