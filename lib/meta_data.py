@@ -39,7 +39,7 @@ class MetaData(object):
             fileImage = utils.open_image(fPath)
 
             if not fileImage:
-                self.log.ERROR('Failed to open', fPath)
+                self.log.ERROR('Failed to open empty image file', fPath)
                 continue
 
             self.dctMetaData[fileName] = fileImage._getexif()

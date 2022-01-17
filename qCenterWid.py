@@ -271,7 +271,7 @@ class GongikWidget(QWidget):
     def _check_registered(dctDataSet, key) -> str:
         try:
             return dctDataSet[key]
-        except (KeyError, AttributeError, TypeError) as e:
+        except (KeyError, AttributeError, TypeError):
             return ''
 
     def onBtnRegName(self):

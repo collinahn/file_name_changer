@@ -13,7 +13,7 @@
 # 1호차 구분이 제대로 되지 않는 버그 수정(v1.4.4)
 # 안내장부착 버튼 추가(v1.4.5)
 
-# v1.5(예정)
+# v1.5
 # 하단 상태바에 현재 진행 중인 작업 표시(v1.5.0) --> cancelled
 # 로딩 중일 시 알려주는 다이얼로그와 프로그레스 바를 띄워준다(v1.5.0)
 # 카카오API로 주소를 받아온다(v1.5.1)
@@ -21,12 +21,16 @@
 # 파일명 미리보기 기능 추가(v1.5.2)
 # 사진 상세에서 제목이 가운데 정렬 되지 않는 버그 수정(v1.5.2)
 # QLineEdit입력 시 즉시 미리보기 업데이트되도록 수정(v1.5.3)
+# 호차 관련 오류 수정(v1.5.4)
+# 파일 옮기기에 프로그레스 바 표시(재활용) (v1.5.5)
+# (예정)GPS 정보 보낼 때 바로 보내지 않고 인터넷 연결을 확인하고 보내도록 수정(v1.5.5)
 
+# 2022-01-17 10:50:19,597 [change_name.py           :change_name_on_btn       :77   ] [CRITICAL] >> [WinError 183] 파일이 이미 있으므로 만들 수 없습니다: '2.jpg' -> '2_부평동 879 (0).jpg'
+# 위 에러 보완(v1.5.6)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
 import sys
-import time
 from PyQt5.QtWidgets import (
     QApplication, 
     QDialog, 
@@ -36,12 +40,10 @@ from PyQt5.QtWidgets import (
     QAction,
     QMessageBox, 
     QPushButton, 
-    QProgressBar,
     qApp
 )
 from PyQt5.QtCore import (
     Qt,
-    QTimer
 )
 from PyQt5.QtGui import QIcon
 
@@ -50,7 +52,9 @@ from lib.log_gongik import Logger
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
 from qCenterWid import GongikWidget
+from qProgressDlg import ProgressDialog
 import qWordBook as const
+
 
 '''
 exe 빌드하기
@@ -58,7 +62,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.5.3(2022-01-17)'
+VERSION_INFO = 'v1.5.5(2022-01-17)'
 
 
 class Gongik(QMainWindow):
@@ -83,20 +87,20 @@ class Gongik(QMainWindow):
         self.main_icon_path = utils.resource_path('img/frog.ico')
         self.exit_icon_path = utils.resource_path('img/exit.ico')
 
-        self.progressDlg.mark_progress(30)
+        self.progressDlg.mark_progress(30, '로딩 중')
 
 
         self.clsNc = NameChanger()
         self.dctNameStorage = self.clsNc.dctName2Change
 
-        self.progressDlg.mark_progress(80)
+        self.progressDlg.mark_progress(60, '파일 분석 중')
         
         if not self.dctNameStorage:
             self.log.WARNING('current folder empty')
             self._handle_failure()
             sys.exit()
 
-        self.progressDlg.mark_progress(100)
+        self.progressDlg.mark_progress(100, '이상 상황 확인 중')
 
         self.init_ui()
 
@@ -106,6 +110,8 @@ class Gongik(QMainWindow):
         failDlg = InitFailDialogue()
         failDlg.exec_()
 
+        self.progressDlg.show()
+
         if not failDlg.getFilesFmPhone:
             QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
             return False
@@ -113,11 +119,19 @@ class Gongik(QMainWindow):
         from lib.file_copy import BridgePhone
         clsBP = BridgePhone()
         self._handle_ADB_failure(clsBP)
+
+        self.progressDlg.mark_progress(80, '파일 탐색 중')
+
         if not clsBP.transfer_files():
             QMessageBox.information(self, 'TRANSFER_FAIL', const.MSG_INFO['TRANSFER_FAIL'])
             return False
-            
+        
+        self.progressDlg.mark_progress(100, '파일 복사 중')
+
         QMessageBox.information(self, 'TRANSFER_SUCCESS', const.MSG_INFO['TRANSFER_SUCCESS'])
+        self.progressDlg.close()
+
+        del self.progressDlg
 
         return True
 
@@ -356,47 +370,6 @@ class AddrInfoDialog(QDialog):
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
         self.close()
-
-class ProgressDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('init')
-
-        self.title = '알림'
-        self.icon_path = utils.resource_path('img/developer.ico')
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
-
-        comment = QLabel('로딩 중입니다. 잠시만 기다려 주세요.')
-        comment.setAlignment(Qt.AlignTop)
-
-        self.pushBtnExit= QPushButton('확인')
-
-        self.pbar = QProgressBar(self)
-        self.pbar.setAlignment(Qt.AlignCenter)
-        self.__progress = 0
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(comment, 0, 0)
-        layout.addWidget(self.pbar, 1, 0)
-
-    def mark_progress(self, percentage):
-        for i in range(self.__progress, percentage):
-            self.pbar.setValue(int(i))
-            self.__progress = percentage
-            time.sleep(0.01) # 좋지 않은 시각효과
-            
-
-
-
-
 
 
 if __name__ == '__main__':
