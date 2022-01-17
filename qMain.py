@@ -24,10 +24,9 @@
 # 호차 관련 오류 수정(v1.5.4)
 # 파일 옮기기에 프로그레스 바 표시 (v1.5.5)
 # 파일 이름 변경에 프로그레스 바 표시 -> QTimer 이용 (v1.5.5)
-# (예정)GPS 정보 보낼 때 바로 보내지 않고 인터넷 연결을 확인하고 보내도록 수정(v1.5.6)
-
+# GPS 정보 보낼 때 바로 보내지 않고 인터넷 연결을 확인하고 보내도록 수정(v1.5.6)
 # 2022-01-17 10:50:19,597 [change_name.py           :change_name_on_btn       :77   ] [CRITICAL] >> [WinError 183] 파일이 이미 있으므로 만들 수 없습니다: '2.jpg' -> '2_부평동 879 (0).jpg'
-# 위 에러 보완(예정)(v1.5.6)
+# 위 에러 보완(예정)(v1.5.7)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -63,7 +62,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.5.5(2022-01-17)'
+VERSION_INFO = 'v1.5.6(2022-01-17)'
 
 
 class Gongik(QMainWindow):

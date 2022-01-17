@@ -41,17 +41,20 @@ class Name(object):
         return self._dctName2Addr
 
     # 스레드 재료
-    def _get_addr_fm_coord(self, orignName, tplGPS4API, tplGPS4DB):
-        addr = self.clsAPI.parse_addr_response(tplGPS4API)
-        if addr == 'Undefined':
+    def _get_addr_fm_coord(self, online, orignName, tplGPS4API, tplGPS4DB):
+        if online:
+            addr = self.clsAPI.parse_addr_response(tplGPS4API)
+        else:
             addr = self.clsDB.get_addr(tplGPS4DB)
 
         self._dctName2Addr[orignName] = addr
 
     # TODO: 적당한 수의 스레드로 나눈다
     def run_thread_get_name(self) -> dict:
+        online = self.clsAPI.check_online()
+
         lstThreads = [
-            Thread(target=self._get_addr_fm_coord, args=(orginName, tplGPS4API, self.dctName2GPS4DB[orginName]))
+            Thread(target=self._get_addr_fm_coord, args=(online, orginName, tplGPS4API, self.dctName2GPS4DB[orginName]))
             for orginName, tplGPS4API in self.dctName2GPS4API.items()
         ]
 

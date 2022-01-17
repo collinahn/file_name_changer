@@ -71,7 +71,7 @@ class NameChanger(object):
                 os.rename(target, newName)
                 idx += 1
             except FileExistsError as fe:
-                self.log.ERROR(fe)
+                self.log.WARNING(fe)
                 ret = 1 # 파일 이미 있음
             except (AttributeError, IndexError, KeyError) as es:
                 self.log.ERROR(es)

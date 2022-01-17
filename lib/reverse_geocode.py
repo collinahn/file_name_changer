@@ -3,6 +3,7 @@
 
 import json
 import requests
+import socket
 from requests.exceptions import (
     ConnectionError,
     Timeout,
@@ -128,6 +129,17 @@ class LocationRequest(object):
             self.log.CRITICAL(e)
 
         return ret
+
+
+    def check_online(self, host="8.8.8.8", port=53, timeout=10):
+        try:
+            socket.setdefaulttimeout(timeout)
+            socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+            self.log.INFO('Online')
+            return True
+        except socket.error as ex:
+            self.log.WARNING(ex)
+            return False
 
 
 if __name__ == '__main__':
