@@ -364,20 +364,32 @@ class GongikWidget(QWidget):
         self.log.INFO('onBtnNextPreview', self.tempImgPreview, 'Location =', currentLoc)
 
     def onBtnChangeFileName(self):
+        from qProgressDlg import ProgressTimerDialog
+        progDlg = ProgressTimerDialog()
+        progDlg.show()
+        progDlg.mark_progress(10, '준비 중')
         self._register_unmanaged_names() # 처리되지 않고 넘어간 파일 이름 처리
-
+        progDlg.mark_progress(30, '미완료 값 처리 중')
         while True: # 디테일을 전부 다 지정하지 않고 넘어가는 경우
             self.currentPreview = self._point_file_name()
             if not self.currentPreview:
                 break
             self.dctLocation2Details[self.dctName2AddrStorage[self.currentPreview]] = self.clsNc.get_final_name(self.prefix, self.currentPreview, '') # {주소: 바뀔 이름(초기화)}
 
-        if self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.prefix):
+        progDlg.mark_progress(80, '이름 변경 중')
+        
+        retChangeName = self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.prefix)
+
+        if retChangeName == 0:
             self.log.INFO('mission complete')
             QMessageBox.information(self, 'COMPLETE', const.MSG_INFO['COMPLETE'])
+        elif retChangeName == 1:
+            QMessageBox.warning(self, 'FILE_NAME_ERROR', const.MSG_WARN['FILE_NAME_ERROR'])
         else:
             self.log.ERROR('mission fail')
             QMessageBox.warning(self, 'OS_ERROR', const.MSG_WARN['OS_ERROR'])
+
+        progDlg.mark_progress(100, '마무리 중')
 
         QMessageBox.information(self, 'EXIT_END', const.MSG_INFO['EXIT_END'])
         self.log.INFO('==================================')

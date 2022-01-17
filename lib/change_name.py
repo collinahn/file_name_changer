@@ -57,25 +57,28 @@ class NameChanger(object):
         return self.dctFinalResult[oldName]
 
 
-    def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter, carSpec='2') -> bool:
-        ret = True
+    def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter, carSpec='2') -> int:
+        ret: int = 0 # 정상 코드
         
-        i = 0
+        idx = 0
         for target, loc in self.dctName2Change.items():
             frontName = carSpec + dctLoc2Name[loc][1:]
             try:
                 if target in dctName2BeforeAfter:
-                    newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(i) + ').jpg'
+                    newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(idx) + ').jpg'
                 else: 
-                    newName = frontName + ' (' + str(i) + ').jpg' 
+                    newName = frontName + ' (' + str(idx) + ').jpg' 
                 os.rename(target, newName)
-                i += 1
+                idx += 1
+            except FileExistsError as fe:
+                self.log.ERROR(fe)
+                ret = 1 # 파일 이미 있음
             except (AttributeError, IndexError, KeyError) as es:
                 self.log.ERROR(es)
-                ret = False
+                ret = 2 # 처리 오류(로그 참조)
             except Exception as e:
                 self.log.CRITICAL(e)
-                ret = False
+                ret = 99 # 기타 오류(로그 참조)
         return ret
 
     @property
