@@ -1,7 +1,9 @@
 # 유선으로 연결된 핸드폰(mtp)에서 파일을 가저온다.
 # ADB 서버를 통해 파일을 가져옴
 
+import subprocess
 import os
+import ctypes
 from ppadb.client import Client as AdbClient
 
 from . import utils
@@ -15,7 +17,7 @@ class BridgePhone(object):
 
         self.DCIMpath = '/sdcard/DCIM/Camera'
         self.PCpath  = '.'
-        self.adbServerPath = utils.resource_path('') + '\\platform-tools\\adb.exe'
+        self.adbPath = utils.resource_path('') + 'platform-tools\\adb.exe'
         
         self._init_start_adb_server()
         self._devices = self._init_get_adb_devices()
@@ -32,14 +34,16 @@ class BridgePhone(object):
         
     def __del__(self):
         try:
-            os.system(f'"{self.adbServerPath}" kill-server')
-        except RuntimeError:
+            # ctypes.windll.shell32.ShellExecuteA(0, 'open', self.adbPath, 'kill-server', None, 1) # 사용안함
+            subprocess.call([self.adbPath, 'kill-server'])
+        except Exception:
             pass
 
     def _init_start_adb_server(self):
         try:
-            self.log.INFO('ADB server start')
-            os.system(f'"{self.adbServerPath}" devices')
+            # ret = ctypes.windll.shell32.ShellExecuteA(0, 'open', self.adbPath, 'start-server', './platform-tools', 1) # 사용안함
+            ret = subprocess.call([self.adbPath, 'start-server'])
+            self.log.INFO('ADB server start', f'{ret = }')
         except RuntimeError as re:
             self.log.ERROR(re)
         except Exception as e:
