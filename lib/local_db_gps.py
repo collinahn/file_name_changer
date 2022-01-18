@@ -31,7 +31,6 @@ class LocalDB(object):
     @property
     def gps_radius(self):
         return 130
-
     
     # 지정된 범위 내의 좌표를 가진 레코드들을 전부 불러온다
     def _query_db(self, tplCoord: tuple[float,float]) -> list[tuple]:
@@ -51,6 +50,7 @@ class LocalDB(object):
                         AND yCoord <= {yCoord + self.gps_radius};"
             curs.execute(query)
             lstRet = curs.fetchall()
+            self.log.INFO(f'{lstRet = }')
 
         except sqlite3.Error as e: 
             self.log.ERROR(e)

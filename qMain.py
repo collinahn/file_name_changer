@@ -30,6 +30,11 @@
 # 최초 실행시 유의사항 띄우기(v1.6.1)
 # adb 연결 체크 시 따로 쉘을 열지 않고도 실행하도록 수정(v1.6.2)
 # 좀 더 다양한 에러 사항을 유저에게 전달하여 대처할 수 있도록 안내 세분화(v1.6.3)
+# 긴급패치) 오프라인 상황에서 Undefined로 나오는 문제 수정 (v1.6.4)
+# 긴급패치) 주소 없는 이미지가 엉뚱한 주소로 나오는 문제 수정 (v1.6.5)
+# keyError 예외처리하여 크래시 나지 않도록 수정(v1.6.6)
+
+# 주소 수정 가능하도록 기능 추가(v1.7.0)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -72,7 +77,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.6.3(2022-01-18)'
+VERSION_INFO = 'v1.7.0b(2022-01-18)'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -110,16 +115,18 @@ class Gongik(QMainWindow):
         self.clsFD = FileDetector('.') # '.'는 초기 파일 체크용
         self.files = self.clsFD.fileList
 
-        self.progressDlg.mark_progress(30, '파일 분석 중')
+        self.progressDlg.mark_progress(30, '파일 검사 중')
         
         if not self.files:
             self.log.WARNING('current folder empty')
             if not self._handle_failure():
                 sys.exit()
 
-        self.progressDlg.mark_progress(100, '파일 검사 중', True)
+        self.progressDlg.mark_progress(90, '파일 분석 중')
 
         self.init_ui()
+
+        self.progressDlg.mark_progress(100, '무결성 검사 중', True)
 
         self.progressDlg.close()
 
@@ -287,7 +294,7 @@ class AddrInfoDialog(QDialog):
         self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time_as_dct
-        self.dctName2RealAddr = self.clsNc.dctName2Change
+        self.dctName2RealAddr = self.clsNc.dctName2LocOrigin
         self.dctFinalResult = copy.deepcopy(self.clsNc.dctFinalResult)
 
         self.setupUI()
@@ -317,9 +324,9 @@ class AddrInfoDialog(QDialog):
                 QLabel(f'{self.check_key_error(self.dctName2Time, name)}'),
                 QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')
             ))
-            print(f'{self.dctFinalResult = }')
-            print(f'{self.dctName2AddrStorage = }')
-            print(f'{self.dctName2RealAddr = }')
+        self.log.DEBUG(f'{self.dctFinalResult = }')
+        self.log.DEBUG(f'{self.dctName2AddrStorage = }')
+        self.log.DEBUG(f'{self.dctName2RealAddr = }')
 
         lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
 

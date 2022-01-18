@@ -1,3 +1,4 @@
+from ctypes import alignment
 import sys
 from PyQt5.QtGui import (
     QPixmap,
@@ -7,6 +8,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QGroupBox, 
     QHBoxLayout, 
+    QVBoxLayout,
+    QCheckBox,
     QMessageBox, 
     QRadioButton,
     QToolTip, 
@@ -53,7 +56,7 @@ class GongikWidget(QWidget):
         self._correct_addr_with_time() # 위치 보정
 
         if not self.dctName2AddrStorage:
-            fDlg = InitInfoDialogue('해당 디렉토리에 GPS정보를 가진 파일이 없습니다.\n종료합니다.', btn=('확인',))
+            fDlg = InitInfoDialogue('해당 디렉토리에 GPS정보를 가진 파일이 없거나 이미 처리된 파일들 입니다.\n종료합니다.', btn=('확인',))
             fDlg.exec_()
             sys.exit()
 
@@ -77,6 +80,8 @@ class GongikWidget(QWidget):
         
         self.currentPreview = self.lstOldName[0]
         self.tempImgPreview = self.currentPreview # 장소별/같은 장소 내의 임시 프리뷰 통합 관리/ currentPreview는 다음 장소 업데이트를 위해.. temp는 같은 장소 내에서.
+
+        self.dctLoc2Modify = {} #{이름:바꿀주소}
         
         self.init_ui()
         self.log.INFO('init complete')
@@ -145,7 +150,7 @@ class GongikWidget(QWidget):
         self.picPreview = QLabel('사진 미리보기')
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
-        self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(540, 360))#, Qt.KeepAspectRatio))
+        self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
         layout.addWidget(self.picPreview, 2, 2, 3, -1)
 
         self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT["FORWARD"]})')
@@ -154,11 +159,34 @@ class GongikWidget(QWidget):
         self.btnNextAddr.clicked.connect(self.onBtnShowNextAddr)
         layout.addWidget(self.btnNextAddr, 3, 0)
 
-        # 같은 위치 preview 갯수 세기
+        # 같은 위치 preview 갯수 세기 & 주소 변경 체크박스
+        self.locationGroupInfo = QGroupBox()
+        layout.addWidget(self.locationGroupInfo, 3, 1)
+
+        self.locationBoxInfoLayout = QVBoxLayout()
+        self.locationGroupInfo.setLayout(self.locationBoxInfoLayout)
+
         self.textPointer4SameLoc = self._generate_text_for_indicator()
         self.labelPointer4SameLoc = QLabel(self.textPointer4SameLoc)
-        self.labelPointer4SameLoc.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.labelPointer4SameLoc, 3,1)
+        self.locationBoxInfoLayout.addWidget(self.labelPointer4SameLoc, alignment=Qt.AlignCenter)
+
+        self.changeGroupAddr = QGroupBox() #그룹박스 내부 그룹박스
+        self.changeGroupAddr.setStyleSheet('QGroupBox { border: 0px }')
+        self.locationBoxInfoLayout.addWidget(self.changeGroupAddr, alignment=Qt.AlignCenter)
+
+        self.changeLocLayout = QHBoxLayout()
+        self.changeGroupAddr.setLayout(self.changeLocLayout)
+
+        self.checkChangeCurrentLoc = QCheckBox()
+        self.changeLocLayout.addWidget(self.checkChangeCurrentLoc)
+        self.checkChangeCurrentLoc.stateChanged.connect(self.onCheckModifyLoc)
+        self.inputChangeCurrentLoc = QLineEdit()
+        self.inputChangeCurrentLoc.setDisabled(True)
+        self.inputChangeCurrentLoc.setPlaceholderText('위치를 바꾸려면 체크 후 입력')
+        self.inputChangeCurrentLoc.setMinimumWidth(300)
+        self.inputChangeCurrentLoc.textChanged.connect(self.onTextLocationModify)
+        self.inputChangeCurrentLoc.returnPressed.connect(self.onTextLocationModify)
+        self.changeLocLayout.addWidget(self.inputChangeCurrentLoc)
 
         # 1호차2호차 선택 라디오버튼
         self.radioGroupCar = QGroupBox('호차 선택')
@@ -222,7 +250,12 @@ class GongikWidget(QWidget):
                 continue # 오늘 날짜가 아니면 시간 제한을 적용하지 않는다
             for tMin, roadAddr in dctTimeLaps.items():
                 if time - tMin < const.TIME_GAP and time - tMin >= 0: # 기준점을 기준으로 기준 시간 내에 드는경우
-                    self.dctName2AddrStorage[fName] = roadAddr
+                    try:
+                        tmpOldAddr = self.dctName2AddrStorage[fName]
+                        self.dctName2AddrStorage[fName] = roadAddr
+                        self.log.INFO(fName, tmpOldAddr, '->', roadAddr)
+                    except KeyError as ke:
+                        self.log.ERROR(ke, fName, '/** while correcting location')
 
         # 여기서 바꾸면 잘 동작하나 테스트코드
         # 아무거나 = self.dctName2AddrStorage[list(self.dctName2AddrStorage.keys())[0]]
@@ -231,7 +264,7 @@ class GongikWidget(QWidget):
 
 
     def _generate_text_for_indicator(self, pos='1'):
-        return f'현재 위치: {self.dctName2AddrStorage[self.currentPreview]} \
+        return f'\n현재 위치: {self.dctName2AddrStorage[self.currentPreview]} \
                \n해당 위치 개수: {pos} / {self.dctLoc2LocNumber[self.dctName2AddrStorage[self.currentPreview]]}'
 
     @staticmethod
@@ -272,7 +305,7 @@ class GongikWidget(QWidget):
 
     # 사진과 설명을 업데이트한다.
     def _update_pixmap(self, srcName):
-        self.picPreview.setPixmap(QPixmap(srcName).scaled(540, 360))# , Qt.KeepAspectRatio))
+        self.picPreview.setPixmap(QPixmap(srcName).scaled(1280//2, 720//2))# , Qt.KeepAspectRatio))
     
     @staticmethod
     def _check_registered(dctDataSet, key) -> str:
@@ -321,14 +354,16 @@ class GongikWidget(QWidget):
         self.fileNamePreview.setText('')
         self.textPointer4SameLoc = self._generate_text_for_indicator()
         self.labelPointer4SameLoc.setText(self.textPointer4SameLoc)
-        self.radioBtnDefault.setChecked(True) # 라디오 버튼 기본값으로 
+        # self.radioBtnDefault.setChecked(True) # 라디오 버튼 기본값으로 
+        self._setRadioBtnAsChecked()
+        self._setModifyLocAsChecked()
         self.nameInput.setText('') # 입력 필드 초기화
 
         self.log.INFO('Location:', currentLoc, 'Next File:', nextFileName)
 
 
     #라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
-    def setRadioBtnAsChecked(self):
+    def _setRadioBtnAsChecked(self):
         if self.tempImgPreview not in self.dctOldName2Suffix:
             self.radioBtnDefault.setChecked(True)
             return
@@ -343,6 +378,21 @@ class GongikWidget(QWidget):
             self.radioBtn1stWarn.setChecked(True)
         elif self.dctOldName2Suffix[self.tempImgPreview] == const.WARN_2ND:
             self.radioBtn2ndWarn.setChecked(True)
+
+        self.log.DEBUG(self.dctOldName2Suffix)
+
+    #위치 변경 여부를 기억한다
+    def _setModifyLocAsChecked(self):
+        if self.tempImgPreview in self.dctLoc2Modify:
+            self.checkChangeCurrentLoc.setChecked(True)
+            self.inputChangeCurrentLoc.setEnabled(True)
+            self.inputChangeCurrentLoc.setText(self.dctLoc2Modify[self.tempImgPreview])
+        else:
+            self.checkChangeCurrentLoc.setChecked(False)
+            self.inputChangeCurrentLoc.setText('')
+            self.inputChangeCurrentLoc.setEnabled(False)
+
+        self.log.DEBUG(self.dctLoc2Modify)
 
 
     def onBtnNextPreview(self):
@@ -359,7 +409,9 @@ class GongikWidget(QWidget):
         self._update_pixmap(self.tempImgPreview)
 
         # 라디오버튼 기억
-        self.setRadioBtnAsChecked()
+        self._setRadioBtnAsChecked()
+        # 위치 변경 기억
+        self._setModifyLocAsChecked()
 
         # 사진 개수 트래킹
         self.currentPos4Preview = (self.currentPos4Preview + 1) % self.dctLoc2LocNumber[self.dctName2AddrStorage[self.currentPreview]] # 0부터 시작
@@ -385,7 +437,7 @@ class GongikWidget(QWidget):
 
         progDlg.mark_progress(80, '이름 변경 중')
         
-        retChangeName = self.clsNc.change_name_on_btn(self.dctLocation2Details, self.dctOldName2Suffix, self.prefix)
+        retChangeName = self.clsNc.change_name_on_btn(self.dctLocation2Details, self.prefix, self.dctOldName2Suffix, self.dctLoc2Modify)
 
         if retChangeName == 0:
             self.log.INFO('mission complete')
@@ -433,10 +485,28 @@ class GongikWidget(QWidget):
             self.prefix = '2'
         self._update_file_name_preview()
 
+    def onCheckModifyLoc(self):
+        if self.checkChangeCurrentLoc.isChecked():
+            self.log.INFO('checkbox checked')
+            self.inputChangeCurrentLoc.setEnabled(True)            
+
+        else:
+            self.log.INFO('checkbox unchecked')
+            self.inputChangeCurrentLoc.setDisabled(True)
+            if self.tempImgPreview in self.dctLoc2Modify:
+                self.dctLoc2Modify.pop(self.tempImgPreview)
+
+    def onTextLocationModify(self):
+        if self.checkChangeCurrentLoc.isChecked():
+            self.dctLoc2Modify[self.tempImgPreview] = self.inputChangeCurrentLoc.text()
+            # self.log.DEBUG(self.tempImgPreview, self.dctLoc2Modify[self.tempImgPreview])
+
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     screen = GongikWidget()
-    screen.resize(540, 100)
+    # screen.resize(540, 100)
     screen.show()
  
     sys.exit(app.exec_())

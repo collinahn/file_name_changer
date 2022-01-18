@@ -1,5 +1,4 @@
 # 파일 정보에서 gps 및 시간 확인한다
-# TODO: 부모 클래스 만들어서 상속받기 -> utils로 간 open_image도 다시 가져오기
 
 from PIL import Image
 from PIL import UnidentifiedImageError
@@ -17,7 +16,7 @@ class MetaData(object):
     def __new__(cls, *args):
         cls.__instance = super().__new__(cls)
         cls.log = Logger()
-        cls.log.INFO(cls.__instance)
+        cls.log.INFO(cls.__instance, "super")
         return cls.__instance
 
     def __init__(self, targetDir) -> None:
@@ -36,7 +35,7 @@ class MetaData(object):
     def __init_meta_data(self):
         for fileName in self.lstFiles:
             fPath = self.targetDir + '/' + fileName
-            fileImage = utils.open_image(fPath)
+            fileImage = self._open_image(fPath)
 
             if not fileImage:
                 self.log.ERROR('Failed to open empty image file', fPath)
@@ -48,6 +47,16 @@ class MetaData(object):
         for key, value in metadata.items():
             decodedData = TAGS.get(key, key)
             self.dctDecodedMeta[decodedData] = value
+
+
+    def _open_image(self, name) -> Image:
+        image: Image = None
+        try:
+            image = Image.open(name)
+        except UnidentifiedImageError as ue:
+            print(ue, name)
+    
+        return image
 
 
 class TimeInfo(MetaData):
@@ -134,8 +143,10 @@ class GPSInfo(MetaData):
         for fName, meta in self.dctMetaData.items():
             if not meta:
                 continue
-
+            
             self._decode_meta_data(meta)
+            self.log.DEBUG(f'{meta}')
+            self.log.DEBUG(f'{self.dctDecodedMeta}')
             
             try:
                 exifGPS = self.dctDecodedMeta['GPSInfo']
@@ -166,7 +177,7 @@ class GPSInfo(MetaData):
 
                 self.dctGPSInfoWGS84[fName] = (Lon, Lat) # 카카오API는 이 순서대로 파라미터를 보냄
             except (ZeroDivisionError, KeyError) as es:
-                self.log.ERROR(fName, 'gps data not found', es)
+                self.log.ERROR(fName, 'gps data error', es)
                 self.dctGPSInfoWGS84[fName] = (0, 0)
             
 
@@ -198,6 +209,8 @@ class GPSInfo(MetaData):
         for fName, WGS84xy in self.dctGPSInfoWGS84.items():
             # trans = Transformer(WGS84, GRS80)
             self.dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
+            if WGS84xy == (0, 0):
+                self.dctGPSInfoGRS80[fName] = (0, 0) 
         
         self.log.INFO('transfrom to GRS80 complete')
         self.log.INFO(f'{self.dctGPSInfoGRS80 = }')
@@ -216,10 +229,11 @@ class GPSInfo(MetaData):
 if __name__ == '__main__':
     gps = GPSInfo()
 
-    time = TimeInfo(".")
-    time1 = TimeInfo("..")
-    time2 = TimeInfo(".")
-    time4 = TimeInfo(".")
-    print(time.dctTimeFilesMade)
-    print(time.time_as_dct)
+
+    # time = TimeInfo(".")
+    # time1 = TimeInfo("..")
+    # time2 = TimeInfo(".")
+    # time4 = TimeInfo(".")
+    # print(time.dctTimeFilesMade)
+    # print(time.time_as_dct)
 

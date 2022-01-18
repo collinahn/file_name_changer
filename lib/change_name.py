@@ -1,11 +1,13 @@
 # 파일의 이름을 받아와 원래 파일명을 바꿀 파일명으로 변경함
 
 import os
+import copy
 
 
 from . import utils
 from .log_gongik import Logger
 from .get_name import Name
+
 
 class NameChanger(object):
     def __new__(cls):
@@ -20,7 +22,8 @@ class NameChanger(object):
         cls = type(self)
         if not hasattr(cls, '_init'):
             self.clsName: Name = Name()
-            self.dctName2Change: dict[str,str] = self.clsName.new_name 
+            self.dctName2Change: dict[str,str] = self.clsName.new_name
+            self.dctName2LocOrigin: dict[str,str] = copy.deepcopy(self.dctName2Change)
 
             self.dctFinalResult: dict[str, str] = {} #최종 결과 담아놓기
 
@@ -57,17 +60,28 @@ class NameChanger(object):
         return self.dctFinalResult[oldName]
 
 
-    def change_name_on_btn(self, dctLoc2Name, dctName2BeforeAfter, carSpec='2') -> int:
+    def change_name_on_btn(self, dctLoc2Name, carSpec, dctName2BeforeAfter, dctName2LocModify) -> int:
         ret: int = 0 # 정상 코드
         
         idx = 0
         for target, loc in self.dctName2Change.items():
-            frontName = carSpec + dctLoc2Name[loc][1:]
             try:
-                if target in dctName2BeforeAfter:
+                middleName = dctLoc2Name[loc][2:]
+
+                if target in dctName2LocModify:
+                    if target in self.dctName2Change:
+                        middleName = middleName.replace(self.dctName2Change[target] ,dctName2LocModify[target])
+                    else:
+                        self.log.ERROR(target, 'not in self.dctName2Change')
+
+                frontName = carSpec + '_' + middleName # 2_불법노점
+
+                if target in dctName2BeforeAfter and dctName2BeforeAfter[target]:
                     newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(idx) + ').jpg'
                 else: 
                     newName = frontName + ' (' + str(idx) + ').jpg' 
+                
+                self.log.CRITICAL('renaming', target, 'to', newName)
                 os.rename(target, newName)
                 idx += 1
             except FileExistsError as fe:

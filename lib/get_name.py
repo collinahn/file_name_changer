@@ -29,25 +29,30 @@ class Name(object):
             self.dctName2GPS4DB = self.clsGPS.dctGPSInfoGRS80
 
             self._dctName2Addr = {}
-            self._dctName2Addr = self.run_thread_get_name()
+            self._dctName2Addr = self.run_thread_get_name() #스레드로
+            # self._dctName2Addr = self.run_seq_get_name() #순차
 
             cls._init = True
 
     # 사용안함
-    def _get_road_addr_seq(self):
-        for orginName, tplGPS in self.clsGPS.gps_GRS80.items():
-            self._dctName2Addr[orginName] = self.clsDB.get_addr(tplGPS)
+    def run_seq_get_name(self):
+        online = self.clsAPI.check_online()
+
+        for orginName, tplGPS4API in self.dctName2GPS4API.items():
+            self._get_addr_fm_coord(online, orginName, tplGPS4API, self.dctName2GPS4DB[orginName])
         
         return self._dctName2Addr
 
     # 스레드 재료
     def _get_addr_fm_coord(self, online, orignName, tplGPS4API, tplGPS4DB):
-        if online:
-            addr = self.clsAPI.parse_addr_response(tplGPS4API)
-        else:
+        if not online:
             addr = self.clsDB.get_addr(tplGPS4DB)
-
+            self.log.INFO('got info fm DB')
+        else:        
+            addr = self.clsAPI.parse_addr_response(tplGPS4API)
+            self.log.INFO('got info fm API')
         self._dctName2Addr[orignName] = addr
+
 
     # TODO: 적당한 수의 스레드로 나눈다
     def run_thread_get_name(self) -> dict:

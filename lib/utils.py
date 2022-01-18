@@ -32,15 +32,5 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def open_image(name) -> Image:
-    image: Image = None
-    try:
-        image = Image.open(name)
-    except UnidentifiedImageError as ue:
-        print(ue, name)
-    
-    return image
-
-
 if __name__ == '__main__':
     print(extract_dir())

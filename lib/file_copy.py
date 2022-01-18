@@ -43,7 +43,7 @@ class BridgePhone(object):
         try:
             # ret = ctypes.windll.shell32.ShellExecuteW(0, 'open', self.adbPath, 'start-server', './platform-tools', 0)
             ret = subprocess.call([self.adbPath, 'start-server'], creationflags=subprocess.CREATE_NO_WINDOW)
-            self.log.INFO('ADB server start', f'{ret = } / success if ret is over 32')
+            self.log.INFO('ADB server start', f'{ret = } / success if ret is 0')
         except RuntimeError as re:
             self.log.ERROR(re)
         except Exception as e:

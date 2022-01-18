@@ -84,8 +84,16 @@ class LocationRequest(object):
             self.log.CRITICAL(ce)
             return None
 
-        self.log.INFO(f'{params = } / {json.loads(res.text) = }')
-
+        self.log.INFO(f'{params = } / {res.text = }')
+# Exception has occurred: JSONDecodeError
+# Expecting value: line 1 column 1 (char 0)
+# During handling of the above exception, another exception occurred:
+#   File "G:\내 드라이브\file_name_changer\lib\reverse_geocode.py", line 89, in _send_request_addr4gps
+#     return json.loads(res.text)
+#   File "G:\내 드라이브\file_name_changer\lib\reverse_geocode.py", line 103, in parse_addr_response
+#     jsonData = self._send_request_addr4gps(tplCoord, option)
+#   File "G:\내 드라이브\file_name_changer\lib\get_name.py", line 52, in _get_addr_fm_coord
+#     addr = self.clsAPI.parse_addr_response(tplGPS4API)
         return json.loads(res.text)
 
     # 들어온 정보가 없으면 False
