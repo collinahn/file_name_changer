@@ -23,6 +23,7 @@ import lib.utils as utils
 from lib.log_gongik import Logger
 from lib.change_name import NameChanger
 from lib.meta_data import GPSInfo, TimeInfo
+from qDialog import InitInfoDialogue
 import qWordBook as const
 
 # TIME_GAP
@@ -51,6 +52,11 @@ class GongikWidget(QWidget):
         self.lstOldName = list(self.dctName2AddrStorage.keys())
         self._correct_addr_with_time() # 위치 보정
 
+        if not self.dctName2AddrStorage:
+            fDlg = InitInfoDialogue('해당 디렉토리에 GPS정보를 가진 파일이 없습니다.\n종료합니다.', btn=('확인',))
+            fDlg.exec_()
+            sys.exit()
+
         self.lstTempNamePool = [] # 파일 미리보기를 위한 임시 리스트
         self.currentPos4Preview = 0 # 파일 미리보기 인덱스
         self.dctLoc2LocNumber = {}
@@ -68,6 +74,7 @@ class GongikWidget(QWidget):
         self.dctOldName2Suffix = {}
         self.prefix = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
 
+        
         self.currentPreview = self.lstOldName[0]
         self.tempImgPreview = self.currentPreview # 장소별/같은 장소 내의 임시 프리뷰 통합 관리/ currentPreview는 다음 장소 업데이트를 위해.. temp는 같은 장소 내에서.
         
@@ -364,7 +371,7 @@ class GongikWidget(QWidget):
         self.log.INFO('onBtnNextPreview', self.tempImgPreview, 'Location =', currentLoc)
 
     def onBtnChangeFileName(self):
-        from qProgressDlg import ProgressTimerDialog
+        from qDialog import ProgressTimerDialog
         progDlg = ProgressTimerDialog()
         progDlg.show()
         progDlg.mark_progress(10, '준비 중')
@@ -397,9 +404,11 @@ class GongikWidget(QWidget):
         self.log.INFO('==================================')
         sys.exit()
 
+    def _get_new_name(self, imgName):
+        return f'{self.prefix}_{self.dctName2AddrStorage[imgName]} {self.nameInput.text().strip()} {self._check_registered(self.dctOldName2Suffix, imgName)}'
     
     def _update_file_name_preview(self):
-        self.fileNamePreview.setText(f'<미리보기>\n{self.prefix}_{self.dctName2AddrStorage[self.tempImgPreview]} {self.nameInput.text().strip()} {self._check_registered(self.dctOldName2Suffix, self.tempImgPreview)}')
+        self.fileNamePreview.setText(f'<미리보기>\n{self._get_new_name(self.tempImgPreview)}')
     
     def _update_suffix(self, suffix):
         self.log.INFO(f'{self.tempImgPreview = }, "{suffix}"')

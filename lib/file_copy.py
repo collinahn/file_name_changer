@@ -28,22 +28,22 @@ class BridgePhone(object):
             return
         
         self.log.INFO('ADB connect success')
-        self._dctName2Date = self._init_get_pics()
+        self._dctName2Date = self._init_peek_files()
         self.lstNamesTookToday = self._init_filter_today_pic()
         self.log.INFO('pictures from today:', self.lstNamesTookToday)
         
     def __del__(self):
         try:
-            # ctypes.windll.shell32.ShellExecuteA(0, 'open', self.adbPath, 'kill-server', None, 1) # 사용안함
-            subprocess.call([self.adbPath, 'kill-server'])
+            # ctypes.windll.shell32.ShellExecuteW(0, 'open', self.adbPath, 'kill-server', None, 0)
+            subprocess.call([self.adbPath, 'kill-server'], creationflags=subprocess.CREATE_NO_WINDOW)
         except Exception:
             pass
 
     def _init_start_adb_server(self):
         try:
-            # ret = ctypes.windll.shell32.ShellExecuteA(0, 'open', self.adbPath, 'start-server', './platform-tools', 1) # 사용안함
-            ret = subprocess.call([self.adbPath, 'start-server'])
-            self.log.INFO('ADB server start', f'{ret = }')
+            # ret = ctypes.windll.shell32.ShellExecuteW(0, 'open', self.adbPath, 'start-server', './platform-tools', 0)
+            ret = subprocess.call([self.adbPath, 'start-server'], creationflags=subprocess.CREATE_NO_WINDOW)
+            self.log.INFO('ADB server start', f'{ret = } / success if ret is over 32')
         except RuntimeError as re:
             self.log.ERROR(re)
         except Exception as e:
@@ -66,7 +66,7 @@ class BridgePhone(object):
         return devices
 
     # 전체 파일을 리턴
-    def _init_get_pics(self) -> dict[str,str]:
+    def _init_peek_files(self) -> dict[str,str]:
         dctRet = {}
         fileExt = utils.get_valid_file_ext()
         try:
@@ -121,6 +121,9 @@ class BridgePhone(object):
             Logger.CRITICAL(e)
 
     def transfer_files(self) -> bool:
+        if not self._devices:
+            self.log.WARNING('Attempted Transfer While 0 Connection!')
+            return False
         try: 
             dst = utils.extract_dir()
             phone = self._devices[0]

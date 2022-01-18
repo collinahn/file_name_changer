@@ -26,8 +26,10 @@
 # 파일 이름 변경에 프로그레스 바 표시 -> QTimer 이용 (v1.5.5)
 # GPS 정보 보낼 때 바로 보내지 않고 인터넷 연결을 확인하고 보내도록 수정(v1.5.6)
 
-# 파일을 옮겨온 후에 다시 실행할 필요 없도록 수정 예정(v1.6.0)
-# adb 연결 체크 시 따로 쉘을 열지 않고도 실행하도록 수정(v1.6.0이후 연기)
+# 파일을 옮겨온 후에 다시 실행할 필요 없이 바로 초기화하도록 수정(v1.6.0b)
+# 최초 실행시 유의사항 띄우기(v1.6.1)
+# adb 연결 체크 시 따로 쉘을 열지 않고도 실행하도록 수정(v1.6.2)
+# 좀 더 다양한 에러 사항을 유저에게 전달하여 대처할 수 있도록 안내 세분화(v1.6.3)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -50,20 +52,34 @@ from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
 from lib.log_gongik import Logger
+from lib.file_detect import FileDetector
 from lib.change_name import NameChanger
-from lib.meta_data import GPSInfo, TimeInfo
+from lib.meta_data import (
+    GPSInfo, 
+    TimeInfo
+)
 from qCenterWid import GongikWidget
-from qProgressDlg import ProgressDialog
+from qDialog import (
+    ProgressDialog,
+    InitInfoDialogue
+)
 import qWordBook as const
 
 
 '''
 exe 빌드하기
 pyinstaller -F --clean qMain.spec
-pyinstaller -w -F --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
+pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.6.0a(2022-01-17)'
+VERSION_INFO = 'v1.6.3(2022-01-18)'
+
+INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
+연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
+
+**주의사항**
+파일 전송 전 핸드폰을 "잠금이 해제된 상태"로 유지하세요.
+'''
 
 
 class Gongik(QMainWindow):
@@ -88,32 +104,33 @@ class Gongik(QMainWindow):
         self.main_icon_path = utils.resource_path('img/frog.ico')
         self.exit_icon_path = utils.resource_path('img/exit.ico')
 
-        self.progressDlg.mark_progress(30, '로딩 중')
+        self.progressDlg.mark_progress(20, '로딩 중')
 
 
-        self.clsNc = NameChanger()
-        self.dctNameStorage = self.clsNc.dctName2Change
+        self.clsFD = FileDetector('.') # '.'는 초기 파일 체크용
+        self.files = self.clsFD.fileList
 
-        self.progressDlg.mark_progress(60, '파일 분석 중')
+        self.progressDlg.mark_progress(30, '파일 분석 중')
         
-        if not self.dctNameStorage:
+        if not self.files:
             self.log.WARNING('current folder empty')
-            self._handle_failure()
-            sys.exit()
+            if not self._handle_failure():
+                sys.exit()
 
-        self.progressDlg.mark_progress(100, '이상 확인 중')
+        self.progressDlg.mark_progress(100, '파일 검사 중', True)
 
         self.init_ui()
 
         self.progressDlg.close()
 
     def _handle_failure(self) -> bool:
-        failDlg = InitFailDialogue()
+        failDlg = InitInfoDialogue(INSTRUCTION, \
+                                    btn=('확인', '다음에'))
         failDlg.exec_()
 
         self.progressDlg.show()
 
-        if not failDlg.getFilesFmPhone:
+        if not failDlg.answer:
             QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
             return False
 
@@ -121,18 +138,15 @@ class Gongik(QMainWindow):
         clsBP = BridgePhone()
         self._handle_ADB_failure(clsBP)
 
-        self.progressDlg.mark_progress(80, '파일 탐색 중')
+        self.progressDlg.mark_progress(50, '파일 복사 중')
 
         if not clsBP.transfer_files():
             QMessageBox.information(self, 'TRANSFER_FAIL', const.MSG_INFO['TRANSFER_FAIL'])
             return False
         
-        self.progressDlg.mark_progress(100, '파일 복사 중')
+        self.progressDlg.mark_progress(70, '이상 감지 중')
 
-        QMessageBox.information(self, 'TRANSFER_SUCCESS', const.MSG_INFO['TRANSFER_SUCCESS'])
-        self.progressDlg.close()
-
-        del self.progressDlg
+        # QMessageBox.information(self, 'TRANSFER_SUCCESS', const.MSG_INFO['TRANSFER_SUCCESS'])
 
         return True
 
@@ -142,6 +156,10 @@ class Gongik(QMainWindow):
 
         if not clsBridgePhone.executable:
             self._pop_warn_msg('MULTI_CONNECTION_ERROR')
+
+        if not clsBridgePhone.files:
+            self._pop_warn_msg('EMPTY_FILE_ERROR')
+
 
     def _pop_warn_msg(self, code):
         self.log.WARNING(const.MSG_WARN[code])
@@ -196,53 +214,6 @@ class Gongik(QMainWindow):
         alg = AddrInfoDialog()
         alg.exec_()
 
-
-class InitFailDialogue(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Fail Info Dialogue')
-
-        self.title = '알림'
-        self.icon_path = utils.resource_path('img/frog.ico')
-
-        self.getFilesFmPhone: bool = False
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
-
-        label0 = QLabel('현재 디렉토리에 처리할 수 있는 파일이 없습니다.\n연결된 핸드폰에서 금일 촬영된 사진을 불러오겠습니까?')
-        label0.setAlignment(Qt.AlignTop)
-        
-        self.pushYesBtn= QPushButton('네(y)')
-        self.pushYesBtn.clicked.connect(self.onBtnYesClicked)
-        self.pushYesBtn.setShortcut('Y')
-
-        self.pushNoBtn= QPushButton('아니오(n)')
-        self.pushNoBtn.clicked.connect(self.onBtnNoClicked)
-        self.pushNoBtn.setShortcut('N')
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(label0, 0, 0)
-        layout.addWidget(self.pushYesBtn)
-        layout.addWidget(self.pushNoBtn)
-
-
-    def onBtnYesClicked(self):  # sourcery skip: class-extract-method
-        self.getFilesFmPhone = True
-        self.log.INFO('User Selected Getting Files From Phone')
-        self.close()
-
-    def onBtnNoClicked(self):
-        self.getFilesFmPhone = False
-        self.log.INFO('User Selected Not to Transfer')
-        self.close()
-
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -273,7 +244,7 @@ class DeveloperInfoDialog(QDialog):
         # labelSrc_a = QLabel('https://github.com/collinahn/file_name_changer')
         label3 = QLabel('참고사항:')
         label3.setAlignment(Qt.AlignTop)
-        label3_a = QLabel('카카오맵 API를 이용하여 주소를 받아옵니다.(인터넷 필요)\n오프라인에서 실행 시 내장된 DB를 이용하므로 부정확한 결과를 얻을 수 있습니다.')
+        label3_a = QLabel(const.PROGRAM_INFO)
         label4 = QLabel('License:')
         label4.setAlignment(Qt.AlignTop)
         label4_a = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
@@ -303,6 +274,7 @@ class DeveloperInfoDialog(QDialog):
 class AddrInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
+        import copy
 
         self.log = Logger()
         self.log.INFO('Addr Info Dialog')
@@ -315,8 +287,8 @@ class AddrInfoDialog(QDialog):
         self.clsTI = TimeInfo()
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time_as_dct
-        self.dctFinalResult = self.clsNc.dctFinalResult
         self.dctName2RealAddr = self.clsNc.dctName2Change
+        self.dctFinalResult = copy.deepcopy(self.clsNc.dctFinalResult)
 
         self.setupUI()
 
@@ -335,6 +307,7 @@ class AddrInfoDialog(QDialog):
             label.setAlignment(Qt.AlignCenter)
 
         # QLabel 객체 삽입
+        from qCenterWid import GongikWidget
         for name, addr in self.dctName2AddrStorage.items():
             lstNameAddrTime.append((
                 QLabel(f'{name}'),
@@ -344,11 +317,14 @@ class AddrInfoDialog(QDialog):
                 QLabel(f'{self.check_key_error(self.dctName2Time, name)}'),
                 QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')
             ))
+            print(f'{self.dctFinalResult = }')
+            print(f'{self.dctName2AddrStorage = }')
+            print(f'{self.dctName2RealAddr = }')
 
         lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
 
         # 확인버튼
-        self.pushButton1= QPushButton('확인')
+        self.pushButton1= QPushButton('확인(개발 중인 기능입니다)')
         self.pushButton1.clicked.connect(self.onBtnClicked)
 
         layout = QGridLayout()
@@ -375,5 +351,10 @@ class AddrInfoDialog(QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    # warnDlg = InitInfoDialogue(INSTRUCTION, btn=('확인했습니다.', ))
+    # warnDlg.exec_()
+    # del warnDlg
+
     ex = Gongik()
     sys.exit(app.exec_())
