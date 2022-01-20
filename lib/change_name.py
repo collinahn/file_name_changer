@@ -51,38 +51,49 @@ class NameChanger(object):
 
         return str(gubun)
 
-    def get_final_name(self, gubun, oldName, detailInput):
-        res = gubun + '_' + self.dctName2Change[oldName]
-        if detailInput:
-            res += ' ' + detailInput
-            
-        self.dctFinalResult[oldName] = res
-        return self.dctFinalResult[oldName]
+    def store_models(self, carSpec, dctName2Loc, dctLoc2Detail, dctName2Sufix, dctName2DetailModified):
+        for name, loc in dctName2Loc.items():
+            try:
+                middle = ' ' + dctLoc2Detail[loc]
+                if name in dctName2DetailModified and dctName2DetailModified[name]:
+                    middle = ' ' + dctName2DetailModified[name]
+
+                suffix = ''
+                if name in dctName2Sufix and dctName2Sufix[name]:
+                    suffix = ' ' + dctName2Sufix[name]
+
+                res = carSpec + ' ' + loc + middle + suffix
+                
+                self.dctFinalResult[name] = res
+                self.log.INFO(name, 'saved as', self.dctFinalResult[name])
+            except KeyError as e:
+                self.log.DEBUG(e)
+        return self.dctFinalResult
 
 
-    def change_name_on_btn(self, dctLoc2Name, carSpec, dctName2BeforeAfter, dctName2LocModify) -> int:
+    def change_name_on_btn(self, prefix, dctLoc2Detail, dctName2Suffix, dctName2DetailsModify) -> int:
         ret: int = 0 # 정상 코드
         
         idx = 0
         for target, loc in self.dctName2Change.items():
             try:
-                middleName = dctLoc2Name[loc][2:]
+                middleName = loc + ' '
 
-                if target in dctName2LocModify:
-                    if target in self.dctName2Change:
-                        middleName = middleName.replace(self.dctName2Change[target] ,dctName2LocModify[target])
-                    else:
-                        self.log.ERROR(target, 'not in self.dctName2Change')
+                if target not in dctName2DetailsModify: # 기본
+                    middleName += dctLoc2Detail[loc]
 
-                frontName = carSpec + '_' + middleName # 2_불법노점
+                if target in dctName2DetailsModify:     # 따로 지정한 경우
+                    middleName += dctName2DetailsModify[target]
 
-                if target in dctName2BeforeAfter and dctName2BeforeAfter[target]:
-                    newName = frontName + ' ' + dctName2BeforeAfter[target] + ' (' + str(idx) + ').jpg'
+                nameFirstHalf = prefix + '_' + middleName # 2_불법노점
+
+                if target in dctName2Suffix and dctName2Suffix[target]:
+                    fullName = nameFirstHalf + ' ' + dctName2Suffix[target] + ' (' + str(idx) + ').jpg'
                 else: 
-                    newName = frontName + ' (' + str(idx) + ').jpg' 
+                    fullName = nameFirstHalf + ' (' + str(idx) + ').jpg' 
                 
-                self.log.CRITICAL('renaming', target, 'to', newName)
-                os.rename(target, newName)
+                self.log.CRITICAL('renaming', target, 'to', fullName)
+                os.rename(target, fullName)
                 idx += 1
             except FileExistsError as fe:
                 self.log.WARNING(fe)

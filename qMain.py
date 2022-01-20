@@ -34,7 +34,8 @@
 # 긴급패치) 주소 없는 이미지가 엉뚱한 주소로 나오는 문제 수정 (v1.6.5)
 # keyError 예외처리하여 크래시 나지 않도록 수정(v1.6.6)
 
-# 주소 수정 가능하도록 기능 추가(v1.7.0)
+# 주소 수정 가능하도록 기능 추가(v1.7.0b)
+# 주소 수정을 세부사항 수정으로 수정, 그 외 코드 간소화(v1.7.1b)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
 
@@ -77,7 +78,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.7.0b(2022-01-18)'
+VERSION_INFO = 'v1.7.1b(2022-01-18)'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -295,7 +296,7 @@ class AddrInfoDialog(QDialog):
         self.dctName2AddrStorage = self.clsNc.dctName2Change
         self.dctName2Time = self.clsTI.time_as_dct
         self.dctName2RealAddr = self.clsNc.dctName2LocOrigin
-        self.dctFinalResult = copy.deepcopy(self.clsNc.dctFinalResult)
+        self.dctFinalResult = self.clsNc.dctFinalResult
 
         self.setupUI()
 
