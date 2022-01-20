@@ -36,8 +36,14 @@
 
 # 주소 수정 가능하도록 기능 추가(v1.7.0b)
 # 주소 수정을 세부사항 수정으로 수정, 그 외 코드 간소화(v1.7.1b)
+# 사진을 클릭하면 열리는 기능 추가(v1.7.1b)
 
-# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb
+# api 기능 추가(v2.0)
+# 버전 정보 판별 기능 추가 (v2.0.1b)
+# 최신 버전 다운로드 기능 추가(v2.0.1b)
+# 버튼(수거 전, 수거 후) 추가(v2.0.1)
+
+# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
 import sys
 from PyQt5.QtWidgets import (
@@ -57,6 +63,7 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
+from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
 from lib.change_name import NameChanger
@@ -78,7 +85,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = 'v1.7.1b(2022-01-18)'
+VERSION_INFO = '(release)gongik_v2.0.1b'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -101,14 +108,16 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
 
-        self.progressDlg = ProgressDialog()
+        self.progressDlg = ProgressDialog('기본 정보를 가져오는 중')
         self.progressDlg.show()
+        self.progressDlg.mark_progress(10)
 
         super().__init__()
 
         self.title = 'Gongik'
         self.main_icon_path = utils.resource_path('img/frog.ico')
         self.exit_icon_path = utils.resource_path('img/exit.ico')
+        self.dev_icon_path = utils.resource_path('img/developer.ico')
 
         self.progressDlg.mark_progress(20, '로딩 중')
 
@@ -190,7 +199,7 @@ class Gongik(QMainWindow):
         exitAction.triggered.connect(qApp.quit)
 
         #메뉴 바 - progMenu - info
-        infoAction = QAction(QIcon(self.main_icon_path), '프로그램 정보', self)
+        infoAction = QAction(QIcon(self.dev_icon_path), '프로그램 정보', self)
         infoAction.setShortcut(const.MSG_SHORTCUT['INFO'])
         infoAction.setStatusTip(const.MSG_TIP['INFO'])
         infoAction.triggered.connect(self.onModalDeveloperInfo)
@@ -200,6 +209,11 @@ class Gongik(QMainWindow):
         checkAction.setShortcut(const.MSG_SHORTCUT['LIST'])
         checkAction.setStatusTip(const.MSG_TIP['LIST'])
         checkAction.triggered.connect(self.onModalAddrInfo)
+
+        updateAction = QAction(QIcon(self.dev_icon_path), '업데이트 확인', self)
+        updateAction.setShortcut(const.MSG_SHORTCUT['UPDATE'])
+        updateAction.setStatusTip(const.MSG_TIP['UPDATE'])
+        updateAction.triggered.connect(self.onModalUpdateApp)
 
         self.statusBar()
 
@@ -211,6 +225,7 @@ class Gongik(QMainWindow):
         progMenu.addAction(exitAction)
         additionalMenu.addAction(infoAction)
         additionalMenu.addAction(checkAction)
+        additionalMenu.addAction(updateAction)
 
         self.show()
 
@@ -221,6 +236,10 @@ class Gongik(QMainWindow):
     def onModalAddrInfo(self):
         alg = AddrInfoDialog()
         alg.exec_()
+
+    def onModalUpdateApp(self):
+        vlg = VersionDialog()
+        vlg.exec_()
 
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
@@ -240,16 +259,13 @@ class DeveloperInfoDialog(QDialog):
 
         label0 = QLabel('버전:')
         label0.setAlignment(Qt.AlignTop)
-        label0_a = QLabel(VERSION_INFO)
+        label0_a = QLabel(f'{VERSION_INFO}')
         label1 = QLabel('개발자:')
         label1.setAlignment(Qt.AlignTop)
         label1_a = QLabel("안태영(Collin Ahn)")
         label2 = QLabel('연락처:')
         label2.setAlignment(Qt.AlignTop)
         label2_a = QLabel('collinahn@gmail.com')
-        # labelSrc = QLabel('소스코드:')
-        # labelSrc.setAlignment(Qt.AlignTop)
-        # labelSrc_a = QLabel('https://github.com/collinahn/file_name_changer')
         label3 = QLabel('참고사항:')
         label3.setAlignment(Qt.AlignTop)
         label3_a = QLabel(const.PROGRAM_INFO)
@@ -305,7 +321,7 @@ class AddrInfoDialog(QDialog):
         self.setWindowIcon(QIcon(self.icon_path))
 
         lstNameAddrTime = [(
-            QLabel('파일 이름'), 
+            QLabel(' 파일 이름'), 
             QLabel('실제 위치'),
             QLabel(' '),
             QLabel('처리 위치'), 
@@ -355,6 +371,78 @@ class AddrInfoDialog(QDialog):
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
         self.close()
+
+
+class VersionDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.log = Logger()
+        self.log.INFO('Version Info Dialog')
+
+        self.clsVI = VersionTeller()
+        self.latest = self.clsVI.new_version
+
+        self.title = '업데이트 정보'
+        self.icon_path = utils.resource_path('img/developer.ico')
+
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.icon_path))
+
+        currentVersion_a = QLabel('현재 버전:')
+        currentVersion_a.setAlignment(Qt.AlignTop)
+        currentVersion_b = QLabel(f'{VERSION_INFO}')
+
+        latestVersion_a = QLabel('최신 버전:')
+        if self.latest and '0.0.0' not in self.latest:
+            latestVersion_b = QLabel(f'{self.latest}')
+        else:
+            latestVersion_b = QLabel('서버에 연결할 수 없습니다.')
+
+        if self.latest and self.latest != VERSION_INFO:
+            comment_a = QPushButton('다운로드')
+            comment_a.clicked.connect(self.onBtnDownload)
+            comment_b = QLabel('새로운 버전이 있습니다.')
+        else:
+            comment_a = QLabel('')
+            comment_b = QLabel('')
+
+        self.pushBtnExit= QPushButton('확인')
+        self.pushBtnExit.clicked.connect(self.onBtnClicked)
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+        layout.addWidget(currentVersion_a, 0, 0)
+        layout.addWidget(currentVersion_b, 0, 1)
+        layout.addWidget(latestVersion_a, 1, 0)
+        layout.addWidget(latestVersion_b, 1, 1)
+        layout.addWidget(comment_a, 2, 0)
+        layout.addWidget(comment_b, 2, 1)
+        layout.addWidget(self.pushBtnExit, 3, 2)
+
+
+    def onBtnClicked(self):
+        self.log.INFO('Developer Info Dialog closed')
+        self.close()
+
+    def onBtnDownload(self):
+        downInfo = InitInfoDialogue('현재 폴더에 다운로드 중입니다.\n다운로드가 끝나면 자동으로 창이 닫힙니다.')
+        downInfo.show()
+        if not self.clsVI.download_latest():
+            downInfo.close()
+            failInfo = InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다.', ('나가기', ))
+            failInfo.exec_()
+            return
+        downInfo.close()
+        finishInfo = InitInfoDialogue('다운로드가 완료되었습니다.', ('예', ))
+        finishInfo.exec_() 
+    
+
+
+
 
 
 if __name__ == '__main__':

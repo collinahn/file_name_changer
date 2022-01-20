@@ -62,7 +62,7 @@ class NameChanger(object):
                 if name in dctName2Sufix and dctName2Sufix[name]:
                     suffix = ' ' + dctName2Sufix[name]
 
-                res = carSpec + ' ' + loc + middle + suffix
+                res = carSpec + '_' + loc + middle + suffix
                 
                 self.dctFinalResult[name] = res
                 self.log.INFO(name, 'saved as', self.dctFinalResult[name])

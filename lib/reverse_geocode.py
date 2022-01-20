@@ -10,7 +10,7 @@ from requests.exceptions import (
     HTTPError,
 )
 
-from .__api import API_KEY
+from .__PRIVATE import API_KEY
 from .log_gongik import Logger
 from .meta_data import GPSInfo
 

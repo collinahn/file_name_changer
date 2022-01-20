@@ -7,7 +7,6 @@ from pyproj import Proj
 from pyproj import transform
 from functools import partial
 
-
 from . import utils
 from .log_gongik import Logger
 from .file_detect import FileDetector
@@ -54,9 +53,16 @@ class MetaData(object):
         try:
             image = Image.open(name)
         except UnidentifiedImageError as ue:
-            print(ue, name)
+            self.log.ERROR(ue, name)
+        except Exception as e:
+            self.log.CRITICAL(e)
     
         return image
+
+    def show_image(self, name):
+        image = self._open_image(name)
+        if image:
+            image.show()
 
 
 class TimeInfo(MetaData):

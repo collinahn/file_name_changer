@@ -23,7 +23,7 @@ class ProgressDialog(QDialog):
         self.log = Logger()
         self.log.INFO('init')
 
-        self.title = '알림 '
+        self.title = '알림'
         self.icon_path = utils.resource_path('img/developer.ico')
         self.label = labelMsg
 
@@ -47,7 +47,7 @@ class ProgressDialog(QDialog):
         layout.addWidget(self.pbar, 1, 0)
 
 
-    def mark_progress(self, percentage, labelMsg=None, speed=None):
+    def mark_progress(self, percentage, labelMsg=None, speed=False):
         if labelMsg:
             self.label = labelMsg
             self.comment.setText(self.label)

@@ -12,7 +12,10 @@ AFTER_FIX = '전후정비 후'
 ATTACH_FLYER = '안내장 부착'
 WARN_1ST = '1차 계고장 부착'
 WARN_2ND = '2차 계고장 부착'
+BEFORE_FETCH = '수거 전'
+AFTER_FETCH = '수거 후'
 EMPTY_STR = ''
+
 
 
 #QMessageBox Msg
@@ -37,6 +40,7 @@ MSG_WARN = {
 MSG_TIP = {
     'EXIT':'프로그램을 종료합니다. 진행 상황이 저장되지 않습니다.',
     'INFO':'프로그램의 정보를 확인합니다.',
+    'UPDATE':'버전정보를 확인하고 새 버전을 다운받습니다. 온라인에서만 동작합니다.',
     'LIST':'사진 정보 목록을 불러옵니다.',
     'MODIFY':'텍스트 박스에 입력된 텍스트로 등록하거나 수정합니다.\n다음 위치를 보면 자동으로 저장됩니다.',
     'FORWARD':f'다른 장소에서 {TIME_GAP}초 이내에 찍은 사진을 불러옵니다.',
@@ -44,11 +48,13 @@ MSG_TIP = {
     '2CAR':'',
     'FINISH':'현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.',
     'NEXT':'비슷한 장소에서 찍힌 사진 중 다른 사진으로 미리보기를 교체합니다.',
+    'PHOTO':'사진을 크게 보시려면 더블 클릭하세요',
 }
 
 MSG_SHORTCUT = {
     'EXIT':'Ctrl+Shift+Q',
     'INFO':'Ctrl+I',
+    'UPDATE':'Ctrl+U',
     'LIST':'Ctrl+G',
     'MODIFY':'Alt+M',
     'FORWARD':'Alt+L', # 다음 위치 보기
@@ -58,6 +64,8 @@ MSG_SHORTCUT = {
     'NEXT':'Alt+W',    # 다음 사진 보기
     'BEFORE_FIX':'Alt+A', 
     'AFTER_FIX':'Alt+S', 
+    'BEFORE_FETCH':'Alt+3',
+    'AFTER_FETCH':'Alt+4',
     'ATTACH_FLYER':'Alt+D', 
     'WARN_1ST':'Alt+1', 
     'WARN_2ST':'Alt+2', 

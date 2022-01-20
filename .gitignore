@@ -132,3 +132,6 @@ __*/
 *.jpg
 *.exe
 platform-tools/
+
+version.txt
+api/

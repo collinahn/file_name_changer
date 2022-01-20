@@ -124,6 +124,8 @@ class GongikWidget(QWidget):
             f'안내장\n({const.MSG_SHORTCUT["ATTACH_FLYER"]})',
             f'1차계고장\n({const.MSG_SHORTCUT["WARN_1ST"]})',
             f'2차계고장\n({const.MSG_SHORTCUT["WARN_2ST"]})',
+            f'수거 전\n({const.MSG_SHORTCUT["BEFORE_FETCH"]})',
+            f'수거 후\n({const.MSG_SHORTCUT["AFTER_FETCH"]})',
             f'지정안함\n({const.MSG_SHORTCUT["SET_NONE"]})'
         ]
         self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FIX', 0)
@@ -131,7 +133,9 @@ class GongikWidget(QWidget):
         self.radioBtnAttached = self._make_suffix_radio_btn(txtRadioBtn, 'ATTACH_FLYER', 2)
         self.radioBtn1stWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_1ST', 3)
         self.radioBtn2ndWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_2ST', 4)
-        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, 'SET_NONE', 5)
+        self.radioBtnBeforeFetch = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FIX', 5)
+        self.radioBtnAfterFetch = self._make_suffix_radio_btn(txtRadioBtn, 'AFTER_FIX', 6)
+        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, 'SET_NONE', 7)
         self.radioBtnDefault.setChecked(True)
         self.radioBoxLayout.addStretch()
 
@@ -149,6 +153,8 @@ class GongikWidget(QWidget):
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
         self.picPreview.setPixmap(QPixmap(self.currentPreview).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
+        self.picPreview.setToolTip(const.MSG_TIP['PHOTO'])
+        self.picPreview.mouseDoubleClickEvent = self.onClickShowImage
         layout.addWidget(self.picPreview, 2, 2, 3, -1)
 
         self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT["FORWARD"]})')
@@ -385,6 +391,10 @@ class GongikWidget(QWidget):
             self.radioBtn1stWarn.setChecked(True)   
         elif self.dctOldName2Suffix[self.tempImgPreview] == const.WARN_2ND:
             self.radioBtn2ndWarn.setChecked(True)
+        elif self.dctOldName2Suffix[self.tempImgPreview] == const.BEFORE_FETCH:
+            self.radioBtnBeforeFetch.setChecked(True)   
+        elif self.dctOldName2Suffix[self.tempImgPreview] == const.AFTER_FETCH:
+            self.radioBtnAfterFetch.setChecked(True)
 
         self.log.DEBUG(self.dctOldName2Suffix)
 
@@ -481,6 +491,8 @@ class GongikWidget(QWidget):
         elif self.radioBtnAttached.isChecked(): self._update_suffix(const.ATTACH_FLYER)
         elif self.radioBtn1stWarn.isChecked(): self._update_suffix(const.WARN_1ST)
         elif self.radioBtn2ndWarn.isChecked(): self._update_suffix(const.WARN_2ND)
+        elif self.radioBtnBeforeFetch.isChecked(): self._update_suffix(const.BEFORE_FETCH)
+        elif self.radioBtnAfterFetch.isChecked(): self._update_suffix(const.AFTER_FETCH)
         elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
 
     def onRadioBtnCar(self):
@@ -508,7 +520,8 @@ class GongikWidget(QWidget):
             self.dctName2Details2Modify[self.tempImgPreview] = self.inputChangeCurrentLoc.text()
             # self.log.DEBUG(self.tempImgPreview, self.dctLoc2Modify[self.tempImgPreview])
 
-
+    def onClickShowImage(self, event):
+        self.clsGI.show_image(self.tempImgPreview)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
