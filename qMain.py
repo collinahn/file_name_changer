@@ -43,6 +43,8 @@
 # 최신 버전 다운로드 기능 추가(v2.0.1b)
 # 버튼(수거 전, 수거 후) 추가(v2.0.1)
 
+# MVC구조로 전면 수정. 양방향 탐색 기능 추가(v2.1.0)
+
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
 import sys
@@ -85,7 +87,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.0.1b'
+VERSION_INFO = '(release)gongik_v2.1.0'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -407,8 +409,9 @@ class VersionDialog(QDialog):
             comment_a.clicked.connect(self.onBtnDownload)
             comment_b = QLabel('새로운 버전이 있습니다.')
         else:
-            comment_a = QLabel('')
-            comment_b = QLabel('')
+            comment_a = QPushButton('다운로드')
+            comment_a.setEnabled(False)
+            comment_b = QLabel('최신 버전입니다.')
 
         self.pushBtnExit= QPushButton('확인')
         self.pushBtnExit.clicked.connect(self.onBtnClicked)
@@ -435,9 +438,12 @@ class VersionDialog(QDialog):
             downInfo.close()
             failInfo = InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다.', ('나가기', ))
             failInfo.exec_()
+            self.close()
             return
-        downInfo.close()
-        finishInfo = InitInfoDialogue('다운로드가 완료되었습니다.', ('예', ))
+
+        if downInfo.isActiveWindow():
+            downInfo.close()
+        finishInfo = InitInfoDialogue(f'현재 폴더에 다운로드가 완료되었습니다.\n({utils.extract_dir()})', ('예', ))
         finishInfo.exec_() 
     
 

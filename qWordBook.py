@@ -22,6 +22,7 @@ EMPTY_STR = ''
 
 MSG_INFO = {
     'COMPLETE':'처리가 완료되었습니다.',
+    'SOF':'시작 장소입니다',
     'EOF':'마지막 장소입니다.',
     'EXIT_END':'프로그램을 종료합니다.\n일부 중복된 장소를 확인하여 주세요.',
     'EXIT_PLAIN':'종료합니다.',
@@ -44,10 +45,12 @@ MSG_TIP = {
     'LIST':'사진 정보 목록을 불러옵니다.',
     'MODIFY':'텍스트 박스에 입력된 텍스트로 등록하거나 수정합니다.\n다음 위치를 보면 자동으로 저장됩니다.',
     'FORWARD':f'다른 장소에서 {TIME_GAP}초 이내에 찍은 사진을 불러옵니다.',
+    'BACKWARD':'이전 장소를 불러옵니다.',
     '1CAR':'',
     '2CAR':'',
     'FINISH':'현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.',
-    'NEXT':'비슷한 장소에서 찍힌 사진 중 다른 사진으로 미리보기를 교체합니다.',
+    'NEXT':'비슷한 장소에서 찍힌 사진 중 다음 사진으로 미리보기를 교체합니다.',
+    'PREVIOUS':'비슷한 장소에서 찍힌 사진 중 이전 사진으로 미리보기를 교체합니다.',
     'PHOTO':'사진을 크게 보시려면 더블 클릭하세요',
 }
 
@@ -57,17 +60,19 @@ MSG_SHORTCUT = {
     'UPDATE':'Ctrl+U',
     'LIST':'Ctrl+G',
     'MODIFY':'Alt+M',
-    'FORWARD':'Alt+L', # 다음 위치 보기
+    'FORWARD':'Alt+Down', # 다음 위치 보기
+    'BACKWARD':'Alt+Up',
     '1CAR':'Ctrl+1',
     '2CAR':'Ctrl+2',
     'FINISH':'Ctrl+Shift+E',
-    'NEXT':'Alt+W',    # 다음 사진 보기
+    'NEXT':'Alt+Right',    # 다음 사진 보기
+    'PREVIOUS':'Alt+Left',
     'BEFORE_FIX':'Alt+A', 
     'AFTER_FIX':'Alt+S', 
-    'BEFORE_FETCH':'Alt+3',
-    'AFTER_FETCH':'Alt+4',
-    'ATTACH_FLYER':'Alt+D', 
+    'BEFORE_FETCH':'Alt+F',
     'WARN_1ST':'Alt+1', 
     'WARN_2ST':'Alt+2', 
+    'AFTER_FETCH':'Alt+G',
+    'ATTACH_FLYER':'Alt+D', 
     'SET_NONE':'Alt+X',
 }

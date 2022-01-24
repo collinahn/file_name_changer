@@ -92,7 +92,7 @@ class NameChanger(object):
                 else: 
                     fullName = nameFirstHalf + ' (' + str(idx) + ').jpg' 
                 
-                self.log.CRITICAL('renaming', target, 'to', fullName)
+                self.log.INFO('renaming', target, 'to', fullName)
                 os.rename(target, fullName)
                 idx += 1
             except FileExistsError as fe:

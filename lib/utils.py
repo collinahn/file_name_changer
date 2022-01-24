@@ -1,8 +1,7 @@
 import sys
 import os
-from PIL import Image
-from PIL import UnidentifiedImageError
 from datetime import datetime
+from collections import defaultdict
 
 def get_today_date_formated(separator) -> str:
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
@@ -30,6 +29,14 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+# key: value형태를 value: key list 형태로 변환한다
+def invert_dict(originDct):
+    resDct = defaultdict(list)
+    for key, value in originDct.items():
+        resDct[value].append(key)
+    
+    return dict(resDct)
 
 
 if __name__ == '__main__':
