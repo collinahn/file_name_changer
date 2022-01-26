@@ -92,7 +92,7 @@ class LocationRequest(object):
 #     return json.loads(res.text)
 #   File "G:\내 드라이브\file_name_changer\lib\reverse_geocode.py", line 103, in parse_addr_response
 #     jsonData = self._send_request_addr4gps(tplCoord, option)
-#   File "G:\내 드라이브\file_name_changer\lib\get_name.py", line 52, in _get_addr_fm_coord
+#   File "G:\내 드라이브\file_name_changer\lib\get_location.py", line 52, in _get_addr_fm_coord
 #     addr = self.clsAPI.parse_addr_response(tplGPS4API)
         return json.loads(res.text)
 

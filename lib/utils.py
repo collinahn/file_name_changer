@@ -10,11 +10,17 @@ def get_today_date_formated(separator) -> str:
 def get_valid_file_ext():
     return ( r'.jpg', r'.jpeg' )
 
+def get_car_candidates():
+    return ( '6', '2', '3', '4')
+
+def get_handled_suffix():
+    return tuple( f'{_}_' for _ in get_car_candidates() )
+
 # 파일 목록 추출
 # jpg 확장자가 아니거나 이미 바꾼 목록은 건들지 않음
 def extract_file_name_sorted(dir='.'):
     fileExt = get_valid_file_ext()
-    alreadyHandled = ( r'6_', r'2_', r'3_', r'4_' )
+    alreadyHandled = get_handled_suffix()
 
     lstRes: list[str] = os.listdir(dir)
     return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ]
@@ -38,6 +44,26 @@ def invert_dict(originDct):
     
     return dict(resDct)
 
+def extract_parent_folder(dir) -> str:
+    try:
+        return dir.rsplit('/', 1)[1]
+    except Exception:
+        pass
+    return '2구역'
+
+def get_car_no_from_parent_dir() -> str:
+    gubun = '2'
+    parentFolderName = extract_parent_folder(extract_dir())
+
+    #호차 구분
+    if '1' in parentFolderName:
+        gubun = '6' #1조는 6으로
+    elif '2' in parentFolderName:
+        gubun = '2'
+
+    return str(gubun)
+
 
 if __name__ == '__main__':
     print(extract_dir())
+    print(f'{get_handled_suffix() = }')

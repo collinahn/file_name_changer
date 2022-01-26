@@ -43,7 +43,8 @@
 # 최신 버전 다운로드 기능 추가(v2.0.1b)
 # 버튼(수거 전, 수거 후) 추가(v2.0.1)
 
-# MVC구조로 전면 수정. 양방향 탐색 기능 추가(v2.1.0)
+# MVC구조로 수정(파일 미리보기 구조). 양방향 탐색 기능 추가(v2.1.0)
+# MVC구조로 전면 수정(파일 속성 데이터), '더 자세히'선택권 부여 (v2.1.1)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
@@ -65,6 +66,8 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
+from lib.file_property import FileProp
+from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
@@ -76,7 +79,8 @@ from lib.meta_data import (
 from qCenterWid import GongikWidget
 from qDialog import (
     ProgressDialog,
-    InitInfoDialogue
+    InitInfoDialogue,
+    ProgressTimerDialog
 )
 import qWordBook as const
 
@@ -87,7 +91,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.1.0'
+VERSION_INFO = '(release)gongik_v2.1.1'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -117,9 +121,9 @@ class Gongik(QMainWindow):
         super().__init__()
 
         self.title = 'Gongik'
-        self.main_icon_path = utils.resource_path('img/frog.ico')
-        self.exit_icon_path = utils.resource_path('img/exit.ico')
-        self.dev_icon_path = utils.resource_path('img/developer.ico')
+        self.main_icon_path = utils.resource_path(const.IMG_FROG)
+        self.exit_icon_path = utils.resource_path(const.IMG_EXIT)
+        self.dev_icon_path = utils.resource_path(const.IMG_DEV)
 
         self.progressDlg.mark_progress(20, '로딩 중')
 
@@ -141,10 +145,10 @@ class Gongik(QMainWindow):
         self.progressDlg.mark_progress(100, '무결성 검사 중', True)
 
         self.progressDlg.close()
+        del self.progressDlg
 
     def _handle_failure(self) -> bool:
-        failDlg = InitInfoDialogue(INSTRUCTION, \
-                                    btn=('확인', '다음에'))
+        failDlg = InitInfoDialogue(INSTRUCTION, btn=('확인', '다음에'))
         failDlg.exec_()
 
         self.progressDlg.show()
@@ -251,7 +255,7 @@ class DeveloperInfoDialog(QDialog):
         self.log.INFO('Developer Info Dialog')
 
         self.title = '프로그램 정보'
-        self.icon_path = utils.resource_path('img/developer.ico')
+        self.icon_path = utils.resource_path(const.IMG_DEV)
 
         self.setupUI()
 
@@ -306,15 +310,7 @@ class AddrInfoDialog(QDialog):
         self.log.INFO('Addr Info Dialog')
 
         self.title = '사진 상세'
-        self.icon_path = utils.resource_path('img/frog.ico')
-
-        self.clsNc = NameChanger()
-        self.clsGI = GPSInfo()
-        self.clsTI = TimeInfo()
-        self.dctName2AddrStorage = self.clsNc.dctName2Change
-        self.dctName2Time = self.clsTI.time_as_dct
-        self.dctName2RealAddr = self.clsNc.dctName2LocOrigin
-        self.dctFinalResult = self.clsNc.dctFinalResult
+        self.icon_path = utils.resource_path(const.IMG_FROG)
 
         self.setupUI()
 
@@ -322,32 +318,35 @@ class AddrInfoDialog(QDialog):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 
+        mq = MstQueue()
+
         lstNameAddrTime = [(
             QLabel(' 파일 이름'), 
-            QLabel('실제 위치'),
+            QLabel('도로명 주소'),
+            QLabel(' 지번 주소'),
             QLabel(' '),
             QLabel('처리 위치'), 
             QLabel('촬영 시각'), 
-            QLabel('최종 이름'))]
+            QLabel('최종 이름'),
+            QLabel('현재 커서'))]
         for label in lstNameAddrTime[-1]:
             label.setAlignment(Qt.AlignCenter)
 
         # QLabel 객체 삽입
-        from qCenterWid import GongikWidget
-        for name, addr in self.dctName2AddrStorage.items():
+        for name in FileProp.get_names():
+            fProp = FileProp(name)
             lstNameAddrTime.append((
-                QLabel(f'{name}'),
-                QLabel(f'{self.check_key_error(self.dctName2RealAddr, name)}'),
+                QLabel(f'{fProp.name}'),
+                QLabel(f'{fProp.locationDB}'),
+                QLabel(f'{fProp.locationAPI}'),
                 QLabel('->'),
-                QLabel(f'{addr}'),
-                QLabel(f'{self.check_key_error(self.dctName2Time, name)}'),
-                QLabel(f'{self.check_key_error(self.dctFinalResult, name)}')
+                QLabel(f'{fProp._locationDB}'),
+                QLabel(f'{fProp.time.strftime("%Y-%m-%d %H:%M:%S")}'),
+                QLabel(f'{fProp.final_full_name}'),
+                QLabel('<<') if mq.current_preview.current_preview.name == fProp.name else QLabel('')
             ))
-        self.log.DEBUG(f'{self.dctFinalResult = }')
-        self.log.DEBUG(f'{self.dctName2AddrStorage = }')
-        self.log.DEBUG(f'{self.dctName2RealAddr = }')
-
-        lstNameAddrTime.sort(key=lambda x: x[0].text()) #라벨 이름 기준 정렬
+            
+        lstNameAddrTime.sort(key=lambda x: x[2].text()) #주소 기준 정렬
 
         # 확인버튼
         self.pushButton1= QPushButton('확인(개발 중인 기능입니다)')
@@ -386,7 +385,7 @@ class VersionDialog(QDialog):
         self.latest = self.clsVI.new_version
 
         self.title = '업데이트 정보'
-        self.icon_path = utils.resource_path('img/developer.ico')
+        self.icon_path = utils.resource_path(const.IMG_DEV)
 
         self.setupUI()
 
@@ -432,8 +431,10 @@ class VersionDialog(QDialog):
         self.close()
 
     def onBtnDownload(self):
-        downInfo = InitInfoDialogue('현재 폴더에 다운로드 중입니다.\n다운로드가 끝나면 자동으로 창이 닫힙니다.')
+        downInfo = ProgressTimerDialog('현재 폴더에 다운로드 중입니다.\n다운로드가 끝나면 자동으로 창이 닫힙니다.', self)
         downInfo.show()
+        downInfo.mark_progress(99)
+
         if not self.clsVI.download_latest():
             downInfo.close()
             failInfo = InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다.', ('나가기', ))
@@ -443,6 +444,7 @@ class VersionDialog(QDialog):
 
         if downInfo.isActiveWindow():
             downInfo.close()
+
         finishInfo = InitInfoDialogue(f'현재 폴더에 다운로드가 완료되었습니다.\n({utils.extract_dir()})', ('예', ))
         finishInfo.exec_() 
     

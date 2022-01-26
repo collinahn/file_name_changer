@@ -135,3 +135,5 @@ platform-tools/
 
 version.txt
 api/
+
+.gongik/

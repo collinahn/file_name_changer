@@ -16,6 +16,17 @@ BEFORE_FETCH = '수거 전'
 AFTER_FETCH = '수거 후'
 EMPTY_STR = ''
 
+#img src
+IMG_FROG = 'img/frog.ico'
+IMG_EXIT = 'img/exit.ico'
+IMG_DEV = 'img/developer.ico'
+
+
+#이름 타입
+USE_BOTH = 0
+USE_ROAD = 1
+USE_NORMAL = 2
+
 
 
 #QMessageBox Msg

@@ -1,10 +1,13 @@
+import sys
 import time
 from PyQt5.QtWidgets import (
     QDialog, 
     QGridLayout, 
     QLabel, 
     QProgressBar,
-    QPushButton
+    QPushButton,
+    QMainWindow,
+    QWidget
 )
 from PyQt5.QtCore import (
     Qt,
@@ -39,7 +42,7 @@ class ProgressDialog(QDialog):
         self.pbar = QProgressBar(self)
         self.pbar.setAlignment(Qt.AlignCenter)
         self.__progress = 0
-        self.__interval = 0.01
+        self.__interval = 0.005
 
         layout = QGridLayout()
         self.setLayout(layout)
@@ -52,7 +55,7 @@ class ProgressDialog(QDialog):
             self.label = labelMsg
             self.comment.setText(self.label)
         if speed:
-            self.__interval = 0.03
+            self.__interval = 0.01
 
         for i in range(self.__progress, percentage):
             self.pbar.setValue(int(i))
@@ -64,9 +67,9 @@ class ProgressDialog(QDialog):
 
 
 
-class ProgressTimerDialog(QDialog):
-    def __init__(self, labelMsg:str='        '):
-        super().__init__()
+class ProgressTimerDialog(QWidget):
+    def __init__(self, labelMsg:str='', Parent=None):
+        super(ProgressTimerDialog, self).__init__(Parent)
 
         self.log = Logger()
         self.log.INFO('init')
@@ -95,17 +98,22 @@ class ProgressTimerDialog(QDialog):
         layout.addWidget(self.pbar, 1, 0)
 
         self.timer = QTimer()
-        self.timer.setInterval(10)
+        self.timer.setInterval(50)
         self.timer.timeout.connect(self.__update)
         self.timer.start()
 
     def __update(self):
+        if self.__progress >= self.__percentageInput:
+            self.timer.stop()
+            return
+        else:
+            if not self.timer.isActive():
+                self.timer.start()
+
         self.__progress = self.pbar.value()
         self.__progress += 1
         self.pbar.setValue(self.__progress)
 
-        if self.__progress >= self.__percentageInput:
-            self.timer.stop()
 
 
     def mark_progress(self, percentage, labelMsg=None):
@@ -122,7 +130,7 @@ class InitInfoDialogue(QDialog):
         super().__init__()
 
         self.log = Logger()
-        self.log.INFO('Fail Info Dialogue')
+        self.log.INFO('Info Dialogue', msg)
 
         self.title = '알림'
         self.main_msg = msg
@@ -169,3 +177,13 @@ class InitInfoDialogue(QDialog):
         self.answer = False
         self.log.INFO('User Selected Not to Transfer')
         self.close()
+
+
+
+if __name__ == '__main__':
+    from PyQt5.QtWidgets import QApplication
+    app = QApplication(sys.argv)
+    pdlg = ProgressTimerDialog('test')
+    pdlg.show()
+    pdlg.mark_progress(80)
+    sys.exit(app.exec_())

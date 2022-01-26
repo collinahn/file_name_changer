@@ -21,12 +21,21 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 
+
 import lib.utils as utils
 import qWordBook as const
-from lib.queue_order import QueueReadOnly
+from lib.get_location import LocationInfo
+from lib.file_property import FileProp
+from lib.queue_order import (
+    MstQueue, 
+    PropQueue
+)
 from lib.log_gongik import Logger
 from lib.change_name import NameChanger
-from lib.meta_data import GPSInfo, TimeInfo
+from lib.meta_data import (
+    GPSInfo, 
+    TimeInfo
+)
 from qDialog import InitInfoDialogue
 
 # TIME_GAP
@@ -47,36 +56,23 @@ class GongikWidget(QWidget):
 
         self.log = Logger()
 
-        self.clsNc = NameChanger()
-        self.clsGI = GPSInfo()
-        self.clsTI = TimeInfo()
-        self.dctName2AddrStorage = self.clsNc.dctName2Change
-        self.dctName2Time = self.clsTI.time # {이름:초로 나타낸 시간}
-        self._correct_addr_with_time() # 위치 보정
+        clsLoc = LocationInfo() #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
+        clsTI = TimeInfo() #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
 
-        if not self.dctName2AddrStorage:
+
+        if not FileProp.name2AddrAPIOrigin() or not FileProp.name2AddrDBOrigin():
             fDlg = InitInfoDialogue('해당 디렉토리에 GPS정보를 가진 파일이 없거나 이미 처리된 파일들 입니다.\n종료합니다.', btn=('확인',))
             fDlg.exec_()
             sys.exit()
 
-        
-        lstSingleLocQueue = []
-        self.dctLoc2Names = utils.invert_dict(self.dctName2AddrStorage)
-        for loc, nameList in self.dctLoc2Names.items():
-            lstSingleLocQueue.append(QueueReadOnly(loc, tuple(nameList)))
+        FileProp.self_correct_address()
+        FileProp.debug_info()
 
-        self.masterQueue = QueueReadOnly('master', tuple(lstSingleLocQueue)) # 위치에 따른 이름 리스트 저장
-        self.currentLoc: QueueReadOnly = self.masterQueue.current_preview
-        self.log.DEBUG(self.currentLoc.name)
+        self.masterQueue = MstQueue() # 위치에 따라 큐를 생성하고 초기화시 자기자신에 삽입
+        self.currentLoc: PropQueue = self.masterQueue.current_preview
 
-        self.dctLocation2Details = {}
-        self.setProcessedName = set()
-        self.setProcessedAddr = set()
-        self.dctName2Suffix = {}
-        self.prefix = self.clsNc.gubun # 호차 구분 (1호차: 6, 2호차: 2)
+        self._use_name:int = const.USE_BOTH
 
-        self.dctName2Details2Modify = {} #{이름:개별수정사안}
-        
         self.init_ui()
         self.log.INFO('init complete')
         
@@ -89,7 +85,7 @@ class GongikWidget(QWidget):
         # 0번 레이아웃
         self.currentPath = QLabel(f'실행 경로: {utils.extract_dir()}')
         self.mainWidgetLayout.addWidget(self.currentPath, 0, 0, 1, 2)
-        self.totalPics = QLabel(f'총 사진 개수: {len(self.dctName2AddrStorage)}')
+        self.totalPics = QLabel(f'총 사진 개수: {self.masterQueue.total_size}')
         self.totalPics.setAlignment(Qt.AlignCenter)
         self.mainWidgetLayout.addWidget(self.totalPics, 0, 2)
 
@@ -102,8 +98,8 @@ class GongikWidget(QWidget):
         self.nameInput.setMaxLength(100)
         self.nameInput.setMinimumWidth(500)
         self.nameInput.setMinimumHeight(50)
-        self.nameInput.textChanged.connect(self._update_file_name_preview)
-        self.nameInput.returnPressed.connect(self.onEnterRegName)
+        self.nameInput.textChanged.connect(self.onTextCommonDetailsModified)
+        self.nameInput.returnPressed.connect(self.onEnterRegisterCommonDetails)
         self.mainWidgetLayout.addWidget(self.nameInput, 1, 1)
 
         # 전 후 선택 라디오버튼
@@ -140,14 +136,40 @@ class GongikWidget(QWidget):
         self.btnPreviousAddr.clicked.connect(self.onBtnShowPrevAddr)
         self.mainWidgetLayout.addWidget(self.btnPreviousAddr, 2, 0)
 
+
+        # 파일 이름 미리보기 & 주소 종류 설정 라디오버튼
+        self.fileNameGroup = QGroupBox()
+        self.mainWidgetLayout.addWidget(self.fileNameGroup, 2, 1)
+
+        self.fileNameBoxLayout = QVBoxLayout()
+        self.fileNameGroup.setLayout(self.fileNameBoxLayout)
+
         self.fileNamePreview = QLabel() # 변환된 파일명의 미리보기
         self.fileNamePreview.setAlignment(Qt.AlignCenter)
-        self.mainWidgetLayout.addWidget(self.fileNamePreview, 2, 1)
+        self.fileNameBoxLayout.addWidget(self.fileNamePreview)
+
+        self.changeAddrGroupType = QGroupBox('') # 그룹박스 내 그룹박스(라디오버튼)
+        self.changeAddrGroupType.setStyleSheet('QGroupBox { border: 0px }')
+        self.fileNameBoxLayout.addWidget(self.changeAddrGroupType, alignment=Qt.AlignCenter)
+
+        self.changeAddrTypeLayout = QHBoxLayout()
+        self.changeAddrGroupType.setLayout(self.changeAddrTypeLayout)
+        
+        self.radioBtnAddrTypeBoth = QRadioButton('자세히', self)
+        self.radioBtnAddrTypeNormal = QRadioButton('지번주소', self)        
+        self.radioBtnAddrTypeRoad = QRadioButton('도로명주소(인터넷 연결 없을 시)', self)
+        self.radioBtnAddrTypeBoth.clicked.connect(self.onCheckRadioAddrType)
+        self.radioBtnAddrTypeNormal.clicked.connect(self.onCheckRadioAddrType)
+        self.radioBtnAddrTypeRoad.clicked.connect(self.onCheckRadioAddrType)
+        self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeBoth)
+        self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeNormal)
+        self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeRoad)
+        self.radioBtnAddrTypeBoth.setChecked(True)
 
         self.picPreview = QLabel('사진 미리보기')
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
-        self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
+        self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview.name).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
         self.picPreview.setToolTip(const.MSG_TIP['PHOTO'])
         self.picPreview.mouseDoubleClickEvent = self.onClickShowImage
         self.mainWidgetLayout.addWidget(self.picPreview, 2, 2, 3, -1)
@@ -169,12 +191,12 @@ class GongikWidget(QWidget):
         self.labelPointer4SameLoc.setAlignment(Qt.AlignCenter)
         self.locationBoxInfoLayout.addWidget(self.labelPointer4SameLoc, alignment=Qt.AlignCenter)
 
-        self.changeGroupAddr = QGroupBox() #그룹박스 내부 그룹박스
-        self.changeGroupAddr.setStyleSheet('QGroupBox { border: 0px }')
-        self.locationBoxInfoLayout.addWidget(self.changeGroupAddr, alignment=Qt.AlignCenter)
+        self.changeGroupSpecificDetail = QGroupBox() #그룹박스 내부 그룹박스
+        self.changeGroupSpecificDetail.setStyleSheet('QGroupBox { border: 0px }')
+        self.locationBoxInfoLayout.addWidget(self.changeGroupSpecificDetail, alignment=Qt.AlignCenter)
 
         self.changeLocLayout = QHBoxLayout()
-        self.changeGroupAddr.setLayout(self.changeLocLayout)
+        self.changeGroupSpecificDetail.setLayout(self.changeLocLayout)
 
         self.checkChangeCurrentLoc = QCheckBox()
         self.changeLocLayout.addWidget(self.checkChangeCurrentLoc)
@@ -202,8 +224,8 @@ class GongikWidget(QWidget):
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
         self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT["2CAR"])
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
-        if self.prefix == '2': self.radioBtn2ndCar.setChecked(True)
-        else: self.radioBtn1stCar.setChecked(True)
+        if self.currentLoc.current_preview.prefix == '6': self.radioBtn1stCar.setChecked(True)
+        elif self.currentLoc.current_preview.prefix == '2': self.radioBtn2ndCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
         self.btn2Change = QPushButton(f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT["FINISH"]})')
@@ -244,53 +266,20 @@ class GongikWidget(QWidget):
         self.radioBoxLayout.addWidget(result, alignment=Qt.AlignTop)
         return result
 
-    # 초기화 시 시간을 기준으로 주소를 교정한다.
-    def _correct_addr_with_time(self):
-        lstTimePicTakenSorted = sorted(list(self.dctName2Time.values()))
-        dctTimeLaps: dict[int,str] = {} # 기준이 되는 시간과 주소를 기록한다
-        timeStandard = 0 # for루프를 돌 때 기준이 되는 시간점
-        todaysDate = utils.get_today_date_formated(':')
-
-        # 시간 기준으로 첫 사진이 찍히고 상당 기간 내에 사진이 찍히지 않을 경우 
-        # 첫 사진의 주소로 상당 기간 내에 찍힌 그 이후 사진들의 주소를 대체한다 
-        for timePic in lstTimePicTakenSorted:
-            if timePic - timeStandard > const.TIME_GAP:
-                timeStandard = timePic # 다시 반복문을 돌 때 계산을 위하여
-                for fName4Init, time4Init in self.dctName2Time.items():
-                    if time4Init == timeStandard:
-                        dctTimeLaps[timeStandard] = self.dctName2AddrStorage[fName4Init] # 기준들 저장
-
-        for fName, time in self.dctName2Time.items():
-            if todaysDate not in self.clsTI.dctTimeFilesMade[fName]:
-                self.log.WARNING('different datetime', fName, self.clsTI.dctTimeFilesMade[fName])
-                continue # 오늘 날짜가 아니면 시간 제한을 적용하지 않는다
-            for tMin, roadAddr in dctTimeLaps.items():
-                if time - tMin < const.TIME_GAP and time - tMin >= 0: # 기준점을 기준으로 기준 시간 내에 드는경우
-                    try:
-                        tmpOldAddr = self.dctName2AddrStorage[fName]
-                        self.dctName2AddrStorage[fName] = roadAddr
-                        self.log.INFO(fName, tmpOldAddr, '->', roadAddr)
-                    except KeyError as ke:
-                        self.log.ERROR(ke, fName, '/** while correcting location')
-
-        # 여기서 바꾸면 잘 동작하나 테스트코드
-        # 아무거나 = self.dctName2AddrStorage[list(self.dctName2AddrStorage.keys())[0]]
-        # for 파일이름 in list(self.dctName2AddrStorage.keys()):
-        #     self.dctName2AddrStorage[파일이름] = 아무거나
-
     def _generate_text_pic_indicator(self):
-        return f'{self.currentLoc.current_pos} / {self.currentLoc.queue_size}'
+        return f'{self.currentLoc.current_pos} / {self.currentLoc.size}'
 
     def _generate_text_loc_indicator(self):
-        return f'\n완료율: {self.masterQueue.current_pos} / {self.masterQueue.queue_size} \
-            \n현재 위치: {self.dctName2AddrStorage[self.currentLoc.current_preview]}'
+        return f'\n완료율: {self.masterQueue.current_pos} / {self.masterQueue.size} \
+            \n현재 위치: {self.currentLoc.name}'
 
 
     def _register_input(self):
         # 현재 커서의 지정 이름 저장
-        currentPreview = self.currentLoc.current_preview
-        self.dctLocation2Details[self.dctName2AddrStorage[currentPreview]] = self.nameInput.text().strip()
-        self.log.INFO('filename =', currentPreview, ':', self.dctLocation2Details[self.dctName2AddrStorage[currentPreview]])
+        text = self.nameInput.text().strip()
+        self.currentLoc.common_details(text)
+
+        self.log.INFO('filename =', self.currentLoc.current_preview, 'details=', text)
 
     # 사진과 설명을 업데이트한다.
     def _update_pixmap(self, srcName):
@@ -304,131 +293,104 @@ class GongikWidget(QWidget):
             return ''
 
 
-    #라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
+    #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
     def _setRadioBtnAsChecked(self):
         currentPreview = self.currentLoc.current_preview
-        if currentPreview not in self.dctName2Suffix:
-            self.radioBtnDefault.setChecked(True)
-            return
 
-        if self.dctName2Suffix[currentPreview] == const.BEFORE_FIX:
-            self.radioBtnBefore.setChecked(True)
-        elif self.dctName2Suffix[currentPreview] == const.AFTER_FIX:
-            self.radioBtnAfter.setChecked(True)
-        elif self.dctName2Suffix[currentPreview] == const.ATTACH_FLYER:
-            self.radioBtnAttached.setChecked(True)
-        elif self.dctName2Suffix[currentPreview] == const.WARN_1ST:
-            self.radioBtn1stWarn.setChecked(True)   
-        elif self.dctName2Suffix[currentPreview] == const.WARN_2ND:
-            self.radioBtn2ndWarn.setChecked(True)
-        elif self.dctName2Suffix[currentPreview] == const.BEFORE_FETCH:
-            self.radioBtnBeforeFetch.setChecked(True)   
-        elif self.dctName2Suffix[currentPreview] == const.AFTER_FETCH:
-            self.radioBtnAfterFetch.setChecked(True)
+        if   currentPreview.suffix == const.EMPTY_STR:    self.radioBtnDefault.setChecked(True)
+        elif currentPreview.suffix == const.BEFORE_FIX:   self.radioBtnBefore.setChecked(True)
+        elif currentPreview.suffix == const.AFTER_FIX:    self.radioBtnAfter.setChecked(True)
+        elif currentPreview.suffix == const.ATTACH_FLYER: self.radioBtnAttached.setChecked(True)
+        elif currentPreview.suffix == const.WARN_1ST:     self.radioBtn1stWarn.setChecked(True)   
+        elif currentPreview.suffix == const.WARN_2ND:     self.radioBtn2ndWarn.setChecked(True)
+        elif currentPreview.suffix == const.BEFORE_FETCH: self.radioBtnBeforeFetch.setChecked(True)   
+        elif currentPreview.suffix == const.AFTER_FETCH:  self.radioBtnAfterFetch.setChecked(True)
 
-        self.log.DEBUG(self.dctName2Suffix)
+        self.log.DEBUG('name:', currentPreview.name, 'suffix:', currentPreview.suffix)
 
     #위치 변경 여부를 기억한다
     def _setModifyLocAsChecked(self):
-        if self.currentLoc.current_preview in self.dctName2Details2Modify:
+        fProp: FileProp = self.currentLoc.current_preview
+        if fProp.specific_details:
             self.checkChangeCurrentLoc.setChecked(True)
             self.inputChangeCurrentLoc.setEnabled(True)
-            self.inputChangeCurrentLoc.setText(self.dctName2Details2Modify[self.currentLoc.current_preview])
+            self.inputChangeCurrentLoc.setText(fProp.specific_details)
         else:
             self.checkChangeCurrentLoc.setChecked(False)
             self.inputChangeCurrentLoc.setEnabled(False)
             self.inputChangeCurrentLoc.setText('')
 
-        self.log.DEBUG(self.dctName2Details2Modify)
+        self.log.INFO(f'{fProp.name = } {fProp.specific_details = }')
 
 
-    def onEnterRegName(self):
-        currentPreview = self.currentLoc.current_preview
+    def onEnterRegisterCommonDetails(self):
+        currentPreview: FileProp = self.currentLoc.current_preview
         self._register_input()
         self._update_file_name_preview()
-        self.clsNc.store_models(
-            self.prefix, 
-            self.dctName2AddrStorage, 
-            self.dctLocation2Details, 
-            self.dctName2Suffix, 
-            self.dctName2Details2Modify
-        )
 
-        self.log.INFO(currentPreview, '->', f'{self.prefix}_{self.dctName2AddrStorage[currentPreview]} {self.nameInput.text().strip()} {self._check_registered(self.dctName2Suffix, currentPreview)}')
+        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.locationAPI}-{currentPreview.locationDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
 
     def onBtnShowPrevAddr(self):
         self._register_input() # 처리되지 않은 파일 이름들 처리
-        self.clsNc.store_models(
-            self.prefix, 
-            self.dctName2AddrStorage, 
-            self.dctLocation2Details, 
-            self.dctName2Suffix, 
-            self.dctName2Details2Modify
-        )
 
         if self.masterQueue.current_pos == 1:
             QMessageBox.information(self, 'SOF', const.MSG_INFO['SOF'])
             return
         
         self.currentLoc = self.masterQueue.view_previous() # 장소 변경
-        nextFileName = self.currentLoc.current_preview # 같은 장소의 사진 변경
+        nextFile = self.currentLoc.current_preview
 
-        self.nameInput.setText(self._check_registered(self.dctLocation2Details, self.currentLoc.name)) # 입력 필드 불러오기
-        self._update_pixmap(nextFileName)
+        self.nameInput.setText(nextFile.details) # 입력 필드 불러오기
+        self._update_pixmap(nextFile.name)
         self._setRadioBtnAsChecked()
         self._setModifyLocAsChecked()
         self._update_file_name_preview()
         self.labelPicSeqInfo.setText(self._generate_text_pic_indicator())
         self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
 
-        self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFileName)
+        self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
 
     def onBtnShowNextAddr(self):
         self._register_input() # 처리되지 않은 파일 이름들 처리
-        self.clsNc.store_models(
-            self.prefix, 
-            self.dctName2AddrStorage, 
-            self.dctLocation2Details, 
-            self.dctName2Suffix, 
-            self.dctName2Details2Modify
-        )
-        if self.masterQueue.current_pos == self.masterQueue.queue_size:
+
+        if self.masterQueue.current_pos == self.masterQueue.size:
             QMessageBox.information(self, 'EOF', const.MSG_INFO['EOF'])
             return
 
         self.currentLoc = self.masterQueue.view_next() # 장소 변경
-        nextFileName = self.currentLoc.current_preview # 같은 장소의 사진 변경
+        nextFile = self.currentLoc.current_preview
 
-        self.nameInput.setText(self._check_registered(self.dctLocation2Details, self.currentLoc.name)) # 입력 필드 초기화
-        self._update_pixmap(nextFileName)
+        self.nameInput.setText(nextFile.details) # 입력 필드 초기화
+        self.log.DEBUG('input area set = ', nextFile.details)
+        self._update_pixmap(nextFile.name)
         self._setRadioBtnAsChecked()
         self._setModifyLocAsChecked()
         self._update_file_name_preview()
         self.labelPicSeqInfo.setText(self._generate_text_pic_indicator())
         self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
 
-        self.log.INFO('Location:', self.currentLoc, 'Next File:', nextFileName)
+        self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
 
     def onBtnPrevPreview(self):
         currentPreview = self.currentLoc.view_previous()
 
-        self._update_pixmap(currentPreview)
+        self._update_pixmap(currentPreview.name)
+        self._update_file_name_preview()
         self._setRadioBtnAsChecked()  # 라디오버튼 기억        
         self._setModifyLocAsChecked() # 위치 변경 기억
-        self._update_file_name_preview()
         self.labelPicSeqInfo.setText(self._generate_text_pic_indicator())
         # self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
 
-        self.log.INFO('file =', currentPreview, 'location =', self.currentLoc)
+        self.log.INFO('file = ', currentPreview, 'location =', self.currentLoc)
 
 
     def onBtnNextPreview(self):
         currentPreview = self.currentLoc.view_next()
 
-        self._update_pixmap(currentPreview)
+        self._update_pixmap(currentPreview.name)
+        self._update_file_name_preview()
         self._setRadioBtnAsChecked()  # 라디오버튼 기억        
         self._setModifyLocAsChecked() # 위치 변경 기억
-        self._update_file_name_preview()
         self.labelPicSeqInfo.setText(self._generate_text_pic_indicator())
         # self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
 
@@ -443,14 +405,11 @@ class GongikWidget(QWidget):
         progDlg.mark_progress(30, '미완료 값 처리 중')
         
         self._register_input() # 처리되지 않고 넘어간 현재 파일 이름 처리
-        lstVirtualLocObj = self.masterQueue.queue   # 이후에 혹시 처리되지 않은 파일 이름 있으면 처리
-        for locInstance in lstVirtualLocObj:
-            if locInstance.name not in self.dctLocation2Details:
-                self.dctLocation2Details[locInstance.name] = ''
 
         progDlg.mark_progress(80, '이름 변경 중')
 
-        retChangeName = self.clsNc.change_name_on_btn(self.prefix, self.dctLocation2Details, self.dctName2Suffix, self.dctName2Details2Modify)
+        clsNc = NameChanger()
+        retChangeName = clsNc.change_name_on_btn(self._use_name)
 
         if retChangeName == 0:
             self.log.INFO('mission complete')
@@ -469,15 +428,23 @@ class GongikWidget(QWidget):
         self.log.INFO('==================================')
         sys.exit()
 
-    def _get_new_name(self, imgName):
-        return f'{self.prefix}_{self.dctName2AddrStorage[imgName]} {self.nameInput.text().strip()} {self._check_registered(self.dctName2Suffix, imgName)}'
+    def _get_new_name(self):
+        if self._use_name == const.USE_BOTH:
+            return self.currentLoc.current_preview.final_full_name
+        elif self._use_name == const.USE_ROAD:
+            return self.currentLoc.current_preview.final_road_name
+        return self.currentLoc.current_preview.final_normal_name
     
     def _update_file_name_preview(self):
-        self.fileNamePreview.setText(f'<미리보기>\n{self._get_new_name(self.currentLoc.current_preview)}')
+        self.fileNamePreview.setText(f'<미리보기>\n{self._get_new_name()}')
     
     def _update_suffix(self, suffix):
-        self.log.INFO(f'{self.currentLoc.current_preview = }, "{suffix}"')
-        self.dctName2Suffix[self.currentLoc.current_preview] = suffix
+        self.currentLoc.current_preview.suffix = suffix
+        self._update_file_name_preview()
+        self.log.INFO(f'{self.currentLoc.current_preview.name = }, "{suffix}"')
+
+    def onTextCommonDetailsModified(self):
+        self.currentLoc.common_details(self.nameInput.text().strip()) # 공통 부분으로 업데이트
         self._update_file_name_preview()
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.
@@ -492,32 +459,44 @@ class GongikWidget(QWidget):
         elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
 
     def onRadioBtnCar(self):
+        currentFile = self.currentLoc.current_preview
         if self.radioBtn1stCar.isChecked():
             self.log.INFO('selected 1호차')
-            self.prefix = '6'
+            currentFile.prefix = '6'
+
         elif self.radioBtn2ndCar.isChecked():
             self.log.INFO('selected 2호차')
-            self.prefix = '2'
+            currentFile.prefix = '2'
+            
         self._update_file_name_preview()
 
     def onCheckModifyLoc(self):
         if self.checkChangeCurrentLoc.isChecked():
-            self.log.INFO('checkbox checked')
             self.inputChangeCurrentLoc.setEnabled(True)            
 
         else:
-            self.log.INFO('checkbox unchecked')
             self.inputChangeCurrentLoc.setDisabled(True)
-            if self.currentLoc.current_preview in self.dctName2Details2Modify:
-                self.dctName2Details2Modify.pop(self.currentLoc.current_preview)
+            self.currentLoc.current_preview.specific_details = ''
 
     def onModifyTextLocation(self):
         if self.checkChangeCurrentLoc.isChecked():
-            self.dctName2Details2Modify[self.currentLoc.current_preview] = self.inputChangeCurrentLoc.text()
-            # self.log.DEBUG(self.tempImgPreview, self.dctLoc2Modify[self.tempImgPreview])
+            self.currentLoc.current_preview.specific_details = self.inputChangeCurrentLoc.text()
+        self._update_file_name_preview()
 
     def onClickShowImage(self, event):
-        self.clsGI.show_image(self.currentLoc.current_preview)
+        clsGI = GPSInfo()
+        clsGI.show_image(self.currentLoc.current_preview.name)
+
+    def onCheckRadioAddrType(self):
+        if self.radioBtnAddrTypeBoth.isChecked():
+            self._use_name = const.USE_BOTH
+        if self.radioBtnAddrTypeNormal.isChecked():
+            self._use_name = const.USE_NORMAL
+        if self.radioBtnAddrTypeRoad.isChecked():
+            self._use_name = const.USE_ROAD
+
+        self._update_file_name_preview()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
