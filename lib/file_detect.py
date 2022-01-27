@@ -29,7 +29,7 @@ class FileDetector(object):
             cls.__setIsInit.add(targetDir)
 
     @property
-    def fileList(self):
+    def file_list(self):
         return self.lstPic
 
 

@@ -23,7 +23,7 @@ class MetaData(object):
         super().__init__()
         self.targetDir = targetDir
         self.clsFD: FileDetector = FileDetector(targetDir)
-        self.lstFiles: list[str] = self.clsFD.fileList
+        self.lstFiles: list[str] = self.clsFD.file_list
 
         self._dctMetaData: dict[str, str] = {}
         self._dctDecodedMeta: dict[str, str] = {}
@@ -118,7 +118,7 @@ class GPSInfo(MetaData):
         if not hasattr(cls, '_init'):
             super().__init__(utils.extract_dir())
             self.clsFD: FileDetector = FileDetector()
-            self.lstFiles: list[str] = self.clsFD.fileList
+            self.lstFiles: list[str] = self.clsFD.file_list
 
             self._dctGPSInfoWGS84: dict[str, tuple] = {}
             self._dctGPSInfoGRS80: dict[str, tuple] = {}

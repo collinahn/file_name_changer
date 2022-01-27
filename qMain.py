@@ -71,11 +71,6 @@ from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
-from lib.change_name import NameChanger
-from lib.meta_data import (
-    GPSInfo, 
-    TimeInfo
-)
 from qCenterWid import GongikWidget
 from qDialog import (
     ProgressDialog,
@@ -91,7 +86,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.1.1'
+VERSION_INFO = '(release)gongik_v2.1.2'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -129,7 +124,7 @@ class Gongik(QMainWindow):
 
 
         self.clsFD = FileDetector('.') # '.'는 초기 파일 체크용
-        self.files = self.clsFD.fileList
+        self.files = self.clsFD.file_list
 
         self.progressDlg.mark_progress(30, '파일 검사 중')
         

@@ -79,12 +79,11 @@ class FileProp(object):
 
     @locationAPI.setter
     def locationAPI(self, newLoc):
-        if self._locationAPI:
-            raise RuntimeError()
         if self._originLocAPI == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
-        self._originLocAPI = newLoc
+        if not self._originLocAPI:
+            self._originLocAPI = newLoc
         self._locationAPI = newLoc
 
     @property
@@ -93,12 +92,11 @@ class FileProp(object):
 
     @locationDB.setter
     def locationDB(self, newLoc):
-        if self._locationDB:
-            raise RuntimeError()
         if self._originLocDB == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
-        self._originLocDB = newLoc
+        if not self._originLocDB:
+            self._originLocDB = newLoc
         self._locationDB = newLoc
 
     @property
@@ -212,36 +210,36 @@ class FileProp(object):
         lstTimePicTakenSorted = sorted(list(dctName2Time.values()))
         cls.log.DEBUG(lstTimePicTakenSorted)
         cls.log.DEBUG(dctName2Time)
-        dctTimeLaps: dict[datetime,str] = {}#기준 시간과 주소 삽입
+        dctTimeLaps: dict[datetime,str] = {} #기준 시간과 주소 삽입
         timeStandard = lstTimePicTakenSorted[0] #for루프를 돌 때 기준이 되는 시간
         
         for datePic in lstTimePicTakenSorted:
             timeGap: timedelta = datePic - timeStandard
             if timeGap.total_seconds() > const.TIME_GAP:
-                timeStandard = datePic
+                timeStandard: datetime = datePic
                 for fName, tDate in dctName2Time.items():
                     if tDate == timeStandard:
-                        fProp = cls._dctInstace4New[fName]
-                        dctTimeLaps[timeStandard] = fProp.locationDB
+                        fProp: FileProp = cls._dctInstace4New[fName]
+                        dctTimeLaps[timeStandard] = fProp.locationDB, fProp.locationAPI
 
         for fName, tDate in dctName2Time.items():
-            for tMin, addr in dctTimeLaps.items():
+            for tMin, (addrDB, addrAPI) in dctTimeLaps.items():
                 tGap: timedelta = tDate - tMin
                 if tGap.total_seconds() < const.TIME_GAP and tGap.total_seconds() >= 0:
                     try:
                         fProp = FileProp(fName)
-                        fProp._correct_address(dbAddr=addr) #sorting 기준 = db addr
-                        cls.log.INFO(fName, fProp.locationDB, '->', addr)
+                        cls.log.INFO(fName, fProp.locationDB, '->', addrDB, ', ', fProp.locationAPI, '->', addrAPI)
+                        fProp._correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
+                        break
                     except AttributeError as ae:
                         cls.log.ERROR(ae)
 
-        # for name, instance in cls._dctInstace4New.items():
-        #     pass
 
 
     @classmethod
     def debug_info(cls):
         for name, instance in cls._dctInstace4New.items():
+            instance: FileProp
 
             cls.log.DEBUG()
             cls.log.DEBUG()
