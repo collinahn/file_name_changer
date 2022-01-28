@@ -87,3 +87,46 @@ MSG_SHORTCUT = {
     'ATTACH_FLYER':'Alt+D', 
     'SET_NONE':'Alt+X',
 }
+
+
+QSTYLE_SHEET = '''QWidget {
+background-color: rgb(37, 37, 38);
+color: rgb(255, 255, 255);
+}
+QWidget .QPushButton {
+border:0px;
+background-color: rgb(37, 37, 38);
+}
+QWidget .QPushButton:hover {
+border:0px;
+background-color: rgb(0, 122, 204);
+}
+
+QLineEdit {
+border:1px solid rgb(67, 67, 70);
+background-color: rgb(51, 51, 55);
+color: rgb(255, 255, 255);
+}
+QLineEdit:disabled {
+border:1px solid rgb(67, 67, 70);
+background-color: rgb(45, 45, 48);
+color: rgb(255, 255, 255);
+}
+
+QWidget .QFrame {
+background-color: rgb(45, 45, 48);
+color: rgb(255, 255, 255);
+}
+QFrame .QPushButton {
+border:1px solid rgb(83, 83, 85);
+background-color: rgb(63, 63, 70);
+color: rgb(255, 255, 255);
+}
+QFrame .QPushButton:disabled {
+border: 1px solid rgb(61, 61, 67);
+background-color: rgb(45, 45, 48);
+}
+QFrame .QPushButton:hover {
+background-color: rgb(63, 63, 70);
+border: 1px solid rgb(5, 111, 182);
+}'''

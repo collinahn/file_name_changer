@@ -45,6 +45,9 @@
 
 # MVC구조로 수정(파일 미리보기 구조). 양방향 탐색 기능 추가(v2.1.0)
 # MVC구조로 전면 수정(파일 속성 데이터), '더 자세히'선택권 부여 (v2.1.1)
+# 보정된 위치로 표시되도록 수정(v2.1.2)
+# 위치 병합 및 수정 기능 추가(v2.2.0b)
+# 최종 실행 전 묻는 팝업창 띄우기(v2.2.0b)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
@@ -86,7 +89,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.1.2'
+VERSION_INFO = '(release)gongik_v2.2.0b'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -108,6 +111,7 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
         self.log.INFO('')
+
 
         self.progressDlg = ProgressDialog('기본 정보를 가져오는 중')
         self.progressDlg.show()
@@ -188,6 +192,8 @@ class Gongik(QMainWindow):
         # 상단 정보 설정
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.main_icon_path))
+        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         # 메인 위젯 설정
         qw = GongikWidget()
@@ -242,6 +248,25 @@ class Gongik(QMainWindow):
         vlg = VersionDialog()
         vlg.exec_()
 
+    def mousePressEvent(self, event) :
+        if event.button() == Qt.LeftButton :
+            self.offset = event.pos()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) :
+        try:
+            if self.offset is not None and event.buttons() == Qt.LeftButton:
+                self.move(self.pos() + event.pos() - self.offset)
+            else:
+                super().mouseMoveEvent(event)
+        except:
+            pass
+
+    def mouseReleaseEvent(self, event) :
+        self.offset = None
+        super().mouseReleaseEvent(event)
+
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -257,6 +282,8 @@ class DeveloperInfoDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         label0 = QLabel('버전:')
         label0.setAlignment(Qt.AlignTop)
@@ -296,10 +323,28 @@ class DeveloperInfoDialog(QDialog):
         self.log.INFO('Developer Info Dialog closed')
         self.close()
 
+    def mousePressEvent(self, event) :
+        if event.button() == Qt.LeftButton :
+            self.offset = event.pos()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) :
+        try:
+            if self.offset is not None and event.buttons() == Qt.LeftButton:
+                self.move(self.pos() + event.pos() - self.offset)
+            else:
+                super().mouseMoveEvent(event)
+        except:
+            pass
+
+    def mouseReleaseEvent(self, event) :
+        self.offset = None
+        super().mouseReleaseEvent(event)
+
 class AddrInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
-        import copy
 
         self.log = Logger()
         self.log.INFO('Addr Info Dialog')
@@ -312,6 +357,9 @@ class AddrInfoDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
 
         mq = MstQueue()
 
@@ -367,6 +415,25 @@ class AddrInfoDialog(QDialog):
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
         self.close()
+    
+    def mousePressEvent(self, event) :
+        if event.button() == Qt.LeftButton :
+            self.offset = event.pos()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) :
+        try:
+            if self.offset is not None and event.buttons() == Qt.LeftButton:
+                self.move(self.pos() + event.pos() - self.offset)
+            else:
+                super().mouseMoveEvent(event)
+        except:
+            pass
+
+    def mouseReleaseEvent(self, event) :
+        self.offset = None
+        super().mouseReleaseEvent(event)
 
 
 class VersionDialog(QDialog):
@@ -387,6 +454,9 @@ class VersionDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
 
         currentVersion_a = QLabel('현재 버전:')
         currentVersion_a.setAlignment(Qt.AlignTop)
@@ -443,7 +513,24 @@ class VersionDialog(QDialog):
         finishInfo = InitInfoDialogue(f'현재 폴더에 다운로드가 완료되었습니다.\n({utils.extract_dir()})', ('예', ))
         finishInfo.exec_() 
     
+    def mousePressEvent(self, event) :
+        if event.button() == Qt.LeftButton :
+            self.offset = event.pos()
+        else:
+            super().mousePressEvent(event)
 
+    def mouseMoveEvent(self, event) :
+        try:
+            if self.offset is not None and event.buttons() == Qt.LeftButton:
+                self.move(self.pos() + event.pos() - self.offset)
+            else:
+                super().mouseMoveEvent(event)
+        except:
+            pass
+
+    def mouseReleaseEvent(self, event) :
+        self.offset = None
+        super().mouseReleaseEvent(event)
 
 
 

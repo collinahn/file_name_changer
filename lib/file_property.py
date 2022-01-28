@@ -74,6 +74,10 @@ class FileProp(object):
         self._prefix = newPrefix
 
     @property
+    def location4Display(self):
+        return self._locationAPI, self._locationDB
+
+    @property
     def locationAPI(self):
         return self._originLocAPI
 
@@ -197,7 +201,7 @@ class FileProp(object):
         ))
 
     # 수정할 땐 이걸로
-    def _correct_address(self, apiAddr:str='', dbAddr:str=''):
+    def correct_address(self, apiAddr:str='', dbAddr:str=''):
         if apiAddr:
             self._locationAPI = apiAddr
         if dbAddr:
@@ -229,7 +233,7 @@ class FileProp(object):
                     try:
                         fProp = FileProp(fName)
                         cls.log.INFO(fName, fProp.locationDB, '->', addrDB, ', ', fProp.locationAPI, '->', addrAPI)
-                        fProp._correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
+                        fProp.correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
                         break
                     except AttributeError as ae:
                         cls.log.ERROR(ae)
