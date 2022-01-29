@@ -77,7 +77,7 @@ class DistributorDialog(QDialog):
             picPreview.resize(200, 150)
             picPreview.setPixmap(QPixmap(prop.name).scaled(200, 150))
 
-            picLoc = QLabel(prop.locationAPI)
+            picLoc = QLabel(prop.locationDB)
             picSelect = QCheckBox()
             self.dctCheckBoxInstance[prop.name] = picSelect
             picSelect.stateChanged.connect(self.onCheckPicSelect)
@@ -101,7 +101,7 @@ class DistributorDialog(QDialog):
         self.layout.addWidget(scrollAreaChoosePic, 1, 0, 1, -1)
 
 
-        #-------------후보 선택 창-------------
+        #-------------도착지 선택 창-------------
         # Container Widget
         widget4ChooseDest = QWidget()
         widget4ChooseDestLayout = QVBoxLayout()
@@ -133,8 +133,8 @@ class DistributorDialog(QDialog):
 
                 picLoc = QLabel(fProp.locationDB)
                 
-                singleLocBoxLayout.addWidget(picPreview, 0, widgetIdx)
-                singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx)
+                singleLocBoxLayout.addWidget(picPreview, 0, widgetIdx, 1, 1)
+                singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx, 1, 15)
 
             widget4ChooseDestLayout.addWidget(singleLocBox)
 
@@ -164,25 +164,68 @@ class DistributorDialog(QDialog):
                 self.log.DEBUG(name, 'checked')
 
     def onBtnModifyClassification(self, btn): # 1. mstQueue에서 조작 
+        removeRet = 0
+        addRet = 0
         location = btn.text()
         self.log.DEBUG(location, 'pressed')
+
+        fileCnt = 0
 
         for fName, checkbox in self.dctCheckBoxInstance.items():
             fName:str #파일이름
 
             if checkbox.isChecked():
-                self.mstQueue.current_preview.remove(FileProp(fName))
-                self.mstQueue.add(location, fName)
+                removeRet += self.mstQueue.current_preview.remove(FileProp(fName))
+                addRet += self.mstQueue.add(location, fName)
+                fileCnt += 1
 
-                if not self.mstQueue.current_preview.queue:
-                    self.log.WARNING('Vacant mstQueue element')
-                    self.mstQueue.remove(self.mstQueue.current_preview)
+        if fileCnt == 0:
+            InitInfoDialogue('이동할 사진을 선택해주세요.', ('확인',)).exec_()
+            return
 
-        self.close()
+        if removeRet + addRet == 0:
+            InitInfoDialogue(f'{fileCnt}개의 사진 이동 완료하였습니다.', ('확인', )).exec_()
+        else:
+            InitInfoDialogue('완료하지 못했습니다. 다시 시도해주세요.', ('확인', )).exec_()
+            
+    
+        if __name__ != '__main__': self.close()
+        else: self.log.DEBUG(self.mstQueue.current_preview.queue)
 
 
     def onBtnAddNew(self):
-        self.mstQueue.new()
+        isExecutable = False
+
+        tplNamesChecked = tuple(
+            fName 
+            for fName, checkBox in self.dctCheckBoxInstance.items()
+            if checkBox.isChecked()
+        ) # 체크되어있는 목록 반환(파일 이름 리스트)
+
+        dctLocationPool = FileProp.name2AddrDBCorrected()
+        setLocationPool = set(dctLocationPool.values())
+
+        self.log.DEBUG(f'{dctLocationPool = }')
+        self.log.DEBUG(f'{set(dctLocationPool.values()) = }')
+        self.log.DEBUG(f'{len(set(dctLocationPool.values())) = }')
+
+        for fName in tplNamesChecked:
+            prop = FileProp(fName)
+            self.log.DEBUG(f'{prop.locationDB, setLocationPool}')
+            if prop.locationDB not in setLocationPool: # 점유 이름과 같으면 생성하지 않음
+                isExecutable = True
+
+                self.mstQueue.new(prop.locationDB, tplNamesChecked)
+                break
+        
+        if isExecutable:
+            InitInfoDialogue(f'{len(tplNamesChecked)}개의 파일을 맨 뒤로 이동하였습니다.', ('확인', )).exec_()
+            self.close()
+        else:
+            InitInfoDialogue('선택한 사진의 위치가 기존 사진의 위치와 정확히 일치하는 사진은 신규로 카테고리를 생성할 수 없습니다.', ('확인', )).exec_()
+
+
+
 
     def onBtnCancel(self):
         self.log.INFO('User Canceled Distribution')

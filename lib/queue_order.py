@@ -18,7 +18,7 @@ class QueueReadOnly(object):
         cls._instance = super().__new__(cls)
         cls._dctInstance4New[queueName] = cls._instance
         
-        cls.log.INFO('calling', cls._instance)
+        cls.log.INFO(cls._instance)
         return cls._instance
 
     def __init__(self, queueName:str, tplElements: tuple[str]):
@@ -63,13 +63,23 @@ class QueueReadOnly(object):
         return self._lstQueue[self._refPoint]
 
     def refresh(self) -> object:
-        return self._lstQueue[self._refPoint]
+        try:
+            return self._lstQueue[self._refPoint]
+        except IndexError as ie:
+            self.log.WARNING(ie, '/ calling invalid refPoint')
+            self._refPoint = len(self._lstQueue) -1
+            return self._lstQueue[-1]
 
     # get oldest push
     @property
     def current_preview(self):
-        return self._lstQueue[self._refPoint]
-    
+        try:
+            return self._lstQueue[self._refPoint]
+        except IndexError as ie:
+            self.log.WARNING(ie, '/ calling invalid refPoint')
+            self._refPoint = len(self._lstQueue) -1
+            return self._lstQueue[-1]
+
     @property
     def current_pos(self) -> int:
         return self._refPoint + 1
@@ -143,25 +153,28 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
             self._lstQueue[targetIdx].append(FileProp(fNameKey))
         except ValueError as ve:
             self.log.ERROR(ve)
-            return False
-        return True
+            return 1
+        return 0 #나중에 모두 더해서 실행 결과 피드백을 준다
 
     def remove(self, instance: QueueReadOnly) -> bool:
         if not self._lstQueue:
-            return False
+            return 1
+
         try:
             self._lstQueue.remove(instance)
             self.log.DEBUG(instance.name, 'removed from', self.name)
         except ValueError as ve:
             self.log.ERROR(ve)
-            return False
+            return 2
         
         self._queueSize -= 1
 
-        return True  
+        return 0
     
-    def new(self):
-        raise NotImplementedError()
+    def new(self, location: str, tplNames: tuple[str]):
+        self._lstQueue.append(PropsQueue(location, tplNames)) #추가한다.
+        self._queueSize += 1
+
 class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡아다 넣어준다.
     _setInstance4Init = set()
 
@@ -205,17 +218,18 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
 
     def remove(self, instance: FileProp) -> bool:
         if not self._lstQueue:
-            return False
+            return 1
+            
         try:
             self._lstQueue.remove(instance)
             self.log.DEBUG(instance.name, 'removed from', self.name)
         except ValueError as ve:
             self.log.ERROR(ve)
-            return False
+            return 2
         
         self._queueSize -= 1
 
-        return True  
+        return 0 
 
 
 if __name__ == '__main__':

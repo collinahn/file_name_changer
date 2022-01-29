@@ -94,8 +94,10 @@ background-color: rgb(37, 37, 38);
 color: rgb(255, 255, 255);
 }
 QWidget .QPushButton {
-border:0px;
+color: rgb(58, 134, 255);
 background-color: rgb(37, 37, 38);
+border: 2px solid rgb(58, 134, 255);
+border-radius: 5px;
 }
 QWidget .QPushButton:hover {
 border:0px;

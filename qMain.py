@@ -48,6 +48,7 @@
 # 보정된 위치로 표시되도록 수정(v2.1.2)
 # 위치 병합 및 수정 기능 추가(v2.2.0b)
 # 최종 실행 전 묻는 팝업창 띄우기(v2.2.0b)
+# 위치 추가 기능 추가 및 안정화(v2.2.1)
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
@@ -89,7 +90,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.2.0b'
+VERSION_INFO = '(release)gongik_v2.2.1'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.

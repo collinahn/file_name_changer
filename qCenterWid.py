@@ -78,7 +78,6 @@ class GongikWidget(QWidget):
         self.log.INFO('init complete')
         
     def init_ui(self):
-
         QToolTip.setFont(QFont('SansSerif', 10))
         self.mainWidgetLayout = QGridLayout()
         self.setLayout(self.mainWidgetLayout)
@@ -136,7 +135,6 @@ class GongikWidget(QWidget):
         self.btnPreviousAddr.setToolTip(const.MSG_TIP['BACKWARD'])
         self.btnPreviousAddr.clicked.connect(self.onBtnShowPrevAddr)
         self.mainWidgetLayout.addWidget(self.btnPreviousAddr, 2, 0)
-
 
         # 파일 이름 미리보기 & 주소 종류 설정 라디오버튼
         self.fileNameGroup = QGroupBox()
@@ -237,7 +235,6 @@ class GongikWidget(QWidget):
         self.btn2Change.clicked.connect(self.onBtnChangeFileName)
         self.mainWidgetLayout.addWidget(self.btn2Change, 5, 0, -1, 2)
 
-
         btnGroupOtherPics = QGroupBox()
         btnGroupOtherPics.setStyleSheet('QGroupBox { border: 0px }')
         self.mainWidgetLayout.addWidget(btnGroupOtherPics, 5, 2)
@@ -278,7 +275,6 @@ class GongikWidget(QWidget):
         return f'\n완료율: {self.masterQueue.current_pos} / {self.masterQueue.size} \
             \n현재 위치: {self.currentLoc.name}'
 
-
     def _register_input(self):
         # 현재 커서의 지정 이름 저장
         text = self.nameInput.text().strip()
@@ -297,7 +293,6 @@ class GongikWidget(QWidget):
         except (KeyError, AttributeError, TypeError):
             return ''
 
-
     #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
     def _setRadioBtnAsChecked(self):
         currentPreview = self.currentLoc.current_preview
@@ -314,7 +309,7 @@ class GongikWidget(QWidget):
         self.log.DEBUG('name:', currentPreview.name, 'suffix:', currentPreview.suffix)
 
     #위치 변경 여부를 기억한다
-    def _setModifyLocAsChecked(self):
+    def _setModifyLocStill(self):
         fProp: FileProp = self.currentLoc.current_preview
         if fProp.specific_details:
             self.checkChangeCurrentLoc.setChecked(True)
@@ -327,6 +322,16 @@ class GongikWidget(QWidget):
 
         self.log.INFO(f'{fProp.name = } {fProp.specific_details = }')
 
+    def _refresh_widget(self, props):        
+        self.nameInput.setText(props.details) # 입력 필드 불러오기
+        self._update_pixmap(props.name)
+        self._update_file_name_preview()
+        self._setRadioBtnAsChecked()
+        self._setModifyLocStill()
+        self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
+        self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
+        
+        self.log.INFO(props.name, 'refreshed')
 
     def onEnterRegisterCommonDetails(self):
         currentPreview: FileProp = self.currentLoc.current_preview
@@ -336,7 +341,6 @@ class GongikWidget(QWidget):
         self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.locationAPI}-{currentPreview.locationDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
 
     def onBtnShowPrevAddr(self):
-
         if self.masterQueue.current_pos == 1:
             QMessageBox.information(self, 'SOF', const.MSG_INFO['SOF'])
             return
@@ -345,21 +349,14 @@ class GongikWidget(QWidget):
             self.currentLoc = self.masterQueue.refresh()
         else:
             self.currentLoc = self.masterQueue.view_previous() # 장소 변경
-        nextFile = self.currentLoc.current_preview
-
-        self.nameInput.setText(nextFile.details) # 입력 필드 불러오기
-        self._update_pixmap(nextFile.name)
-        self._setRadioBtnAsChecked()
-        self._setModifyLocAsChecked()
-        self._update_file_name_preview()
-        self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
-        self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
-
+        
+        nextFile: FileProp = self.currentLoc.current_preview
+        self._refresh_widget(nextFile)
         self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
 
     def onBtnShowNextAddr(self):
 
-        if self.masterQueue.current_pos == self.masterQueue.size:
+        if self.masterQueue.current_pos >= self.masterQueue.size:
             QMessageBox.information(self, 'EOF', const.MSG_INFO['EOF'])
             return
 
@@ -367,17 +364,9 @@ class GongikWidget(QWidget):
             self.currentLoc = self.masterQueue.refresh()
         else:
             self.currentLoc = self.masterQueue.view_next() # 장소 변경
-        nextFile = self.currentLoc.current_preview
 
-        self.nameInput.setText(nextFile.details) # 입력 필드 초기화
-        self.log.DEBUG('input area set = ', nextFile.details)
-        self._update_pixmap(nextFile.name)
-        self._setRadioBtnAsChecked()
-        self._setModifyLocAsChecked()
-        self._update_file_name_preview()
-        self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
-        self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
-
+        nextFile: FileProp = self.currentLoc.current_preview
+        self._refresh_widget(nextFile)
         self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
 
     def onBtnPrevPreview(self):
@@ -386,17 +375,9 @@ class GongikWidget(QWidget):
             infoDlg.exec_()
             return
 
-        
-        currentPreview = self.currentLoc.view_previous()
-
-        self._update_pixmap(currentPreview.name)
-        self._update_file_name_preview()
-        self._setRadioBtnAsChecked()  # 라디오버튼 기억        
-        self._setModifyLocAsChecked() # 위치 변경 기억
-        self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
-        # self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
-
-        self.log.INFO('file = ', currentPreview, 'location =', self.currentLoc)
+        nextFile: FileProp = self.currentLoc.view_previous()
+        self._refresh_widget(nextFile)
+        self.log.INFO('file = ', nextFile, 'location =', self.currentLoc)
 
 
     def onBtnNextPreview(self):
@@ -405,16 +386,9 @@ class GongikWidget(QWidget):
             infoDlg.exec_()
             return
 
-        currentPreview = self.currentLoc.view_next()
-
-        self._update_pixmap(currentPreview.name)
-        self._update_file_name_preview()
-        self._setRadioBtnAsChecked()  # 라디오버튼 기억        
-        self._setModifyLocAsChecked() # 위치 변경 기억
-        self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
-        # self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
-
-        self.log.INFO('file = ', currentPreview, 'location =', self.currentLoc)
+        nextFile: FileProp = self.currentLoc.view_next()
+        self._refresh_widget(nextFile)
+        self.log.INFO('file = ', nextFile, 'location =', self.currentLoc)
 
     def onBtnChangeFileName(self):
         from qDialog import ProgressTimerDialog
@@ -423,7 +397,6 @@ class GongikWidget(QWidget):
         progDlg.mark_progress(10, '준비 중')
 
         self._register_input() # 처리되지 않고 넘어간 현재 파일 이름 처리
-
 
         confirmDlg = InitInfoDialogue('현재까지의 진행 상황을 파일 이름에 반영합니다.\n변환 후 프로그램은 종료됩니다.', ('예', '아니오'))
         confirmDlg.exec_()
@@ -527,7 +500,14 @@ class GongikWidget(QWidget):
     def onBtnDistributePics(self):
         dWidget = DistributorDialog()
         dWidget.exec_()
-        # dWidget.show()
+        
+        if not self.currentLoc.queue:
+            self.log.WARNING('Vacant mstQueue element')
+            self.masterQueue.remove(self.masterQueue.current_preview)
+
+        self.currentLoc = self.masterQueue.refresh()
+
+        self._refresh_widget(self.currentLoc.current_preview)
         
 
 if __name__ == '__main__':

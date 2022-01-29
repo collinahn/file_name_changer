@@ -170,12 +170,12 @@ class InitInfoDialogue(QDialog):
 
     def onBtnYesClicked(self):  # sourcery skip: class-extract-method
         self.answer = True
-        self.log.INFO('User Selected Getting Files From Phone')
+        self.log.INFO('User Selected Yes')
         self.close()
 
     def onBtnNoClicked(self):
         self.answer = False
-        self.log.INFO('User Selected Not to Transfer')
+        self.log.INFO('User Selected No')
         self.close()
 
 
