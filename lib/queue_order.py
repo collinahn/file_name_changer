@@ -36,7 +36,7 @@ class QueueReadOnly(object):
     def __str__(self) -> str:
         return self._name if hasattr(self, '_name') else super().__str__()
 
-    #큐에 데이터를 집어넣는다.
+    #초기화시 큐에 데이터를 집어넣는다.
     def _push(self, value) -> bool:
         nextInsPoint = (self._insertPoint+1) % self._queueSize
 
@@ -64,6 +64,8 @@ class QueueReadOnly(object):
 
     def refresh(self) -> object:
         try:
+            for idx, ele in enumerate(self._lstQueue):
+                self.log.DEBUG(idx, ':', ele.name)
             return self._lstQueue[self._refPoint]
         except IndexError as ie:
             self.log.WARNING(ie, '/ calling invalid refPoint')
@@ -76,9 +78,9 @@ class QueueReadOnly(object):
         try:
             return self._lstQueue[self._refPoint]
         except IndexError as ie:
-            self.log.WARNING(ie, '/ calling invalid refPoint')
-            self._refPoint = len(self._lstQueue) -1
-            return self._lstQueue[-1]
+                self.log.WARNING(ie, '/ calling invalid refPoint')
+                self._refPoint = len(self._lstQueue) -1
+                return self._lstQueue[-1]
 
     @property
     def current_pos(self) -> int:
@@ -122,8 +124,8 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
 
             dctLoc2Names = utils.invert_dict(FileProp.name2AddrDBCorrected()) #도로명주소를 기준으로 정렬 후 초기화
             tplSingleLocQueeue = tuple((
-                PropsQueue(loc, tuple(nameLst))
-                for loc, nameLst in dctLoc2Names.items()
+                PropsQueue(correctedLocDB, tuple(nameLst))
+                for correctedLocDB, nameLst in dctLoc2Names.items()
             )) # 여기서 loc변수는 유일, 이미 보정된 위치 이름(DB-도로명주소 기준)
 
             super().__init__('master', tplSingleLocQueeue)
@@ -156,13 +158,13 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
             return 1
         return 0 #나중에 모두 더해서 실행 결과 피드백을 준다
 
-    def remove(self, instance: QueueReadOnly) -> bool:
+    def remove_location(self, instance: QueueReadOnly) -> bool:
         if not self._lstQueue:
             return 1
 
         try:
-            self._lstQueue.remove(instance)
-            self.log.DEBUG(instance.name, 'removed from', self.name)
+            self._lstQueue.remove(instance) #propsQueue객체를 제거
+            self.log.INFO(instance.name, 'removed from', self.name)
         except ValueError as ve:
             self.log.ERROR(ve)
             return 2
@@ -172,25 +174,34 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
         return 0
     
     def new(self, location: str, tplNames: tuple[str]):
+        for name in tplNames:
+            if FileProp(name).locationDB == location:
+                for fName in tplNames: # 추가 전 위치 보정(보통은 초기화 때 보정되는데 나중에 추가되는 애들은 그렇지 않음)
+                    fProps = FileProp(fName)
+                    fProps.correct_address(dbAddr=location, apiAddr=FileProp(name).locationAPI)
+                    self.log.INFO(fName, 'Location Updated,', fProps.locationDB, 'to', location)
+                break
+            
+                
         self._lstQueue.append(PropsQueue(location, tplNames)) #추가한다.
         self._queueSize += 1
 
 class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡아다 넣어준다.
     _setInstance4Init = set()
 
-    def __init__(self, queueName: str, tplElements: tuple[str]=(None, )):
+    def __init__(self, queueName: str, tplFileNames4Props: tuple[str]=None):
         if queueName not in self._setInstance4Init:
 
-            if tplElements == (None, ):
+            if not tplFileNames4Props:
                 raise RuntimeError() # 초기화가 안됐는데 실행되면 안된다
 
-            self._lstQueue = [None] * len(tplElements)
-            self._queueSize = len(tplElements)
+            self._queueSize = len(tplFileNames4Props)
+            self._lstQueue = [None] * self._queueSize
             self._sharedDetail = ''
 
-            super().__init__(queueName, tplElements)
+            super().__init__(queueName, tplFileNames4Props)
 
-            for element in tplElements:
+            for element in tplFileNames4Props:
                 prop = FileProp(element)
                 self._push(prop)
 
@@ -216,21 +227,43 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
         self._queueSize += 1
 
 
-    def remove(self, instance: FileProp) -> bool:
+    def remove(self, instance: FileProp) -> int:
         if not self._lstQueue:
             return 1
             
         try:
+            self._setInstance4Init.discard(self.name)
+            self._setInstance4InitParent.discard(self.name)
             self._lstQueue.remove(instance)
-            self.log.DEBUG(instance.name, 'removed from', self.name)
+            self.log.INFO(instance.name, 'removed from', self.name)
+            self.log.DEBUG(f'{self._setInstance4InitParent = }, {self._setInstance4Init}')
         except ValueError as ve:
             self.log.ERROR(ve)
             return 2
         
         self._queueSize -= 1
-
         return 0 
 
+    def remove_many(self, tplNames: tuple) -> int:
+        if not self._lstQueue:
+            return 1
+
+        ret = 0
+        try:
+            for fNames in tplNames:
+                ret += self.remove(FileProp(fNames))
+        except Exception as e:
+            self.log.CRITICAL(e)
+        
+        return ret
+
+    @property
+    def common_addr_db(self):
+        return self._commonAddrDB
+
+    @property
+    def common_addr_api(self):
+        return self._commonAddrApi
 
 if __name__ == '__main__':
     mq0 = MstQueue((1, None, 3))

@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QVBoxLayout,
     QCheckBox,
-    QMessageBox, 
     QRadioButton,
     QToolTip, 
     QWidget, 
@@ -75,12 +74,14 @@ class GongikWidget(QWidget):
         self._use_name:int = const.USE_BOTH
 
         self.init_ui()
+        self._refresh_widget(self.currentLoc.current_preview)
         self.log.INFO('init complete')
         
     def init_ui(self):
         QToolTip.setFont(QFont('SansSerif', 10))
         self.mainWidgetLayout = QGridLayout()
         self.setLayout(self.mainWidgetLayout)
+        self.setStyleSheet(const.QSTYLE_SHEET)
 
         # 0번 레이아웃
         self.currentPath = QLabel(f'실행 경로: {utils.extract_dir()}')
@@ -201,13 +202,13 @@ class GongikWidget(QWidget):
         self.checkChangeCurrentLoc = QCheckBox()
         self.changeDetailsLayout.addWidget(self.checkChangeCurrentLoc)
         self.checkChangeCurrentLoc.stateChanged.connect(self.onCheckModifyLoc)
-        self.inputChangeCurrentLoc = QLineEdit()
-        self.inputChangeCurrentLoc.setDisabled(True)
-        self.inputChangeCurrentLoc.setPlaceholderText('상세 정보를 바꾸려면 체크 후 입력')
-        self.inputChangeCurrentLoc.setMinimumWidth(300)
-        self.inputChangeCurrentLoc.textChanged.connect(self.onModifyTextLocation)
-        self.inputChangeCurrentLoc.returnPressed.connect(self.onModifyTextLocation)
-        self.changeDetailsLayout.addWidget(self.inputChangeCurrentLoc)
+        self.inputPriorityDetails = QLineEdit()
+        self.inputPriorityDetails.setDisabled(True)
+        self.inputPriorityDetails.setPlaceholderText('상세 정보를 바꾸려면 체크 후 입력')
+        self.inputPriorityDetails.setMinimumWidth(300)
+        self.inputPriorityDetails.textChanged.connect(self.onModifyDetailsPrior)
+        self.inputPriorityDetails.returnPressed.connect(self.onModifyDetailsPrior)
+        self.changeDetailsLayout.addWidget(self.inputPriorityDetails)
 
         # 1호차2호차 선택 라디오버튼
         self.radioGroupCar = QGroupBox('호차 선택')
@@ -313,16 +314,17 @@ class GongikWidget(QWidget):
         fProp: FileProp = self.currentLoc.current_preview
         if fProp.specific_details:
             self.checkChangeCurrentLoc.setChecked(True)
-            self.inputChangeCurrentLoc.setEnabled(True)
-            self.inputChangeCurrentLoc.setText(fProp.specific_details)
+            self.inputPriorityDetails.setEnabled(True)
+            self.inputPriorityDetails.setText(fProp.specific_details)
         else:
             self.checkChangeCurrentLoc.setChecked(False)
-            self.inputChangeCurrentLoc.setEnabled(False)
-            self.inputChangeCurrentLoc.setText('')
+            self.inputPriorityDetails.setEnabled(False)
+            self.inputPriorityDetails.setText('')
 
         self.log.INFO(f'{fProp.name = } {fProp.specific_details = }')
 
-    def _refresh_widget(self, props):        
+    def _refresh_widget(self, props: FileProp):
+
         self.nameInput.setText(props.details) # 입력 필드 불러오기
         self._update_pixmap(props.name)
         self._update_file_name_preview()
@@ -342,7 +344,7 @@ class GongikWidget(QWidget):
 
     def onBtnShowPrevAddr(self):
         if self.masterQueue.current_pos == 1:
-            QMessageBox.information(self, 'SOF', const.MSG_INFO['SOF'])
+            InitInfoDialogue(const.MSG_INFO['SOF'], ('확인', )).exec_()
             return
         
         if not self.currentLoc.queue: #변경되어 현재 큐에 아무것도 없을 경우
@@ -357,7 +359,7 @@ class GongikWidget(QWidget):
     def onBtnShowNextAddr(self):
 
         if self.masterQueue.current_pos >= self.masterQueue.size:
-            QMessageBox.information(self, 'EOF', const.MSG_INFO['EOF'])
+            InitInfoDialogue(const.MSG_INFO['EOF'], ('확인', )).exec_()
             return
 
         if not self.currentLoc.queue: #변경되어 현재 큐에 아무것도 없는 경우
@@ -412,16 +414,20 @@ class GongikWidget(QWidget):
 
         if retChangeName == 0:
             self.log.INFO('mission complete')
-            QMessageBox.information(self, 'COMPLETE', const.MSG_INFO['COMPLETE'])
+            completeDlg = InitInfoDialogue(const.MSG_INFO['COMPLETE'], ('확인', ))
+            completeDlg.exec_()
         elif retChangeName == 1:
-            QMessageBox.warning(self, 'FILE_NAME_ERROR', const.MSG_WARN['FILE_NAME_ERROR'])
+            self.log.ERROR('file name error')
+            errorDlg = InitInfoDialogue(const.MSG_WARN['FILE_NAME_ERROR'], ('확인', ))
+            errorDlg.exec_()
         else:
             self.log.ERROR('mission fail')
-            QMessageBox.warning(self, 'OS_ERROR', const.MSG_WARN['OS_ERROR'])
+            errorDlg = InitInfoDialogue(const.MSG_WARN['OS_ERROR'], ('확인', ))
+            errorDlg.exec_()
 
         progDlg.mark_progress(100, '마무리 중')
 
-        QMessageBox.information(self, 'EXIT_END', const.MSG_INFO['EXIT_END'])
+        InitInfoDialogue(const.MSG_INFO['EXIT_END'], ('확인', )).exec_()
         self.log.INFO('==================================')
         self.log.INFO('program exit')
         self.log.INFO('==================================')
@@ -470,21 +476,31 @@ class GongikWidget(QWidget):
         self._update_file_name_preview()
 
     def onCheckModifyLoc(self):
-        if self.checkChangeCurrentLoc.isChecked():
-            self.inputChangeCurrentLoc.setEnabled(True)            
+        fProps: FileProp = self.currentLoc.current_preview
 
+        if self.checkChangeCurrentLoc.isChecked():
+            self.inputPriorityDetails.setEnabled(True)            
         else:
-            self.inputChangeCurrentLoc.setDisabled(True)
-            self.currentLoc.current_preview.specific_details = ''
+            self.inputPriorityDetails.setDisabled(True)
+            self.inputPriorityDetails.setText('')
+            fProps.specific_details = ''
+            self.log.INFO(f'priority details deleted')
 
-    def onModifyTextLocation(self):
+        self._update_file_name_preview()
+
+
+    def onModifyDetailsPrior(self):
+        fProps: FileProp = self.currentLoc.current_preview
+
         if self.checkChangeCurrentLoc.isChecked():
-            self.currentLoc.current_preview.specific_details = self.inputChangeCurrentLoc.text()
+            fProps.specific_details = self.inputPriorityDetails.text()
+
         self._update_file_name_preview()
 
     def onClickShowImage(self, event):
         clsGI = GPSInfo()
         clsGI.show_image(self.currentLoc.current_preview.name)
+        self.log.INFO('opening', self.currentLoc.current_preview.name)
 
     def onCheckRadioAddrType(self):
         if self.radioBtnAddrTypeBoth.isChecked():
@@ -502,8 +518,8 @@ class GongikWidget(QWidget):
         dWidget.exec_()
         
         if not self.currentLoc.queue:
-            self.log.WARNING('Vacant mstQueue element')
-            self.masterQueue.remove(self.masterQueue.current_preview)
+            self.log.WARNING('Deleting vacant mstQueue element')
+            self.masterQueue.remove_location(self.masterQueue.current_preview)
 
         self.currentLoc = self.masterQueue.refresh()
 

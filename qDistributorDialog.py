@@ -68,11 +68,11 @@ class DistributorDialog(QDialog):
         widget4ChoosePic.setLayout(widget4ChoosePicLayout)
         for prop in self.mstQueue.current_preview.queue:
             prop: FileProp
-            
+
             singleInstanceBox = QGroupBox(f'{prop.name}')
             singleInstanceLayout = QGridLayout()
             singleInstanceBox.setLayout(singleInstanceLayout)
-            
+
             picPreview = QLabel(prop.name)
             picPreview.resize(200, 150)
             picPreview.setPixmap(QPixmap(prop.name).scaled(200, 150))
@@ -81,7 +81,7 @@ class DistributorDialog(QDialog):
             picSelect = QCheckBox()
             self.dctCheckBoxInstance[prop.name] = picSelect
             picSelect.stateChanged.connect(self.onCheckPicSelect)
-            
+
             singleInstanceLayout.addWidget(picPreview, 0, 0, 1, -1)
             singleInstanceLayout.addWidget(picSelect, 1, 0)
             singleInstanceLayout.addWidget(picLoc, 1, 1)
@@ -113,6 +113,9 @@ class DistributorDialog(QDialog):
         for btnIdx, qProps in enumerate(self.mstQueue.queue): # 1칸 = 같은 위치 사진들 깔아놓기
             qProps: PropsQueue
 
+            if qProps == self.mstQueue.current_preview:
+                continue # 현재 선택중인 큐는 생성안함
+
             singleLocBox = QGroupBox()
             singleLocBoxLayout = QGridLayout()
             singleLocBox.setLayout(singleLocBoxLayout)
@@ -126,7 +129,7 @@ class DistributorDialog(QDialog):
 
             for widgetIdx, fProp in enumerate(qProps.queue, start=1):
                 fProp: FileProp
-
+                
                 picPreview = QLabel(fProp.name)
                 picPreview.resize(200, 150)
                 picPreview.setPixmap(QPixmap(fProp.name).scaled(200, 150))
@@ -163,7 +166,7 @@ class DistributorDialog(QDialog):
             if checkbox.isChecked():
                 self.log.DEBUG(name, 'checked')
 
-    def onBtnModifyClassification(self, btn): # 1. mstQueue에서 조작 
+    def onBtnModifyClassification(self, btn): 
         removeRet = 0
         addRet = 0
         location = btn.text()
@@ -203,7 +206,7 @@ class DistributorDialog(QDialog):
         ) # 체크되어있는 목록 반환(파일 이름 리스트)
 
         dctLocationPool = FileProp.name2AddrDBCorrected()
-        setLocationPool = set(dctLocationPool.values())
+        setLocationPool = set(dctLocationPool.values()) # init 정보 클래스 변수는 어떨까?
 
         self.log.DEBUG(f'{dctLocationPool = }')
         self.log.DEBUG(f'{set(dctLocationPool.values()) = }')
@@ -216,6 +219,7 @@ class DistributorDialog(QDialog):
                 isExecutable = True
 
                 self.mstQueue.new(prop.locationDB, tplNamesChecked)
+                self.mstQueue.current_preview.remove_many(tplNamesChecked)
                 break
         
         if isExecutable:
@@ -223,8 +227,6 @@ class DistributorDialog(QDialog):
             self.close()
         else:
             InitInfoDialogue('선택한 사진의 위치가 기존 사진의 위치와 정확히 일치하는 사진은 신규로 카테고리를 생성할 수 없습니다.', ('확인', )).exec_()
-
-
 
 
     def onBtnCancel(self):

@@ -50,6 +50,9 @@
 # 최종 실행 전 묻는 팝업창 띄우기(v2.2.0b)
 # 위치 추가 기능 추가 및 안정화(v2.2.1)
 
+#버그fix) 1개의 위치군만 남아있는 상태에서 모든 사진을 선택 후 다른데로 옮기면 크래시, 추후 리팩토링 예정(v2.2.2)
+#TODO: 기능추가) 사진 일괄 선택 기능 -> 해당 다이얼로그의 취지와 맞지 않음
+
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
 import sys
@@ -90,7 +93,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.2.1'
+VERSION_INFO = '(release)gongik_v2.2.2'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.

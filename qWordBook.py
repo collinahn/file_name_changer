@@ -33,7 +33,7 @@ USE_NORMAL = 2
 
 MSG_INFO = {
     'COMPLETE':'처리가 완료되었습니다.',
-    'SOF':'시작 장소입니다',
+    'SOF':'시작 장소입니다.',
     'EOF':'마지막 장소입니다.',
     'EXIT_END':'프로그램을 종료합니다.\n일부 중복된 장소를 확인하여 주세요.',
     'EXIT_PLAIN':'종료합니다.',
@@ -89,23 +89,25 @@ MSG_SHORTCUT = {
 }
 
 
-QSTYLE_SHEET = '''QWidget {
+QSTYLE_SHEET = '''
+QWidget {
 background-color: rgb(37, 37, 38);
 color: rgb(255, 255, 255);
 }
 QWidget .QPushButton {
-color: rgb(58, 134, 255);
+color: yellow;
 background-color: rgb(37, 37, 38);
-border: 2px solid rgb(58, 134, 255);
+border: 2px solid yellow;
 border-radius: 5px;
 }
 QWidget .QPushButton:hover {
 border:0px;
-background-color: rgb(0, 122, 204);
+background-color: yellow;
+color: black
 }
 
 QLineEdit {
-border:1px solid rgb(67, 67, 70);
+border:2px solid rgb(67, 67, 70);
 background-color: rgb(51, 51, 55);
 color: rgb(255, 255, 255);
 }
@@ -114,21 +116,4 @@ border:1px solid rgb(67, 67, 70);
 background-color: rgb(45, 45, 48);
 color: rgb(255, 255, 255);
 }
-
-QWidget .QFrame {
-background-color: rgb(45, 45, 48);
-color: rgb(255, 255, 255);
-}
-QFrame .QPushButton {
-border:1px solid rgb(83, 83, 85);
-background-color: rgb(63, 63, 70);
-color: rgb(255, 255, 255);
-}
-QFrame .QPushButton:disabled {
-border: 1px solid rgb(61, 61, 67);
-background-color: rgb(45, 45, 48);
-}
-QFrame .QPushButton:hover {
-background-color: rgb(63, 63, 70);
-border: 1px solid rgb(5, 111, 182);
-}'''
+'''

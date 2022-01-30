@@ -16,12 +16,12 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
+import qWordBook as const
 from lib.log_gongik import Logger
-
 
 class ProgressDialog(QDialog):
     def __init__(self, labelMsg:str='        '):
-        super().__init__()
+        super(ProgressDialog, self).__init__()
 
         self.log = Logger()
         self.log.INFO('init')
@@ -35,6 +35,7 @@ class ProgressDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.comment = QLabel(self.label)
         self.comment.setAlignment(Qt.AlignTop)
@@ -48,7 +49,6 @@ class ProgressDialog(QDialog):
         self.setLayout(layout)
         layout.addWidget(self.comment, 0, 0)
         layout.addWidget(self.pbar, 1, 0)
-
 
     def mark_progress(self, percentage, labelMsg=None, speed=False):
         if labelMsg:
@@ -64,8 +64,6 @@ class ProgressDialog(QDialog):
 
             if i%5 == 0:
                 self.comment.setText(self.label+'....'[:(i%4+1)])
-
-
 
 class ProgressTimerDialog(QWidget):
     def __init__(self, labelMsg:str='', Parent=None):
@@ -83,6 +81,7 @@ class ProgressTimerDialog(QWidget):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.comment = QLabel(self.label)
         self.comment.setAlignment(Qt.AlignTop)
@@ -114,15 +113,12 @@ class ProgressTimerDialog(QWidget):
         self.__progress += 1
         self.pbar.setValue(self.__progress)
 
-
-
     def mark_progress(self, percentage, labelMsg=None):
         if labelMsg:
             self.label = labelMsg
             self.comment.setText(self.label)
 
         self.__percentageInput = percentage
-
 
 
 class InitInfoDialogue(QDialog):
@@ -144,9 +140,13 @@ class InitInfoDialogue(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
+        self.setStyleSheet(const.QSTYLE_SHEET)
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setMinimumWidth(200)
 
-        label0 = QLabel(self.main_msg)
-        label0.setAlignment(Qt.AlignTop)
+        label0 = QLabel(self.main_msg, self)
+        label0.setAlignment(Qt.AlignCenter)
+        label0.setMinimumHeight(30)
 
         layout = QGridLayout()
         self.setLayout(layout)
@@ -155,18 +155,18 @@ class InitInfoDialogue(QDialog):
         if not self.btn:
             return
 
-        self.pushYesBtn= QPushButton(f'{self.btn[0]}(y)')
+        self.pushYesBtn= QPushButton(f'{self.btn[0]}(y)', self)
+        self.pushYesBtn.setMinimumHeight(30)
         self.pushYesBtn.clicked.connect(self.onBtnYesClicked)
         self.pushYesBtn.setShortcut('Y')
         layout.addWidget(self.pushYesBtn)
 
         if len(self.btn) > 1:
-            self.pushNoBtn= QPushButton(f'{self.btn[1]}(n)')
+            self.pushNoBtn= QPushButton(f'{self.btn[1]}(n)', self)
+            self.pushNoBtn.setMinimumHeight(30)
             self.pushNoBtn.clicked.connect(self.onBtnNoClicked)
             self.pushNoBtn.setShortcut('N')
             layout.addWidget(self.pushNoBtn)
-
-
 
     def onBtnYesClicked(self):  # sourcery skip: class-extract-method
         self.answer = True
@@ -178,11 +178,35 @@ class InitInfoDialogue(QDialog):
         self.log.INFO('User Selected No')
         self.close()
 
+    def mousePressEvent(self, event) :
+        if event.button() == Qt.LeftButton :
+            self.offset = event.pos()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) :
+        try:
+            if self.offset is not None and event.buttons() == Qt.LeftButton:
+                self.move(self.pos() + event.pos() - self.offset)
+            else:
+                super().mouseMoveEvent(event)
+        except:
+            pass
+
+    def mouseReleaseEvent(self, event) :
+        self.offset = None
+        super().mouseReleaseEvent(event)
+
 
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
+    InitInfoDialogue('test', ('test', 'test')).exec_()
+    pdlg1 = ProgressDialog('sleep')
+    pdlg1.show()
+    pdlg1.mark_progress(100)
+    pdlg1.close()
     pdlg = ProgressTimerDialog('test')
     pdlg.show()
     pdlg.mark_progress(80)
