@@ -2,6 +2,7 @@
 
 import json
 import requests
+import asyncio
 from requests.exceptions import (
     ConnectionError,
     Timeout,
@@ -10,17 +11,19 @@ from requests.exceptions import (
 
 from .log_gongik import Logger
 from .__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
+from qWrapper import elapsed
 
 class VersionTeller(object):
     def __init__(self):
         self.log = Logger()
 
         # host='127.0.0.1'
-        host=IP
-        port=PORT_API
+        host = IP
+        port = PORT_API
+        self.key = DOWNLOAD_KEY
 
         self._url_get_version = f'http://{host}:{port}/api/v1/version-info'
-        self._url_download_exe = f'http://{host}:{port}/api/v1/download-latest'
+        self.url_download_exe = f'http://{host}:{port}/api/v1/download-latest'
 
         self.result = self._init_get_data()
 
@@ -41,22 +44,44 @@ class VersionTeller(object):
             return self.result['document']['new_version']
 
         return ''
-
-    def download_latest(self):
-        res = None
+    
+    @elapsed # 소요 시간 6~12초
+    def _download_latest_version(self):
         try:
-            res = requests.post(self._url_download_exe, data={'pw':DOWNLOAD_KEY})
-            if res.status_code != 200:
-                return None
-
-            with open(self.new_version + '.exe', 'wb') as f:
-                f.write(res.content)
-
+            return requests.post(self.url_download_exe, data={'pw':DOWNLOAD_KEY})
         except (requests.exceptions.ChunkedEncodingError, ConnectionError, Timeout, HTTPError) as es:
             self.log.ERROR(es)
-            res = None
+            return None
 
-        return res
+    @elapsed # 소요시간 0.1 ~ 0.2초
+    def write_latest_version(self, byteStream) -> bool:
+        try:
+            with open(self.new_version + '.exe', 'wb') as f:
+                f.write(byteStream)
+        except Exception as e:
+            self.log.CRITICAL(e, '/ file write failure')
+            return False
+        return True
+            
+
+    # @elapsed
+    def get_latest_version_current_dir(self) -> bool:
+        ret = False
+        try:
+            postResponse = self._download_latest_version()
+            if not postResponse or postResponse.status_code != 200:
+                return ret 
+    
+            if not self.new_version:
+                return ret
+
+            ret = self.write_latest_version(postResponse.content)
+
+        except Exception as e:
+            self.log.ERROR(e)
+            ret = False
+
+        return ret
 
 
 if __name__ == '__main__':

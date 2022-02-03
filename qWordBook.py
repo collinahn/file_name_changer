@@ -17,6 +17,7 @@ EMPTY_STR = ''
 
 #img src
 IMG_FROG = 'img/frog.ico'
+IMG_FROG2 = 'img/final.ico'
 IMG_EXIT = 'img/exit.ico'
 IMG_DEV = 'img/developer.ico'
 

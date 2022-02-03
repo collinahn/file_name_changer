@@ -53,50 +53,56 @@
 # 기능추가) 사진 일괄 선택 기능 -> 해당 다이얼로그의 취지와 맞지 않아서 취소
 
 # 기능 수정) 현재 커서는 건드리지 않도록 아예 렌더링 시 빼버림(v2.2.3)
+# 다운로드 피드백 시각화 (v2.2.4)
 
 
 
 # pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
 
 import sys
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import (
+    Qt,
+)
 from PyQt5.QtWidgets import (
     QApplication, 
-    QDialog, 
     QGridLayout, 
     QLabel, 
-    QMainWindow, 
     QAction,
     QMessageBox, 
     QPushButton, 
     qApp
 )
-from PyQt5.QtCore import (
-    Qt,
-)
-from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
+import qWordBook as const
 from lib.file_property import FileProp
 from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
 from qCenterWid import GongikWidget
+from qVersionDialog import VersionDialog
+from qDraggable import ( #custom qobjects
+    QDialog, 
+    QMainWindow, 
+    QWidget,
+)
 from qDialog import (
     ProgressDialog,
     InitInfoDialogue,
     ProgressTimerDialog
 )
-import qWordBook as const
 
 
 '''
 exe 빌드하기
 pyinstaller -F --clean qMain.spec
-pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/frog.ico qMain.py
+pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.2.3'
+VERSION_INFO = '(release)gongik_v2.2.4'
+# VERSION_INFO = '(dev)gongik_v2.2.4'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -128,6 +134,7 @@ class Gongik(QMainWindow):
 
         self.title = 'Gongik'
         self.main_icon_path = utils.resource_path(const.IMG_FROG)
+        self.final_icon_path = utils.resource_path(const.IMG_FROG2)
         self.exit_icon_path = utils.resource_path(const.IMG_EXIT)
         self.dev_icon_path = utils.resource_path(const.IMG_DEV)
 
@@ -224,7 +231,7 @@ class Gongik(QMainWindow):
         checkAction.setStatusTip(const.MSG_TIP['LIST'])
         checkAction.triggered.connect(self.onModalAddrInfo)
 
-        updateAction = QAction(QIcon(self.dev_icon_path), '업데이트 확인', self)
+        updateAction = QAction(QIcon(self.final_icon_path), '업데이트 확인', self)
         updateAction.setShortcut(const.MSG_SHORTCUT['UPDATE'])
         updateAction.setStatusTip(const.MSG_TIP['UPDATE'])
         updateAction.triggered.connect(self.onModalUpdateApp)
@@ -255,25 +262,6 @@ class Gongik(QMainWindow):
         vlg = VersionDialog()
         vlg.exec_()
 
-    def mousePressEvent(self, event) :
-        if event.button() == Qt.LeftButton :
-            self.offset = event.pos()
-        else:
-            super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event) :
-        try:
-            if self.offset is not None and event.buttons() == Qt.LeftButton:
-                self.move(self.pos() + event.pos() - self.offset)
-            else:
-                super().mouseMoveEvent(event)
-        except:
-            pass
-
-    def mouseReleaseEvent(self, event) :
-        self.offset = None
-        super().mouseReleaseEvent(event)
-
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -282,13 +270,13 @@ class DeveloperInfoDialog(QDialog):
         self.log.INFO('Developer Info Dialog')
 
         self.title = '프로그램 정보'
-        self.icon_path = utils.resource_path(const.IMG_DEV)
+        self.iconPath = utils.resource_path(const.IMG_DEV)
 
         self.setupUI()
 
     def setupUI(self):
         self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowIcon(QIcon(self.iconPath))
         self.setStyleSheet(const.QSTYLE_SHEET)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
@@ -330,24 +318,6 @@ class DeveloperInfoDialog(QDialog):
         self.log.INFO('Developer Info Dialog closed')
         self.close()
 
-    def mousePressEvent(self, event) :
-        if event.button() == Qt.LeftButton :
-            self.offset = event.pos()
-        else:
-            super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event) :
-        try:
-            if self.offset is not None and event.buttons() == Qt.LeftButton:
-                self.move(self.pos() + event.pos() - self.offset)
-            else:
-                super().mouseMoveEvent(event)
-        except:
-            pass
-
-    def mouseReleaseEvent(self, event) :
-        self.offset = None
-        super().mouseReleaseEvent(event)
 
 class AddrInfoDialog(QDialog):
     def __init__(self):
@@ -357,13 +327,13 @@ class AddrInfoDialog(QDialog):
         self.log.INFO('Addr Info Dialog')
 
         self.title = '사진 상세'
-        self.icon_path = utils.resource_path(const.IMG_FROG)
+        self.iconPath = utils.resource_path(const.IMG_FROG)
 
         self.setupUI()
 
     def setupUI(self):
         self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowIcon(QIcon(self.iconPath))
         self.setStyleSheet(const.QSTYLE_SHEET)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
@@ -422,128 +392,6 @@ class AddrInfoDialog(QDialog):
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
         self.close()
-    
-    def mousePressEvent(self, event) :
-        if event.button() == Qt.LeftButton :
-            self.offset = event.pos()
-        else:
-            super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event) :
-        try:
-            if self.offset is not None and event.buttons() == Qt.LeftButton:
-                self.move(self.pos() + event.pos() - self.offset)
-            else:
-                super().mouseMoveEvent(event)
-        except:
-            pass
-
-    def mouseReleaseEvent(self, event) :
-        self.offset = None
-        super().mouseReleaseEvent(event)
-
-
-class VersionDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Version Info Dialog')
-
-        self.clsVI = VersionTeller()
-        self.latest = self.clsVI.new_version
-
-        self.title = '업데이트 정보'
-        self.icon_path = utils.resource_path(const.IMG_DEV)
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
-        self.setStyleSheet(const.QSTYLE_SHEET)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-
-
-        currentVersion_a = QLabel('현재 버전:')
-        currentVersion_a.setAlignment(Qt.AlignTop)
-        currentVersion_b = QLabel(f'{VERSION_INFO}')
-
-        latestVersion_a = QLabel('최신 버전:')
-        if self.latest and '0.0.0' not in self.latest:
-            latestVersion_b = QLabel(f'{self.latest}')
-        else:
-            latestVersion_b = QLabel('서버에 연결할 수 없습니다.')
-
-        if self.latest and self.latest != VERSION_INFO:
-            comment_a = QPushButton('다운로드')
-            comment_a.clicked.connect(self.onBtnDownload)
-            comment_b = QLabel('새로운 버전이 있습니다.')
-        elif self.latest == VERSION_INFO:
-            comment_a = QPushButton('다운로드')
-            comment_a.setEnabled(False)
-            comment_b = QLabel('최신 버전입니다.')
-        else:
-            comment_a = QPushButton('다운로드')
-            comment_a.setEnabled(False)
-            comment_b = QLabel('')
-            
-
-        self.pushBtnExit= QPushButton('확인')
-        self.pushBtnExit.clicked.connect(self.onBtnClicked)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(currentVersion_a, 0, 0)
-        layout.addWidget(currentVersion_b, 0, 1)
-        layout.addWidget(latestVersion_a, 1, 0)
-        layout.addWidget(latestVersion_b, 1, 1)
-        layout.addWidget(comment_a, 2, 0)
-        layout.addWidget(comment_b, 2, 1)
-        layout.addWidget(self.pushBtnExit, 3, 2)
-
-
-    def onBtnClicked(self):
-        self.log.INFO('Developer Info Dialog closed')
-        self.close()
-
-    def onBtnDownload(self):
-        downInfo = ProgressTimerDialog('현재 폴더에 다운로드 중입니다.\n다운로드가 끝나면 자동으로 창이 닫힙니다.', self)
-        downInfo.show()
-        downInfo.mark_progress(99)
-
-        if not self.clsVI.download_latest():
-            downInfo.close()
-            failInfo = InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다.', ('나가기', ))
-            failInfo.exec_()
-            self.close()
-            return
-
-        if downInfo.isActiveWindow():
-            downInfo.close()
-
-        finishInfo = InitInfoDialogue(f'현재 폴더에 다운로드가 완료되었습니다.\n({utils.extract_dir()})', ('예', ))
-        finishInfo.exec_() 
-    
-    def mousePressEvent(self, event) :
-        if event.button() == Qt.LeftButton :
-            self.offset = event.pos()
-        else:
-            super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event) :
-        try:
-            if self.offset is not None and event.buttons() == Qt.LeftButton:
-                self.move(self.pos() + event.pos() - self.offset)
-            else:
-                super().mouseMoveEvent(event)
-        except:
-            pass
-
-    def mouseReleaseEvent(self, event) :
-        self.offset = None
-        super().mouseReleaseEvent(event)
-
 
 
 
@@ -555,4 +403,7 @@ if __name__ == '__main__':
     # del warnDlg
 
     ex = Gongik()
+
+    # VersionDialog().exec_()
+
     sys.exit(app.exec_())

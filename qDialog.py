@@ -1,13 +1,10 @@
 import sys
 import time
 from PyQt5.QtWidgets import (
-    QDialog, 
     QGridLayout, 
     QLabel, 
     QProgressBar,
     QPushButton,
-    QMainWindow,
-    QWidget
 )
 from PyQt5.QtCore import (
     Qt,
@@ -18,6 +15,12 @@ from PyQt5.QtGui import QIcon
 import lib.utils as utils
 import qWordBook as const
 from lib.log_gongik import Logger
+from qDraggable import (
+    QMainWindow,
+    QDialog, 
+    QWidget
+)
+
 
 class ProgressDialog(QDialog):
     def __init__(self, labelMsg:str='        '):
@@ -65,22 +68,28 @@ class ProgressDialog(QDialog):
             if i%5 == 0:
                 self.comment.setText(self.label+'....'[:(i%4+1)])
 
-class ProgressTimerDialog(QWidget):
+class ProgressTimerDialog(QDialog):
     def __init__(self, labelMsg:str='', Parent=None):
         super(ProgressTimerDialog, self).__init__(Parent)
 
         self.log = Logger()
-        self.log.INFO('init')
 
         self.title = '알림'
-        self.icon_path = utils.resource_path('img/developer.ico')
+        self.iconPath = utils.resource_path('img/developer.ico')
         self.label = labelMsg
 
-        self.setupUI()
+        self._setup_UI()
 
-    def setupUI(self):
+        self.timer = QTimer()
+        self.timer.setInterval(50)
+        self.timer.timeout.connect(self._update)
+        self.timer.start()
+
+        self.log.INFO('progress timer dialog init')
+
+    def _setup_UI(self):
         self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowIcon(QIcon(self.iconPath))
         self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.comment = QLabel(self.label)
@@ -88,37 +97,35 @@ class ProgressTimerDialog(QWidget):
 
         self.pbar = QProgressBar(self)
         self.pbar.setAlignment(Qt.AlignCenter)
-        self.__progress = 0
-        self.__percentageInput = 0
+        self._progress = 0
+        self._percentageInput = 0
 
         layout = QGridLayout()
         self.setLayout(layout)
         layout.addWidget(self.comment, 0, 0)
         layout.addWidget(self.pbar, 1, 0)
 
-        self.timer = QTimer()
-        self.timer.setInterval(50)
-        self.timer.timeout.connect(self.__update)
-        self.timer.start()
 
-    def __update(self):
-        if self.__progress >= self.__percentageInput:
+    def _update(self):
+        if self._progress >= self._percentageInput:
             self.timer.stop()
             return
         else:
             if not self.timer.isActive():
                 self.timer.start()
 
-        self.__progress = self.pbar.value()
-        self.__progress += 1
-        self.pbar.setValue(self.__progress)
+        self._progress = self.pbar.value()
+        self._progress += 1
+        self.pbar.setValue(self._progress)
+        self.log.DEBUG('updated?')
 
     def mark_progress(self, percentage, labelMsg=None):
         if labelMsg:
             self.label = labelMsg
             self.comment.setText(self.label)
 
-        self.__percentageInput = percentage
+        self._percentageInput = percentage
+        self.log.INFO('setting percentage =', percentage, ', msg =', labelMsg)
 
 
 class InitInfoDialogue(QDialog):
@@ -126,12 +133,12 @@ class InitInfoDialogue(QDialog):
         super().__init__()
 
         self.log = Logger()
-        self.log.INFO('Info Dialogue', msg)
+        self.log.INFO('Info Dialogue,', msg)
 
         self.title = '알림'
-        self.main_msg = msg
+        self.mainMsg = msg
         self.btn = btn
-        self.icon_path = utils.resource_path('img/frog.ico')
+        self.iconPath = utils.resource_path('img/frog.ico')
 
         self.answer: bool = False
 
@@ -139,12 +146,12 @@ class InitInfoDialogue(QDialog):
 
     def setupUI(self):
         self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.icon_path))
+        self.setWindowIcon(QIcon(self.iconPath))
         self.setStyleSheet(const.QSTYLE_SHEET)
         # self.setWindowFlags(Qt.FramelessWindowHint)
         self.setMinimumWidth(200)
 
-        label0 = QLabel(self.main_msg, self)
+        label0 = QLabel(self.mainMsg, self)
         label0.setAlignment(Qt.AlignCenter)
         label0.setMinimumHeight(30)
 
@@ -177,25 +184,6 @@ class InitInfoDialogue(QDialog):
         self.answer = False
         self.log.INFO('User Selected No')
         self.close()
-
-    def mousePressEvent(self, event) :
-        if event.button() == Qt.LeftButton :
-            self.offset = event.pos()
-        else:
-            super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event) :
-        try:
-            if self.offset is not None and event.buttons() == Qt.LeftButton:
-                self.move(self.pos() + event.pos() - self.offset)
-            else:
-                super().mouseMoveEvent(event)
-        except:
-            pass
-
-    def mouseReleaseEvent(self, event) :
-        self.offset = None
-        super().mouseReleaseEvent(event)
 
 
 

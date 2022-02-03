@@ -13,15 +13,15 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QRadioButton,
     QToolTip, 
-    QWidget, 
     QApplication, 
     QGridLayout,
     QPushButton, 
     QLabel, 
-    QDialog,
     QScrollArea,
     QButtonGroup,
-    QAbstractButton
+    QAbstractButton,
+    QDialog,
+    QWidget, 
 )
 
 import lib.utils as utils
