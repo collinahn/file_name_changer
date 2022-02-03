@@ -3,6 +3,7 @@ from PyQt5.QtGui import (
     QPixmap,
     QFont,
     QIcon,
+    QMouseEvent,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -42,6 +43,7 @@ class DistributorDialog(QDialog):
     
         self.mstQueue = MstQueue()
         self.dctCheckBoxInstance: dict[str, QCheckBox] = {} # 체크된 객체 추적
+        self.dctPreviewInstance: dict[str, QLabel] = {} # 레이블 클릭 여부 추적
 
         self.init_ui()
 
@@ -76,6 +78,8 @@ class DistributorDialog(QDialog):
             picPreview = QLabel(prop.name)
             picPreview.resize(200, 150)
             picPreview.setPixmap(QPixmap(prop.name).scaled(200, 150))
+            # picPreview.mouseReleaseEvent = self.onClickReleasePic
+            self.dctPreviewInstance[prop.name] = picPreview
 
             picLoc = QLabel(prop.locationDB)
             picSelect = QCheckBox()
@@ -83,8 +87,8 @@ class DistributorDialog(QDialog):
             picSelect.stateChanged.connect(self.onCheckPicSelect)
 
             singleInstanceLayout.addWidget(picPreview, 0, 0, 1, -1)
-            singleInstanceLayout.addWidget(picSelect, 1, 0)
-            singleInstanceLayout.addWidget(picLoc, 1, 1)
+            singleInstanceLayout.addWidget(picSelect, 1, 0, 1, 1)
+            singleInstanceLayout.addWidget(picLoc, 1, 1, 1, 1)
 
             widget4ChoosePicLayout.addWidget(singleInstanceBox)
 
@@ -121,22 +125,21 @@ class DistributorDialog(QDialog):
             singleLocBox.setLayout(singleLocBoxLayout)
 
             btnModifyClassification = QPushButton(f'{qProps.name}')
-            # btnModifyClassification.clicked.connect(self.onBtnModifyClassification)
             self.buttonGroup.addButton(btnModifyClassification, btnIdx)
             btnModifyClassification.setMaximumWidth(150)
-            
+
             singleLocBoxLayout.addWidget(btnModifyClassification, 0, 0, 1, 1)
 
             for widgetIdx, fProp in enumerate(qProps.queue, start=1):
                 fProp: FileProp
                 
-                picPreview = QLabel(fProp.name)
-                picPreview.resize(200, 150)
-                picPreview.setPixmap(QPixmap(fProp.name).scaled(200, 150))
+                picPreview4Candidate = QLabel(fProp.name)
+                picPreview4Candidate.resize(200, 150)
+                picPreview4Candidate.setPixmap(QPixmap(fProp.name).scaled(200, 150))
 
                 picLoc = QLabel(fProp.locationDB)
                 
-                singleLocBoxLayout.addWidget(picPreview, 0, widgetIdx, 1, 1)
+                singleLocBoxLayout.addWidget(picPreview4Candidate, 0, widgetIdx, 1, 1)
                 singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx, 1, 15)
 
             widget4ChooseDestLayout.addWidget(singleLocBox)
@@ -160,11 +163,19 @@ class DistributorDialog(QDialog):
         btnCancel.clicked.connect(self.onBtnCancel)
         self.layout.addWidget(btnCancel, 3, 3)
         
+    # def onClickReleasePic(self, event: QMouseEvent):
+    #     self.log.DEBUG(event.pos())
+    #     for fName, preview in self.dctPreviewInstance.items():
+    #         if self.childAt(event.pos()) == preview:
+    #             self.log.INFO('clicked', fName)
+    #             self.dctCheckBoxInstance[fName].toggle()
 
     def onCheckPicSelect(self):
-        for name, checkbox in self.dctCheckBoxInstance.items():
-            if checkbox.isChecked():
-                self.log.DEBUG(name, 'checked')
+        lstCheckedCheckBox = [ 
+            name for name, checkbox in self.dctCheckBoxInstance.items() 
+            if checkbox.isChecked() 
+        ]
+        self.log.DEBUG(lstCheckedCheckBox, 'checked')
 
     def onBtnModifyClassification(self, btn): 
         removeRet = 0
@@ -227,7 +238,6 @@ class DistributorDialog(QDialog):
             self.close()
         else:
             InitInfoDialogue('선택한 사진의 위치가 기존 사진의 위치와 정확히 일치하는 사진은 신규로 카테고리를 생성할 수 없습니다.', ('확인', )).exec_()
-
 
     def onBtnCancel(self):
         self.log.INFO('User Canceled Distribution')

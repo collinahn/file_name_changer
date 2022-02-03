@@ -111,14 +111,13 @@ class BridgePhone(object):
     def files(self) -> list:
         return self.lstNamesTookToday
 
-    @staticmethod
-    def _get_root_permission(device):
+    def _get_root_permission(self, device):
         try:
             device.shell('root')
         except RuntimeError as re:
-            Logger.ERROR(re)
+            self.log.ERROR(re)
         except Exception as e:
-            Logger.CRITICAL(e)
+            self.log.CRITICAL(e)
 
     def transfer_files(self) -> bool:
         if not self._devices:

@@ -62,8 +62,8 @@ class Logger:
     def __init__(self) :
         cls = type(self)
         if not hasattr(cls, "_init"):
-            cls.__logger = logging.getLogger('LoggerGongik')
-            cls.__logger.setLevel(logging.DEBUG)
+            cls._logger = logging.getLogger('LoggerGongik')
+            cls._logger.setLevel(logging.DEBUG)
 
             cls.formatter = logging.Formatter('%(asctime)s [%(filename)-25s:%(funcName)-25s:%(lineno)-5s] [%(levelname)s] >> %(message)s')
             cls.fileHandler = logging.handlers.RotatingFileHandler(
@@ -76,8 +76,8 @@ class Logger:
             cls.fileHandler.setFormatter(cls.formatter)
             cls.streamHandler.setFormatter(cls.formatter)
 
-            cls.__logger.addHandler(cls.fileHandler)
-            cls.__logger.addHandler(cls.streamHandler)
+            cls._logger.addHandler(cls.fileHandler)
+            cls._logger.addHandler(cls.streamHandler)
 
             #콘솔엔 전부 출력하고 파일엔 info 이상부터 기록
             cls.fileHandler.setLevel(logging.INFO)
@@ -92,27 +92,27 @@ class Logger:
     @classmethod
     def DEBUG(cls, *message):
         ret = cls.assemble_msg(message)
-        cls.__logger.debug(ret, stacklevel=STACK_LV)
+        cls._logger.debug(ret, stacklevel=STACK_LV)
 
     @classmethod
     def INFO(cls, *message):
         ret = cls.assemble_msg(message)
-        cls.__logger.info(ret, stacklevel=STACK_LV)
+        cls._logger.info(ret, stacklevel=STACK_LV)
 
     @classmethod
     def WARNING(cls, *message):
         ret = cls.assemble_msg(message)
-        cls.__logger.warning(ret, stacklevel=STACK_LV)
+        cls._logger.warning(ret, stacklevel=STACK_LV)
 
     @classmethod
     def ERROR(cls, *message):
         ret = cls.assemble_msg(message)
-        cls.__logger.error(ret, stacklevel=STACK_LV)
+        cls._logger.error(ret, stacklevel=STACK_LV)
 
     @classmethod
     def CRITICAL(cls, *message):
         ret = cls.assemble_msg(message)
-        cls.__logger.critical(ret, stacklevel=STACK_LV)
+        cls._logger.critical(ret, stacklevel=STACK_LV)
 
     #logLv 10(debug) 20 30 40 50(critical)
     @classmethod

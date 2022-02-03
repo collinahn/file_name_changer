@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtGui import (
     QPixmap,
-    QFont
+    QFont,
+    QMouseEvent,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -66,7 +67,8 @@ class GongikWidget(QWidget):
             sys.exit()
 
         FileProp.self_correct_address()
-        FileProp.debug_info()
+        if __name__ == '__main__':
+            FileProp.debug_info()
 
         self.masterQueue = MstQueue() # 위치에 따라 큐를 생성하고 초기화시 자기자신에 삽입
         self.currentLoc: PropsQueue = self.masterQueue.current_preview
@@ -149,7 +151,7 @@ class GongikWidget(QWidget):
         self.fileNameBoxLayout.addWidget(self.fileNamePreview)
 
         self.changeAddrGroupType = QGroupBox('') # 그룹박스 내 그룹박스(라디오버튼)
-        self.changeAddrGroupType.setStyleSheet('QGroupBox { border: 0px }')
+        self.changeAddrGroupType.setStyleSheet(const.QSTYLE_NO_BORDER_BOX)
         self.fileNameBoxLayout.addWidget(self.changeAddrGroupType, alignment=Qt.AlignCenter)
 
         self.changeAddrTypeLayout = QHBoxLayout()
@@ -192,7 +194,7 @@ class GongikWidget(QWidget):
         self.locationBoxInfoLayout.addWidget(self.labelPointer4SameLoc, alignment=Qt.AlignCenter)
 
         self.changeGroupSpecificDetail = QGroupBox() #그룹박스 내부 그룹박스
-        self.changeGroupSpecificDetail.setStyleSheet('QGroupBox { border: 0px }')
+        self.changeGroupSpecificDetail.setStyleSheet(const.QSTYLE_NO_BORDER_BOX)
         self.locationBoxInfoLayout.addWidget(self.changeGroupSpecificDetail, alignment=Qt.AlignCenter)
 
         self.changeDetailsLayout = QHBoxLayout()
@@ -237,7 +239,7 @@ class GongikWidget(QWidget):
         self.mainWidgetLayout.addWidget(self.btn2Change, 5, 0, -1, 2)
 
         btnGroupOtherPics = QGroupBox()
-        btnGroupOtherPics.setStyleSheet('QGroupBox { border: 0px }')
+        btnGroupOtherPics.setStyleSheet(const.QSTYLE_NO_BORDER_BOX)
         self.mainWidgetLayout.addWidget(btnGroupOtherPics, 5, 2)
         
         btnBoxOtherPicsLayout = QHBoxLayout()
@@ -497,7 +499,7 @@ class GongikWidget(QWidget):
 
         self._update_file_name_preview()
 
-    def onClickShowImage(self, event):
+    def onClickShowImage(self, event: QMouseEvent):
         clsGI = GPSInfo()
         clsGI.show_image(self.currentLoc.current_preview.name)
         self.log.INFO('opening', self.currentLoc.current_preview.name)
