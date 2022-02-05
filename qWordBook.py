@@ -62,7 +62,8 @@ MSG_TIP = {
     'FINISH':'현재 폴더에서의 모든 작업을 종료하고 설정한 대로 이름을 변경합니다.',
     'NEXT':'비슷한 장소에서 찍힌 사진 중 다음 사진으로 미리보기를 교체합니다.',
     'PREVIOUS':'비슷한 장소에서 찍힌 사진 중 이전 사진으로 미리보기를 교체합니다.',
-    'PHOTO':'사진을 크게 보시려면 더블 클릭하세요',
+    'PHOTO':'사진을 크게 보시려면 더블 클릭하세요.',
+    'SEQUENCE':'사진 분류를 수정하려면 클릭하세요.',
 }
 
 MSG_SHORTCUT = {
@@ -120,4 +121,22 @@ color: rgb(255, 255, 255);
 
 QSTYLE_NO_BORDER_BOX = '''
 QGroupBox { border: 0px; }
+'''
+
+QSTYLE_SHEET_POPUP = '''
+QWidget {
+background-color: rgb(82, 82, 83);
+color: rgb(255, 255, 255);
+}
+QWidget .QPushButton {
+color: yellow;
+background-color: rgb(82, 82, 83);
+border: 2px solid yellow;
+border-radius: 5px;
+}
+QWidget .QPushButton:hover {
+border:0px;
+background-color: yellow;
+color: black
+}
 '''

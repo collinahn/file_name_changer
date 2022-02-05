@@ -26,12 +26,12 @@ import lib.utils as utils
 import qWordBook as const
 from lib.get_location import LocationInfo
 from lib.file_property import FileProp
+from lib.log_gongik import Logger
+from lib.change_name import NameChanger
 from lib.queue_order import (
     MstQueue, 
     PropsQueue
 )
-from lib.log_gongik import Logger
-from lib.change_name import NameChanger
 from lib.meta_data import (
     GPSInfo, 
     TimeInfo
@@ -75,11 +75,11 @@ class GongikWidget(QWidget):
 
         self._use_name:int = const.USE_BOTH
 
-        self.init_ui()
+        self._init_ui()
         self._refresh_widget(self.currentLoc.current_preview)
         self.log.INFO('init complete')
         
-    def init_ui(self):
+    def _init_ui(self):
         QToolTip.setFont(QFont('SansSerif', 10))
         self.mainWidgetLayout = QGridLayout()
         self.setLayout(self.mainWidgetLayout)
@@ -253,7 +253,7 @@ class GongikWidget(QWidget):
         btnBoxOtherPicsLayout.addWidget(self.btnPreviousPicSameAddr)
 
         self.btnLabelPicSeqInfo = QPushButton(self._generate_text_pic_indicator())
-        # self.btnLabelPicSeqInfo.setAlignment(Qt.AlignCenter)
+        self.btnLabelPicSeqInfo.setToolTip(const.MSG_TIP['SEQUENCE'])
         self.btnLabelPicSeqInfo.clicked.connect(self.onBtnDistributePics)
         btnBoxOtherPicsLayout.addWidget(self.btnLabelPicSeqInfo)
 

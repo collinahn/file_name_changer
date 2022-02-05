@@ -81,7 +81,7 @@ from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
-from qCenterWid import GongikWidget
+from qMainWidget import GongikWidget
 from qVersionDialog import VersionDialog
 from qDraggable import ( #custom qobjects
     QDialog, 
@@ -101,8 +101,8 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.2.4'
-# VERSION_INFO = '(dev)gongik_v2.2.4'
+VERSION_INFO = '(release)gongik_v2.2.5'
+# VERSION_INFO = '(dev)gongik_v2.3.0'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -151,14 +151,20 @@ class Gongik(QMainWindow):
             if not self._handle_failure():
                 sys.exit()
 
-        self.progressDlg.mark_progress(90, '파일 분석 중')
+        self.progressDlg.mark_progress(80, '파일 분석 중')
 
-        self.init_ui()
-
+        self._init_ui()
+        self._init_main_widget()
+        
         self.progressDlg.mark_progress(100, '무결성 검사 중', True)
 
         self.progressDlg.close()
         del self.progressDlg
+
+    def _init_main_widget(self):
+        # 메인 위젯 설정
+        qw = GongikWidget()
+        self.setCentralWidget(qw)
 
     def _handle_failure(self) -> bool:
         failDlg = InitInfoDialogue(INSTRUCTION, btn=('확인', '다음에'))
@@ -202,16 +208,12 @@ class Gongik(QMainWindow):
         QMessageBox.warning(self, code, const.MSG_WARN[code])
         sys.exit()
 
-    def init_ui(self):
+    def _init_ui(self):
         # 상단 정보 설정
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.main_icon_path))
         self.setStyleSheet(const.QSTYLE_SHEET)
         self.setWindowFlags(Qt.FramelessWindowHint)
-
-        # 메인 위젯 설정
-        qw = GongikWidget()
-        self.setCentralWidget(qw)
 
         #메뉴 바 - progMenu - Exit
         exitAction = QAction(QIcon(self.exit_icon_path), '퇴근하기', self)
@@ -277,7 +279,7 @@ class DeveloperInfoDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
         label0 = QLabel('버전:')
@@ -334,7 +336,7 @@ class AddrInfoDialog(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
 

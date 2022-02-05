@@ -147,7 +147,7 @@ class InitInfoDialogue(QDialog):
     def setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         # self.setWindowFlags(Qt.FramelessWindowHint)
         self.setMinimumWidth(200)
 

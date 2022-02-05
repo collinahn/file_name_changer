@@ -39,11 +39,6 @@ class LocationInfo(object):
         for orginName, tplGPS4DB in self._dctName2GPS4DB.items():
             prop = FileProp(orginName)
 
-            print(f'{orginName = }')
-            print(f'{prop = }')
-            print(f'{vars(prop) = }')
-            print(f'{prop._name = }')
-    
             prop.locationDB = self.clsDB.get_addr(tplGPS4DB)
             self.log.INFO('got info fm DB')
             # self._dctName2AddrBackup[orginName] = self.clsDB.get_addr(tplGPS4DB)

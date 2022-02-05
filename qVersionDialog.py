@@ -59,7 +59,7 @@ class VersionDialog(QDialog):
     def _setup_UI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET)
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
         from qMain import VERSION_INFO
 
