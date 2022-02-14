@@ -32,8 +32,6 @@ import os
 import logging
 import logging.handlers
 
-from . import utils
-
 LOG_FOLDER_PATH = './.gongik/'
 LOG_FILE_NAME = 'gongik.log'
 LOG_FILE_PATH = LOG_FOLDER_PATH + LOG_FILE_NAME

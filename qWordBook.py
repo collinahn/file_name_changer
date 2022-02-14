@@ -51,6 +51,7 @@ MSG_WARN = {
 
 MSG_TIP = {
     'EXIT':'프로그램을 종료합니다. 진행 상황이 저장되지 않습니다.',
+    'RECOMMEND':'이미지에서 텍스트를 추출해 키워드를 추천합니다.',
     'INFO':'프로그램의 정보를 확인합니다.',
     'UPDATE':'버전정보를 확인하고 새 버전을 다운받습니다. 온라인에서만 동작합니다.',
     'LIST':'사진 정보 목록을 불러옵니다.',
@@ -68,6 +69,7 @@ MSG_TIP = {
 
 MSG_SHORTCUT = {
     'EXIT':'Ctrl+Shift+Q',
+    'RECOMMEND':'Ctrl+E',
     'INFO':'Ctrl+I',
     'UPDATE':'Ctrl+U',
     'LIST':'Ctrl+G',

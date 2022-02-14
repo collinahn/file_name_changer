@@ -2,6 +2,9 @@ import sys
 import os
 from datetime import datetime
 from collections import defaultdict
+from PIL import Image
+from PIL import UnidentifiedImageError
+
 
 def get_today_date_formated(separator) -> str:
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
@@ -26,8 +29,8 @@ def extract_file_name_sorted(dir='.'):
     return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ]
 
 
-def extract_dir(): # 부모 디렉터리 추출
-    return os.getcwd().replace('\\', '/')
+def extract_dir(winDir=False): # 부모 디렉터리 추출
+    return os.getcwd() if winDir else os.getcwd().replace('\\', '/')
 
 def resource_path(relative_path):
     try:
@@ -63,7 +66,28 @@ def get_car_no_from_parent_dir() -> str:
 
     return str(gubun)
 
+def open_image(name) -> Image:
+    image: Image = None
+    try:
+        image = Image.open(name)
+    except UnidentifiedImageError as ue:
+        from .log_gongik import Logger
+        Logger().ERROR('Unidentified Image', ue)
+        return None
+    except Exception as e:
+        from .log_gongik import Logger
+        Logger().ERROR('Unexpected Error', e)
+        return None
+
+    return image
+
 
 if __name__ == '__main__':
     print(extract_dir())
+    print(extract_dir(True))
+    print(resource_path(''))
     print(f'{get_handled_suffix() = }')
+
+    print(rf'{extract_dir(True)}\tesseract')
+
+    open_image('1.jpg')

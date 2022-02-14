@@ -132,6 +132,7 @@ __*/
 *.jpg
 *.exe
 platform-tools/
+tesseract-ocr/
 
 version.txt
 api/

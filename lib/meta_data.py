@@ -1,7 +1,6 @@
 # 파일 정보에서 gps 및 시간 확인한다
 
 from PIL import Image
-from PIL import UnidentifiedImageError
 from PIL.ExifTags import TAGS
 from pyproj import Proj
 from pyproj import transform
@@ -28,14 +27,14 @@ class MetaData(object):
         self._dctMetaData: dict[str, str] = {}
         self._dctDecodedMeta: dict[str, str] = {}
 
-        self.__init_meta_data()
+        self._init_meta_data()
 
 
     #메타데이터가 있는 사진 파일들의 이름과 메타데이터를 저장한다.
-    def __init_meta_data(self):
+    def _init_meta_data(self):
         for fileName in self.lstFiles:
             fPath = self.targetDir + '/' + fileName
-            fileImage = self._open_image(fPath)
+            fileImage = utils.open_image(fPath)
 
             if not fileImage:
                 self.log.ERROR('Failed to open empty image file', fPath)
@@ -48,20 +47,8 @@ class MetaData(object):
             decodedData = TAGS.get(key, key)
             self._dctDecodedMeta[decodedData] = value
 
-
-    def _open_image(self, name) -> Image:
-        image: Image = None
-        try:
-            image = Image.open(name)
-        except UnidentifiedImageError as ue:
-            self.log.ERROR(ue, name)
-        except Exception as e:
-            self.log.CRITICAL(e)
-    
-        return image
-
     def show_image(self, name):
-        image = self._open_image(name)
+        image: Image = utils.open_image(name)
         if image:
             image.show()
 

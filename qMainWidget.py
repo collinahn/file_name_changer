@@ -1,3 +1,5 @@
+# TODO: DICT객체 참조 시 get 메소드를 이용
+
 import sys
 from PyQt5.QtGui import (
     QPixmap,
@@ -501,8 +503,9 @@ class GongikWidget(QWidget):
 
     def onClickShowImage(self, event: QMouseEvent):
         clsGI = GPSInfo()
-        clsGI.show_image(self.currentLoc.current_preview.name)
-        self.log.INFO('opening', self.currentLoc.current_preview.name)
+        fProp:FileProp = self.currentLoc.current_preview
+        clsGI.show_image(fProp.name)
+        self.log.INFO('opening', fProp.name)
 
     def onCheckRadioAddrType(self):
         if self.radioBtnAddrTypeBoth.isChecked():

@@ -55,9 +55,7 @@
 # 기능 수정) 현재 커서는 건드리지 않도록 아예 렌더링 시 빼버림(v2.2.3)
 # 다운로드 피드백 시각화 (v2.2.4)
 
-
-
-# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko
+# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
 from PyQt5.QtGui import QIcon
@@ -73,6 +71,7 @@ from PyQt5.QtWidgets import (
     QPushButton, 
     qApp
 )
+from lib.file_copy import BridgePhone
 
 import lib.utils as utils
 import qWordBook as const
@@ -93,16 +92,21 @@ from qDialog import (
     InitInfoDialogue,
     ProgressTimerDialog
 )
+from qWrapper import (
+    catch_except,
+    elapsed
+
+)
 
 
 '''
 exe 빌드하기
 pyinstaller -F --clean qMain.spec
-pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --icon=img/final.ico qMain.py
+pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.2.5'
-# VERSION_INFO = '(dev)gongik_v2.3.0'
+# VERSION_INFO = '(release)gongik_v2.2.5'
+VERSION_INFO = '(dev)gongik_v2.3.0'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -192,7 +196,7 @@ class Gongik(QMainWindow):
 
         return True
 
-    def _handle_ADB_failure(self, clsBridgePhone):
+    def _handle_ADB_failure(self, clsBridgePhone: BridgePhone):
         if not clsBridgePhone.connected:
             self._pop_warn_msg('CONNECTION_ERROR')
 
@@ -221,7 +225,13 @@ class Gongik(QMainWindow):
         exitAction.setStatusTip(const.MSG_TIP['EXIT'])
         exitAction.triggered.connect(qApp.quit)
 
-        #메뉴 바 - progMenu - info
+        # (베타) 이미지에서 텍스트 추출
+        recommendAction = QAction(QIcon(self.dev_icon_path), '텍스트 추출(베타)', self)
+        recommendAction.setShortcut(const.MSG_SHORTCUT['RECOMMEND'])
+        recommendAction.setStatusTip(const.MSG_TIP['RECOMMEND'])
+        recommendAction.triggered.connect(self.onModalRecommend)
+
+        #메뉴 바 - info
         infoAction = QAction(QIcon(self.dev_icon_path), '프로그램 정보', self)
         infoAction.setShortcut(const.MSG_SHORTCUT['INFO'])
         infoAction.setStatusTip(const.MSG_TIP['INFO'])
@@ -245,6 +255,7 @@ class Gongik(QMainWindow):
         progMenu = menu.addMenu('&실행')
         additionalMenu = menu.addMenu('&정보')
         
+        progMenu.addAction(recommendAction)
         progMenu.addAction(exitAction)
         additionalMenu.addAction(infoAction)
         additionalMenu.addAction(checkAction)
@@ -263,6 +274,10 @@ class Gongik(QMainWindow):
     def onModalUpdateApp(self):
         vlg = VersionDialog()
         vlg.exec_()
+
+    def onModalRecommend(self):
+        rlg = RecommendDialog()
+        rlg.exec_()
 
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
@@ -287,7 +302,7 @@ class DeveloperInfoDialog(QDialog):
         label0_a = QLabel(f'{VERSION_INFO}')
         label1 = QLabel('개발자:')
         label1.setAlignment(Qt.AlignTop)
-        label1_a = QLabel("안태영(Collin Ahn)")
+        label1_a = QLabel('안태영(Collin Ahn)')
         label2 = QLabel('연락처:')
         label2.setAlignment(Qt.AlignTop)
         label2_a = QLabel('collinahn@gmail.com')
@@ -339,7 +354,6 @@ class AddrInfoDialog(QDialog):
         self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
-
         mq = MstQueue()
 
         lstNameAddrTime = [(
@@ -371,7 +385,7 @@ class AddrInfoDialog(QDialog):
         lstNameAddrTime.sort(key=lambda x: x[2].text()) #주소 기준 정렬
 
         # 확인버튼
-        self.pushButton1= QPushButton('확인(개발 중인 기능입니다)')
+        self.pushButton1= QPushButton('확인')
         self.pushButton1.clicked.connect(self.onBtnClicked)
 
         layout = QGridLayout()
@@ -384,12 +398,52 @@ class AddrInfoDialog(QDialog):
 
         self.setLayout(layout)
 
-    @staticmethod
-    def check_key_error(dctDataSet: dict[str, str], key: str) -> str:
-        try:
-            return dctDataSet[key]
-        except KeyError:
-            return '지정되지 않음'
+    def onBtnClicked(self):
+        self.log.INFO('Addr Info Dialog closed')
+        self.close()
+
+
+class RecommendDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.log = Logger()
+        self.log.INFO('Addr Info Dialog')
+
+        self.title = '텍스트 추천'
+        self.iconPath = utils.resource_path(const.IMG_DEV)
+
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.iconPath))
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
+        mq = MstQueue()
+        fProp = mq.current_preview.current_preview
+
+        from lib.file_translate import ImageOCR
+
+        labelName = QLabel('파일 이름')
+        labelName.setAlignment(Qt.AlignTop)
+        dataName = QLabel(f'{fProp.name}')
+        labelTxt = QLabel('추출 텍스트:')
+        labelTxt.setAlignment(Qt.AlignTop)
+        dataTxt = QLabel(f'{ImageOCR(fProp.name).text}')
+        # dataTxt = QLabel(f'개발 중인 기능입니다.')
+
+        self.pushBtnExit= QPushButton('확인')
+        self.pushBtnExit.clicked.connect(self.onBtnClicked)
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+        layout.addWidget(labelName, 0, 0)
+        layout.addWidget(dataName, 0, 1)
+        layout.addWidget(labelTxt, 1, 0)
+        layout.addWidget(dataTxt, 1, 1)
+        layout.addWidget(self.pushBtnExit, 4, 2)
 
     def onBtnClicked(self):
         self.log.INFO('Addr Info Dialog closed')
@@ -405,7 +459,5 @@ if __name__ == '__main__':
     # del warnDlg
 
     ex = Gongik()
-
-    # VersionDialog().exec_()
 
     sys.exit(app.exec_())
