@@ -50,7 +50,7 @@ class LocalDB(object):
                         AND yCoord <= {yCoord + self.gps_radius};"
             curs.execute(query)
             lstRet = curs.fetchall()
-            self.log.INFO(f'{lstRet = }')
+            # self.log.INFO(f'{lstRet = }')
 
         except sqlite3.Error as e: 
             self.log.ERROR(e)

@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QLabel, 
     QProgressBar,
     QPushButton,
+    QFileDialog,
 )
 from PyQt5.QtCore import (
     Qt,
@@ -13,8 +14,10 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
+from lib.version_info import VersionTeller
 import qWordBook as const
 from lib.log_gongik import Logger
+from lib.check_online import ConnectionCheck
 from qDraggable import (
     QMainWindow,
     QDialog, 
@@ -33,9 +36,9 @@ class ProgressDialog(QDialog):
         self.icon_path = utils.resource_path('img/developer.ico')
         self.label = labelMsg
 
-        self.setupUI()
+        self.__setupUI()
 
-    def setupUI(self):
+    def __setupUI(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -48,10 +51,10 @@ class ProgressDialog(QDialog):
         self.__progress = 0
         self.__interval = 0.005
 
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(self.comment, 0, 0)
-        layout.addWidget(self.pbar, 1, 0)
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+        self.layout.addWidget(self.comment, 0, 0)
+        self.layout.addWidget(self.pbar, 1, 0)
 
     def mark_progress(self, percentage, labelMsg=None, speed=False):
         if labelMsg:
@@ -67,6 +70,23 @@ class ProgressDialog(QDialog):
 
             if i%5 == 0:
                 self.comment.setText(self.label+'....'[:(i%4+1)])
+
+
+class ProgressDialog4Start(ProgressDialog):
+    def __init__(self, labelMsg:str=''):
+        super(ProgressDialog4Start, self).__init__(labelMsg)
+        clsCC = ConnectionCheck()
+
+        if not clsCC.check_online():
+            return
+
+        clsVI = VersionTeller() # 온라인일 때 실행
+        if not clsVI.is_latest:
+            self.setup_ui() # 최신파일이 아니면 업데이트 하라고 안내 멘트
+
+    def setup_ui(self):
+        self.labelNeedUpdate = QLabel('업데이트가 있습니다.\n실행 후 정보>업데이트 확인 탭에서 새 버전을 다운받아 주세요.')
+        self.layout.addWidget(self.labelNeedUpdate, 2, 0)
 
 class ProgressTimerDialog(QDialog):
     def __init__(self, labelMsg:str='', Parent=None):
@@ -195,7 +215,9 @@ if __name__ == '__main__':
     pdlg1.show()
     pdlg1.mark_progress(100)
     pdlg1.close()
-    pdlg = ProgressTimerDialog('test')
-    pdlg.show()
-    pdlg.mark_progress(80)
+    # pdlg = ProgressTimerDialog('test')
+    # pdlg.show()
+    # pdlg.mark_progress(80)
+
+    ProgressDialog4Start('test').exec_()
     sys.exit(app.exec_())

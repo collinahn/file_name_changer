@@ -89,8 +89,9 @@ from qDraggable import ( #custom qobjects
 )
 from qDialog import (
     ProgressDialog,
+    ProgressDialog4Start,
     InitInfoDialogue,
-    ProgressTimerDialog
+    FolderDialog
 )
 from qWrapper import (
     catch_except,
@@ -129,8 +130,7 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
 
-
-        self.progressDlg = ProgressDialog('기본 정보를 가져오는 중')
+        self.progressDlg = ProgressDialog4Start('기본 정보를 가져오는 중')
         self.progressDlg.show()
         self.progressDlg.mark_progress(10)
 
@@ -143,7 +143,6 @@ class Gongik(QMainWindow):
         self.dev_icon_path = utils.resource_path(const.IMG_DEV)
 
         self.progressDlg.mark_progress(20, '로딩 중')
-
 
         self.clsFD = FileDetector('.') # '.'는 초기 파일 체크용
         self.files = self.clsFD.file_list

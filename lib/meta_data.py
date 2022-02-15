@@ -121,8 +121,8 @@ class GPSInfo(MetaData):
                 continue
             
             self._decode_meta_data(meta)
-            self.log.DEBUG(f'{meta}')
-            self.log.DEBUG(f'{self._dctDecodedMeta}')
+            # self.log.DEBUG(f'{meta}')
+            # self.log.DEBUG(f'{self._dctDecodedMeta}')
             
             try:
                 exifGPS = self._dctDecodedMeta['GPSInfo']

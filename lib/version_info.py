@@ -14,18 +14,30 @@ from .__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
 from qWrapper import elapsed
 
 class VersionTeller(object):
+    def __new__(cls):
+        if not hasattr(cls, '_instance'):
+            cls.log = Logger()
+            cls._instance = super().__new__(cls)
+        
+        cls.log.INFO('calling singleton class', cls._instance)
+        return cls._instance
+
     def __init__(self):
-        self.log = Logger()
+        cls = type(self)
+        if not hasattr(cls, '_init'):
+            self.log = Logger()
 
-        # host='127.0.0.1'
-        host = IP
-        port = PORT_API
-        self.key = DOWNLOAD_KEY
+            # host='127.0.0.1'
+            host = IP
+            port = PORT_API
+            self.key = DOWNLOAD_KEY
 
-        self._url_get_version = f'http://{host}:{port}/api/v1/version-info'
-        self.url_download_exe = f'http://{host}:{port}/api/v1/download-latest'
+            self._url_get_version = f'http://{host}:{port}/api/v1/version-info'
+            self.url_download_exe = f'http://{host}:{port}/api/v1/download-latest'
 
-        self.result = self._init_get_data()
+            self.result = self._init_get_data()
+
+            cls._init = True
 
 
     def _init_get_data(self) -> dict:
@@ -44,6 +56,11 @@ class VersionTeller(object):
             return self.result['document']['new_version']
 
         return ''
+
+    @property
+    def is_latest(self) -> bool:
+        from qMain import VERSION_INFO
+        return self.new_version == VERSION_INFO
     
     @elapsed # 소요 시간 6~12초
     def _download_latest_version(self):
@@ -63,7 +80,6 @@ class VersionTeller(object):
             return False
         return True
             
-
     # @elapsed
     def get_latest_version_current_dir(self) -> bool:
         ret = False

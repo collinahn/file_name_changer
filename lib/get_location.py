@@ -3,6 +3,8 @@
 from threading import Thread
 
 
+
+from .check_online import ConnectionCheck
 from .log_gongik import Logger
 from .meta_data import GPSInfo
 from .local_db_gps import LocalDB
@@ -29,8 +31,6 @@ class LocationInfo(object):
             self._dctName2GPS4API = self.clsGPS._dctGPSInfoWGS84
             self._dctName2GPS4DB = self.clsGPS._dctGPSInfoGRS80
 
-            # self._dctName2Addr = {}
-            # self._dctName2AddrBackup = {}
             self.run_thread_get_name() # 온라인이 아닌 경우 둘 다 DB 주소가 된다
 
             cls._init = True
@@ -41,21 +41,19 @@ class LocationInfo(object):
 
             prop.locationDB = self.clsDB.get_addr(tplGPS4DB)
             self.log.INFO('got info fm DB')
-            # self._dctName2AddrBackup[orginName] = self.clsDB.get_addr(tplGPS4DB)
         
-        # return self._dctName2AddrBackup
 
     # 스레드 재료
     def _get_api_addr_fm_coord(self, orignName, tplGPS4API):
         prop = FileProp(orignName)
         prop.locationAPI = self.clsAPI.parse_addr_response(tplGPS4API)
-        # self._dctName2Addr[orignName] = addr
         self.log.INFO('got info fm API')
 
 
     # TODO: 적당한 수의 스레드로 나눈다
     def run_thread_get_name(self) -> dict:
-        online = self.clsAPI.check_online()
+        clsO = ConnectionCheck()
+        online = clsO.check_online()
         
         lstThreads = [
             Thread(target=self._get_api_addr_fm_coord, args=(orginName, tplGPS4API))
@@ -76,22 +74,15 @@ class LocationInfo(object):
             except Exception as e:
                 self.log.CRITICAL(e, '/ caught error while joining')
 
-        # return self._dctName2Addr
-
-    # @property
-    # def location(self) -> dict:
-    #     return self._dctName2Addr
-
-    # @property
-    # def backup_location(self) -> dict:
-    #     return self._dctName2AddrBackup
 
 if __name__ == '__main__':
     import time
     now = time.time()
     n = LocationInfo()
-    elapsedTime = time.time() - now
+    # elapsedTime = time.time() - now
 
-    print(f'{elapsedTime = }')
-    time.sleep(5)
-    print(FileProp('1 (2).jpg').name2AddrAPIOrigin())
+    # print(f'{elapsedTime = }')
+    # time.sleep(5)
+    # print(FileProp('1 (2).jpg').name2AddrAPIOrigin())
+
+    # n.run_thread_get_name()
