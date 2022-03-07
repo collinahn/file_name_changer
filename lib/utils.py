@@ -66,10 +66,10 @@ def get_car_no_from_parent_dir() -> str:
 
     return str(gubun)
 
-def open_image(name) -> Image:
+def open_image(filePath) -> Image:
     image: Image = None
     try:
-        image = Image.open(name)
+        image = Image.open(filePath)
     except UnidentifiedImageError as ue:
         from .log_gongik import Logger
         Logger().ERROR('Unidentified Image', ue)
@@ -81,6 +81,9 @@ def open_image(name) -> Image:
 
     return image
 
+def get_relative_path(originPath: str) -> str:
+    return originPath.replace(extract_dir(), './')
+
 
 if __name__ == '__main__':
     print(extract_dir())
@@ -88,6 +91,8 @@ if __name__ == '__main__':
     print(resource_path(''))
     print(f'{get_handled_suffix() = }')
 
-    print(rf'{extract_dir(True)}\tesseract')
+    # print(rf'{extract_dir(True)}\tesseract')
 
-    open_image('1.jpg')
+    # open_image('1.jpg')
+
+    print(get_relative_path(extract_dir()))

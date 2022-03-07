@@ -77,7 +77,7 @@ class DistributorDialog(QDialog):
 
             picPreview = QLabel(prop.name)
             picPreview.resize(200, 150)
-            picPreview.setPixmap(QPixmap(prop.name).scaled(200, 150))
+            picPreview.setPixmap(QPixmap(prop.abs_path).scaled(200, 150))
             # picPreview.mouseReleaseEvent = self.onClickReleasePic
             self.dctPreviewInstance[prop.name] = picPreview
 
@@ -132,13 +132,13 @@ class DistributorDialog(QDialog):
 
             for widgetIdx, fProp in enumerate(qProps.queue, start=1):
                 fProp: FileProp
-                
+
                 picPreview4Candidate = QLabel(fProp.name)
                 picPreview4Candidate.resize(200, 150)
-                picPreview4Candidate.setPixmap(QPixmap(fProp.name).scaled(200, 150))
+                picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
 
                 picLoc = QLabel(fProp.locationDB)
-                
+
                 singleLocBoxLayout.addWidget(picPreview4Candidate, 0, widgetIdx, 1, 1)
                 singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx, 1, 15)
 
@@ -152,14 +152,14 @@ class DistributorDialog(QDialog):
         scrollAreaChooseDest.setWidgetResizable(True)
         scrollAreaChooseDest.setWidget(widget4ChooseDest)
         scrollAreaChooseDest.setMinimumHeight(400)
-        
+
         self.layout.addWidget(scrollAreaChooseDest, 2, 0, 1, -1)
 
-        btnAddNew = QPushButton(f'따로 생성')
+        btnAddNew = QPushButton('따로 생성')
         btnAddNew.clicked.connect(self.onBtnAddNew)
         self.layout.addWidget(btnAddNew, 3, 2)
 
-        btnCancel = QPushButton(f'취소')
+        btnCancel = QPushButton('취소')
         btnCancel.clicked.connect(self.onBtnCancel)
         self.layout.addWidget(btnCancel, 3, 3)
         

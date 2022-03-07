@@ -54,13 +54,14 @@ class QLabel(QLabel):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
 class GongikWidget(QWidget):
-    def __init__(self, parent = None):
+    def __init__(self, targetFolder, parent = None):
         super(GongikWidget, self).__init__(parent)
 
         self.log = Logger()
 
-        clsLoc = LocationInfo() #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
-        clsTI = TimeInfo() #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
+        self.targetPath = targetFolder
+        clsLoc = LocationInfo(targetFolder) #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
+        clsTI = TimeInfo(targetFolder) #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
 
 
         if not FileProp.name2AddrAPIOrigin() or not FileProp.name2AddrDBOrigin():
@@ -69,8 +70,7 @@ class GongikWidget(QWidget):
             sys.exit()
 
         FileProp.self_correct_address()
-        if __name__ == '__main__':
-            FileProp.debug_info()
+        # FileProp.debug_info()
 
         self.masterQueue = MstQueue() # 위치에 따라 큐를 생성하고 초기화시 자기자신에 삽입
         self.currentLoc: PropsQueue = self.masterQueue.current_preview
@@ -88,7 +88,7 @@ class GongikWidget(QWidget):
         self.setStyleSheet(const.QSTYLE_SHEET)
 
         # 0번 레이아웃
-        self.currentPath = QLabel(f'실행 경로: {utils.extract_dir()}')
+        self.currentPath = QLabel(f'실행 경로: {self.targetPath}')
         self.mainWidgetLayout.addWidget(self.currentPath, 0, 0, 1, 2)
         self.totalPics = QLabel(f'총 사진 개수: {self.masterQueue.total_size}')
         self.totalPics.setAlignment(Qt.AlignCenter)
@@ -173,7 +173,7 @@ class GongikWidget(QWidget):
         self.picPreview = QLabel('사진 미리보기')
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
-        self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview.name).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
+        self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview.abs_path).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
         self.picPreview.setToolTip(const.MSG_TIP['PHOTO'])
         self.picPreview.mouseDoubleClickEvent = self.onClickShowImage
         self.mainWidgetLayout.addWidget(self.picPreview, 2, 2, 3, -1)
@@ -330,7 +330,7 @@ class GongikWidget(QWidget):
     def _refresh_widget(self, props: FileProp):
 
         self.nameInput.setText(props.details) # 입력 필드 불러오기
-        self._update_pixmap(props.name)
+        self._update_pixmap(props.abs_path)
         self._update_file_name_preview()
         self._setRadioBtnAsChecked()
         self._setModifyLocStill()
@@ -504,7 +504,7 @@ class GongikWidget(QWidget):
     def onClickShowImage(self, event: QMouseEvent):
         clsGI = GPSInfo()
         fProp:FileProp = self.currentLoc.current_preview
-        clsGI.show_image(fProp.name)
+        clsGI.show_image(fProp.abs_path)
         self.log.INFO('opening', fProp.name)
 
     def onCheckRadioAddrType(self):

@@ -130,6 +130,7 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
 
+
         self.progressDlg = ProgressDialog4Start('기본 정보를 가져오는 중')
         self.progressDlg.show()
         self.progressDlg.mark_progress(10)
@@ -144,7 +145,11 @@ class Gongik(QMainWindow):
 
         self.progressDlg.mark_progress(20, '로딩 중')
 
-        self.clsFD = FileDetector('.') # '.'는 초기 파일 체크용
+        self.folderDialog = FolderDialog() # 파일 경로 확인 다이얼로그
+        self.folderDialog.exec_()
+        self.targetFolder = self.folderDialog.path
+
+        self.clsFD = FileDetector(utils.get_relative_path(self.targetFolder)) # '.'는 초기 파일 체크용
         self.files = self.clsFD.file_list
 
         self.progressDlg.mark_progress(30, '파일 검사 중')
@@ -166,7 +171,7 @@ class Gongik(QMainWindow):
 
     def _init_main_widget(self):
         # 메인 위젯 설정
-        qw = GongikWidget()
+        qw = GongikWidget(self.targetFolder)
         self.setCentralWidget(qw)
 
     def _handle_failure(self) -> bool:
@@ -329,7 +334,6 @@ class DeveloperInfoDialog(QDialog):
         layout.addWidget(label4_a, 4, 1)
         layout.addWidget(self.pushBtnExit, 4, 2)
 
-
     def onBtnClicked(self):
         self.log.INFO('Developer Info Dialog closed')
         self.close()
@@ -357,7 +361,7 @@ class AddrInfoDialog(QDialog):
 
         lstNameAddrTime = [(
             QLabel(' 파일 이름'), 
-            QLabel('도로명 주소'),
+            QLabel(' 도로명 주소'),
             QLabel(' 지번 주소'),
             QLabel(' '),
             QLabel('처리 위치'), 
@@ -381,7 +385,7 @@ class AddrInfoDialog(QDialog):
                 QLabel('<<') if mq.current_preview.current_preview.name == fProp.name else QLabel('')
             ))
             
-        lstNameAddrTime.sort(key=lambda x: x[2].text()) #주소 기준 정렬
+        lstNameAddrTime.sort(key=lambda x: x[1].text()) #주소 기준 정렬
 
         # 확인버튼
         self.pushButton1= QPushButton('확인')

@@ -206,18 +206,82 @@ class InitInfoDialogue(QDialog):
         self.close()
 
 
+class FolderDialog(QDialog):
+    #최초 실행 시 파일의 디렉토리 정보를 찾아서 이후 절차에 사용한다.
+    def __init__(self, labelMsg:str=''):
+        super(FolderDialog, self).__init__()
+
+        self.log = Logger()
+        self.log.INFO('init')
+
+        self.title = '알림'
+        self.iconPath = utils.resource_path('img/developer.ico')
+
+        sep = '.'
+        self.date = utils.get_today_date_formated(sep)
+        year, month, day = self.date.split(sep)
+
+        self.path = utils.extract_dir()
+        self.setup_ui()
+
+        self.proceed = False
+
+    def setup_ui(self):
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.iconPath))
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+        
+        self.labelExplain = QLabel('경로를 지정합니다. 확인을 눌러 경로를 확정합니다.')
+        self.labelInfoPath = QLabel('경로:')
+        self.labelInfoPath.setFixedWidth(50)
+        self.labelInfoDate = QLabel('일자:')
+        self.labelInfoDate.setFixedWidth(50)
+
+        self.labelDisplayDate = QLabel(self.date)
+
+        currentDir = utils.extract_dir() # TODO: 이후 변경 예정
+        self.btnDirectory = QPushButton(currentDir)
+        self.btnDirectory.clicked.connect(self.onBtnPushDir)
+
+        self.btnOK = QPushButton('확인')
+        self.btnOK.setMaximumWidth(50)
+        self.btnOK.clicked.connect(self.close)
+
+        self.layout.addWidget(self.labelExplain, 0, 0, -1, -1, Qt.AlignTop)
+        self.layout.addWidget(QLabel(''), 0, 0)
+        self.layout.addWidget(QLabel(''), 1, 0)
+        self.layout.addWidget(self.labelInfoDate, 2, 0)
+        self.layout.addWidget(self.labelDisplayDate, 2, 1)
+        self.layout.addWidget(QLabel(''), 3, 0)
+        self.layout.addWidget(self.labelInfoPath, 4, 0)
+        self.layout.addWidget(self.btnDirectory, 4, 1)
+        self.layout.addWidget(QLabel(''), 5, 0)
+        self.layout.addWidget(self.btnOK, 6, 1, alignment=Qt.AlignRight)
+
+    def onBtnPushDir(self):
+        self.log.INFO('dir clicked')
+
+        self.path = str(QFileDialog.getExistingDirectory(self, "폴더를 선택하세요"))
+        self.log.INFO(self.path)
+
+        self.btnDirectory.setText(self.path)
+
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    InitInfoDialogue('test', ('test', 'test')).exec_()
-    pdlg1 = ProgressDialog('sleep')
-    pdlg1.show()
-    pdlg1.mark_progress(100)
-    pdlg1.close()
+    # InitInfoDialogue('test', ('test', 'test')).exec_()
+    # pdlg1 = ProgressDialog('sleep')
+    # pdlg1.show()
+    # pdlg1.mark_progress(100)
+    # pdlg1.close()
     # pdlg = ProgressTimerDialog('test')
     # pdlg.show()
     # pdlg.mark_progress(80)
 
-    ProgressDialog4Start('test').exec_()
+    # ProgressDialog4Start('test').exec_()
+    FolderDialog().exec_()
     sys.exit(app.exec_())

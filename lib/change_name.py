@@ -38,9 +38,10 @@ class NameChanger(object):
                     newName = props.final_normal_name
 
                 newName = ''.join((newName, f' ({idx}).jpg'))
+                newPath = f'{props.abs_path[:-len(props.name)]}{newName}'
 
-                self.log.INFO('renaming', props.name, 'to', newName)
-                os.rename(props.name, newName)
+                self.log.INFO('renaming', props.abs_path, 'to', newPath)
+                os.rename(props.abs_path, newPath)
         except FileExistsError as fe:
             self.log.WARNING(fe)
             ret = 1 # 파일 이미 있음

@@ -33,7 +33,7 @@ class MetaData(object):
     #메타데이터가 있는 사진 파일들의 이름과 메타데이터를 저장한다.
     def _init_meta_data(self):
         for fileName in self.lstFiles:
-            fPath = self.targetDir + '/' + fileName
+            fPath = f'{self.targetDir}/{fileName}'
             fileImage = utils.open_image(fPath)
 
             if not fileImage:
@@ -47,8 +47,8 @@ class MetaData(object):
             decodedData = TAGS.get(key, key)
             self._dctDecodedMeta[decodedData] = value
 
-    def show_image(self, name):
-        image: Image = utils.open_image(name)
+    def show_image(self, full_path):
+        image: Image = utils.open_image(full_path)
         if image:
             image.show()
 
@@ -81,7 +81,6 @@ class TimeInfo(MetaData):
             if not meta:
                 continue
             
-
             self._decode_meta_data(meta)
             
             #시간 메타데이타 초기화
@@ -93,19 +92,17 @@ class TimeInfo(MetaData):
 
 
 class GPSInfo(MetaData):
-    def __new__(cls):
+    def __new__(cls, *args):
         if not hasattr(cls, '_instance'):
             cls._instance = super().__new__(cls)
 
         cls.log.INFO(cls._instance)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, targetFolder=None):
         cls = type(self)
         if not hasattr(cls, '_init'):
-            super().__init__(utils.extract_dir())
-            self.clsFD: FileDetector = FileDetector()
-            self.lstFiles: list[str] = self.clsFD.file_list
+            super().__init__(targetFolder)
 
             self._dctGPSInfoWGS84: dict[str, tuple] = {}
             self._dctGPSInfoGRS80: dict[str, tuple] = {}
@@ -121,8 +118,6 @@ class GPSInfo(MetaData):
                 continue
             
             self._decode_meta_data(meta)
-            # self.log.DEBUG(f'{meta}')
-            # self.log.DEBUG(f'{self._dctDecodedMeta}')
             
             try:
                 exifGPS = self._dctDecodedMeta['GPSInfo']
@@ -186,9 +181,10 @@ class GPSInfo(MetaData):
             # trans = Transformer(WGS84, GRS80)
             self._dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
             if WGS84xy == (0, 0):
-                self._dctGPSInfoGRS80[fName] = (0, 0) 
+                self._dctGPSInfoGRS80[fName] = (0, 0)
+            self.log.INFO(f'{fName} coordinanace transformed {WGS84xy} -> {self._dctGPSInfoGRS80[fName]}')
         
-        self.log.INFO('transfrom to GRS80 complete')
+        self.log.INFO('transform to GRS80 complete')
         self.log.INFO(f'{self._dctGPSInfoGRS80 = }')
 
     @property

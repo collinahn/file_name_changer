@@ -1,5 +1,4 @@
 # 파일들의 속성(=유저의 입력값)을 저장한다
-# TODO: gui프로그램에서 MVC 패턴을 적용한다
 
 from threading import Lock
 from datetime import (
@@ -17,7 +16,7 @@ class FileProp(object):
     _prefix = utils.get_car_no_from_parent_dir()
     _lock = Lock()
 
-    def __new__(cls, fileName:str, *args):
+    def __new__(cls, fileName:str, path:str=None, *args):
         with cls._lock:
             if fileName in cls._dctInstace4New:
                 return cls._dctInstace4New[fileName]
@@ -28,9 +27,10 @@ class FileProp(object):
             cls.log.INFO(fileName, cls._instance)
             return cls._instance
 
-    def __init__(self, name:str, *args) -> None:
+    def __init__(self, name:str, path:str=None, *args) -> None:
         if name not in self._setInstance4Init:
             self._name: str = name
+            self._absPath: str = f'{path}/{name}'
             self._time: datetime = datetime.strptime('0001:01:01 00:00:00', '%Y:%m:%d %H:%M:%S')
             self._originLocAPI: str = '' #파일 기본 지번주소
             self._originLocDB: str = ''  #파일 기본 도로명주소
@@ -50,6 +50,10 @@ class FileProp(object):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def abs_path(self) -> str:
+        return self._absPath
 
     @property
     def time(self) -> datetime:
@@ -210,6 +214,12 @@ class FileProp(object):
 
     @classmethod
     def self_correct_address(cls):
+        '''
+        처음 주소가 바뀐 이후 3분 내에 찍힌 사진들은 같은 지번주소에서 찍힌 것이라 가정하고 
+        같은 주소로 묶일 수 있게 보정해줍니다.
+        맨 처음 정렬된 리스트를 순회하여 기준이 되는 시간을 저장해 두고
+        기준들의 사이에 있는 사진들을 같은 위치로 분류합니다.
+        '''
         dctName2Time = cls.name2Time()
         lstTimePicTakenSorted = sorted(list(dctName2Time.values()))
         cls.log.DEBUG(lstTimePicTakenSorted)
@@ -251,6 +261,7 @@ class FileProp(object):
             cls.log.DEBUG(f'instance {name = }')
             cls.log.DEBUG()
             cls.log.DEBUG(f'attribute {instance._name = }')
+            cls.log.DEBUG(f'attribute {instance._absPath = }')
             cls.log.DEBUG(f'attribute {instance._time = }')
             cls.log.DEBUG(f'attribute {instance._originLocAPI = }')
             cls.log.DEBUG(f'attribute {instance._originLocDB = }')

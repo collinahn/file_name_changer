@@ -21,10 +21,11 @@ class LocationInfo(object):
         cls.log.INFO('NAME', cls._instance)
         return cls._instance
 
-    def __init__(self, *args):
+    def __init__(self, targetFolder, *args):
         cls = type(self)
         if not hasattr(cls, '_init'):
-            self.clsGPS = GPSInfo()
+            self.path = targetFolder
+            self.clsGPS = GPSInfo(targetFolder)
             self.clsDB = LocalDB()
             self.clsAPI = LocationRequest()
 
@@ -37,7 +38,7 @@ class LocationInfo(object):
 
     def _get_db_addr_fm_coord(self):
         for orginName, tplGPS4DB in self._dctName2GPS4DB.items():
-            prop = FileProp(orginName)
+            prop = FileProp(orginName, path=self.path)
 
             prop.locationDB = self.clsDB.get_addr(tplGPS4DB)
             self.log.INFO('got info fm DB')
@@ -45,7 +46,7 @@ class LocationInfo(object):
 
     # 스레드 재료
     def _get_api_addr_fm_coord(self, orignName, tplGPS4API):
-        prop = FileProp(orignName)
+        prop = FileProp(orignName, path=self.path)
         prop.locationAPI = self.clsAPI.parse_addr_response(tplGPS4API)
         self.log.INFO('got info fm API')
 
