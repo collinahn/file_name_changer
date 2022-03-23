@@ -132,19 +132,6 @@ class VersionDialog(QDialog):
             self.downProgressDlg.close()
             InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다. 다시 시도해 주세요.', ('나가기', )).exec_()
             return
-        
-        elif target:
-            self.log.WARNING("Something's wrong..")
-            newUrl = reply.url().resolved(target)
-            retry = InitInfoDialogue('문제가 생겨 다시 시도합니다. 향후 몇 초간 프로그램을 종료하지 마십시오.', ('확인', '나가기'))
-            retry.exec_()
-            if not retry.result:
-                self.log.INFO('User Chose Not to Retry')
-                return
-            
-            self.log.INFO('retrying...')
-            self.request_new_file(newUrl)
-            return
 
         byteStr = reply.readAll()
         self.downProgressDlg.mark_progress(80, '파일 저장 중')
