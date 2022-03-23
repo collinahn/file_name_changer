@@ -1,6 +1,7 @@
 # 유선으로 연결된 핸드폰(mtp)에서 파일을 가저온다.
 # ADB 서버를 통해 파일을 가져옴
 
+import contextlib
 import subprocess
 import os
 import ctypes
@@ -33,11 +34,9 @@ class BridgePhone(object):
         self.log.INFO('pictures from today:', self.lstNamesTookToday)
         
     def __del__(self):
-        try:
+        with contextlib.suppress(Exception):
             # ctypes.windll.shell32.ShellExecuteW(0, 'open', self.adbPath, 'kill-server', None, 0)
             subprocess.call([self.adbPath, 'kill-server'], creationflags=subprocess.CREATE_NO_WINDOW)
-        except Exception:
-            pass
 
     def _init_start_adb_server(self):
         try:

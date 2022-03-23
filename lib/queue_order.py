@@ -65,7 +65,7 @@ class QueueReadOnly(object):
     def refresh(self) -> object:
         try:
             for idx, ele in enumerate(self._lstQueue):
-                self.log.DEBUG(idx, ':', ele.name)
+                self.log.DEBUG(f'{idx} : {ele.name}')
             return self._lstQueue[self._refPoint]
         except IndexError as ie:
             self.log.WARNING(ie, '/ calling invalid refPoint')
@@ -129,7 +129,7 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
             )) # 여기서 loc변수는 유일, 이미 보정된 위치 이름(DB-도로명주소 기준)
 
             super().__init__('master', tplSingleLocQueeue)
-            self._lstQueue = [None] * len(tplSingleLocQueeue)
+            self._lstQueue: list[PropsQueue] = [None] * len(tplSingleLocQueeue)
             self._queueSize = len(tplSingleLocQueeue)
 
             for element in tplSingleLocQueeue:
@@ -151,8 +151,8 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
 
     def add(self, locationKey, fNameKey) -> bool:
         try:
-            targetIdx = self._lstQueue.index(PropsQueue(locationKey))
-            self._lstQueue[targetIdx].append(FileProp(fNameKey))
+            targetIdx = self._lstQueue.index(PropsQueue(locationKey)) # 마스터 큐에 위치한 장소큐의 위치를 찾는다
+            self._lstQueue[targetIdx].append_props(FileProp(fNameKey)) # 찾은 위치에 props 객체 삽입
         except ValueError as ve:
             self.log.ERROR(ve)
             return 1
@@ -175,11 +175,11 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
     
     def new(self, location: str, tplNames: tuple[str]):
         for name in tplNames:
-            if FileProp(name).originalLocFmDB == location:
+            if FileProp(name).locationFmDB == location:
                 for fName in tplNames: # 추가 전 위치 보정(보통은 초기화 때 보정되는데 나중에 추가되는 애들은 그렇지 않음)
                     fProps = FileProp(fName)
-                    fProps.correct_address(dbAddr=location, apiAddr=FileProp(name).originalLocFmAPI)
-                    self.log.INFO(fName, 'Location Updated,', fProps.originalLocFmDB, 'to', location)
+                    fProps.correct_address(dbAddr=location, apiAddr=FileProp(name).locationFmAPI)
+                    self.log.INFO(fName, 'Location Updated,', fProps.locationFmDB, 'to', location)
                 break
             
                 
@@ -193,7 +193,8 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
         if queueName not in self._setInstance4Init:
 
             if not tplFileNames4Props:
-                raise RuntimeError() # 초기화가 안됐는데 실행되면 안된다
+                self.log.ERROR('attempting to initialize PropsQueue before files init ')
+                return # 초기화가 안됐는데 실행되면 안된다
 
             self._queueSize = len(tplFileNames4Props)
             self._lstQueue = [None] * self._queueSize
@@ -205,21 +206,25 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
                 prop = FileProp(element)
                 self._push(prop)
 
-                if not hasattr(type(self), '_tplLocApiDB'):
-                    self._tplLocApiDB = prop.location4Display
+                if not hasattr(self, '_tplLocApiDB'):
+                    self._tplLocApiDB = prop.location4Display # 맨 처음 나오는 거 대표로 지정
+
+                prop.locationFmAPI, prop.locationFmDB = self._tplLocApiDB # 같은 큐에 있으면 같은 주소로 보여짐
 
             self.log.INFO(f'{queueName} Queue init, size = {self.size}, queue = {self.queue}')
             self._setInstance4Init.add(queueName) # 도로명주소
 
-    def common_details(self, inputDetail):
+    def set_common_details(self, inputDetail):
+        '''유저의 입력에 따라 공통 세부사항을 업데이트한다.'''
         for prop in self.queue:
             prop: FileProp
             prop.details = inputDetail
             self._sharedDetail = inputDetail
 
-    def append(self, instance: FileProp):
+    def append_props(self, instance: FileProp):
         if not isinstance(instance, FileProp):
-            raise ValueError()
+            self.log.ERROR(f'weired value has inserted to terminal queue {instance}, expecting FileProp instance')
+            return
 
         instance.details = self._sharedDetail
         instance.correct_address(apiAddr=self._tplLocApiDB[0],dbAddr=self._tplLocApiDB[1])
@@ -234,7 +239,7 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
         try:
             self._setInstance4Init.discard(self.name)
             self._setInstance4InitParent.discard(self.name)
-            self._lstQueue.remove(instance)
+            self._lstQueue.remove(instance) # list element remove
             self.log.INFO(instance.name, 'removed from', self.name)
             self.log.DEBUG(f'{self._setInstance4InitParent = }, {self._setInstance4Init}')
         except ValueError as ve:
@@ -270,7 +275,7 @@ if __name__ == '__main__':
     mq1 = MstQueue()
     mq2 = MstQueue((1, 2, 3))
     mq3 = PropsQueue('not master1', (1, 2, 3))
-    mq4 = PropsQueue('not master2', (1, 2, 3))
+    mq4 = PropsQueue('not master', (1, 2, 3))
     mq5 = PropsQueue('not master2', (1, None, 3))
     mq6 = PropsQueue('not master2')
     print(mq6)

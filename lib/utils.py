@@ -1,3 +1,4 @@
+import contextlib
 import sys
 import os
 from datetime import datetime
@@ -48,10 +49,8 @@ def invert_dict(originDct):
     return dict(resDct)
 
 def extract_parent_folder(dir) -> str:
-    try:
+    with contextlib.suppress(Exception):
         return dir.rsplit('/', 1)[1]
-    except Exception:
-        pass
     return '2구역'
 
 def get_car_no_from_parent_dir() -> str:
@@ -64,7 +63,7 @@ def get_car_no_from_parent_dir() -> str:
     elif '2' in parentFolderName:
         gubun = '2'
 
-    return str(gubun)
+    return gubun
 
 def open_image(filePath) -> Image:
     image: Image = None

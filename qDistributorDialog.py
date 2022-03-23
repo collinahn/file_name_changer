@@ -81,7 +81,7 @@ class DistributorDialog(QDialog):
             # picPreview.mouseReleaseEvent = self.onClickReleasePic
             self.dctPreviewInstance[prop.name] = picPreview
 
-            picLoc = QLabel(prop.originalLocFmDB)
+            picLoc = QLabel(prop.locationFmDB)
             picSelect = QCheckBox()
             self.dctCheckBoxInstance[prop.name] = picSelect
             picSelect.stateChanged.connect(self.onCheckPicSelect)
@@ -137,7 +137,7 @@ class DistributorDialog(QDialog):
                 picPreview4Candidate.resize(200, 150)
                 picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
 
-                picLoc = QLabel(fProp.originalLocFmDB)
+                picLoc = QLabel(fProp.locationFmDB)
 
                 singleLocBoxLayout.addWidget(picPreview4Candidate, 0, widgetIdx, 1, 1)
                 singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx, 1, 15)
@@ -225,19 +225,20 @@ class DistributorDialog(QDialog):
 
         for fName in tplNamesChecked:
             prop = FileProp(fName)
-            self.log.DEBUG(f'{prop.originalLocFmDB, setLocationPool}')
-            if prop.originalLocFmDB not in setLocationPool: # 점유 이름과 같으면 생성하지 않음
+            self.log.DEBUG(f'{prop.locationFmDB, setLocationPool}')
+            if prop.locationFmDB not in setLocationPool: # 점유 이름과 같으면 생성하지 않음
                 isExecutable = True
 
-                self.mstQueue.new(prop.originalLocFmDB, tplNamesChecked)
-                self.mstQueue.current_preview.remove_many(tplNamesChecked)
+                self.mstQueue.new(prop.locationFmDB, tplNamesChecked)
+                cPropsQueue: PropsQueue = self.mstQueue.current_preview
+                cPropsQueue.remove_many(tplNamesChecked) #플래그 제거
                 break
         
         if isExecutable:
             InitInfoDialogue(f'{len(tplNamesChecked)}개의 파일을 맨 뒤로 이동하였습니다.', ('확인', )).exec_()
             self.close()
         else:
-            InitInfoDialogue('선택한 사진의 위치가 기존 사진의 위치와 정확히 일치하는 사진은 신규로 카테고리를 생성할 수 없습니다.', ('확인', )).exec_()
+            InitInfoDialogue('장소가 기준과 같은 사진들은 신규로 생성할 수 없습니다.', ('확인', )).exec_()
 
     def onBtnCancel(self):
         self.log.INFO('User Canceled Distribution')

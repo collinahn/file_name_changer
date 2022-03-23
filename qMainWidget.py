@@ -283,7 +283,7 @@ class GongikWidget(QWidget):
     def _register_input(self):
         # 현재 커서의 지정 이름 저장
         text = self.nameInput.text().strip()
-        self.currentLoc.common_details(text)
+        self.currentLoc.set_common_details(text)
 
         self.log.INFO('filename =', self.currentLoc.current_preview, 'details=', text)
 
@@ -344,7 +344,7 @@ class GongikWidget(QWidget):
         self._register_input()
         self._update_file_name_preview()
 
-        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.originalLocFmAPI}-{currentPreview.originalLocFmDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
+        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.locationFmAPI}-{currentPreview.locationFmDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
 
     def onBtnShowPrevAddr(self):
         if self.masterQueue.current_pos == 1:
@@ -453,7 +453,7 @@ class GongikWidget(QWidget):
         self.log.INFO(f'{self.currentLoc.current_preview.name = }, "{suffix}"')
 
     def onTextCommonDetailsModified(self):
-        self.currentLoc.common_details(self.nameInput.text().strip()) # 공통 부분으로 업데이트
+        self.currentLoc.set_common_details(self.nameInput.text().strip()) # 공통 부분으로 업데이트
         self._update_file_name_preview()
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.

@@ -82,12 +82,13 @@ class FileProp(object):
         return self._locationAPI, self._locationDB
 
     @property
-    def originalLocFmAPI(self):
+    def locationFmAPI(self):
         '''보정 전 지번 주소'''
         return self._originLocAPI
 
-    @originalLocFmAPI.setter
-    def originalLocFmAPI(self, newLoc):
+    @locationFmAPI.setter
+    def locationFmAPI(self, newLoc):
+        '''originalLoc 은 처음 한 번만 초기화됨'''
         if self._originLocAPI == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
@@ -96,12 +97,13 @@ class FileProp(object):
         self._locationAPI = newLoc
 
     @property
-    def originalLocFmDB(self):
+    def locationFmDB(self):
         '''보정 전 도로명 주소'''
         return self._originLocDB
 
-    @originalLocFmDB.setter
-    def originalLocFmDB(self, newLoc):
+    @locationFmDB.setter
+    def locationFmDB(self, newLoc):
+        '''originalLoc 은 처음 한 번만 초기화됨'''
         if self._originLocDB == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
@@ -248,7 +250,7 @@ class FileProp(object):
                 for fName, tDate in dctName2Time.items():
                     if tDate == timeStandard:
                         fProp: FileProp = cls._dctInstace4New[fName]
-                        dctTimeLaps[timeStandard] = fProp.originalLocFmDB, fProp.originalLocFmAPI
+                        dctTimeLaps[timeStandard] = fProp.locationFmDB, fProp.locationFmAPI
 
         for fName, tDate in dctName2Time.items():
             for tMin, (addrDB, addrAPI) in dctTimeLaps.items():
@@ -256,7 +258,7 @@ class FileProp(object):
                 if tGap.total_seconds() < const.TIME_GAP and tGap.total_seconds() >= 0:
                     try:
                         fProp = FileProp(fName)
-                        cls.log.INFO(fName, fProp.originalLocFmDB, '->', addrDB, ', ', fProp.originalLocFmAPI, '->', addrAPI)
+                        cls.log.INFO(fName, fProp.locationFmDB, '->', addrDB, ', ', fProp.locationFmAPI, '->', addrAPI)
                         fProp.correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
                         break
                     except AttributeError as ae:
@@ -286,8 +288,8 @@ class FileProp(object):
             cls.log.DEBUG()
             cls.log.DEBUG(f'property {instance.name = }')
             cls.log.DEBUG(f'property {instance.prefix = }')
-            cls.log.DEBUG(f'property {instance.originalLocFmAPI = }')
-            cls.log.DEBUG(f'property {instance.originalLocFmDB = }')
+            cls.log.DEBUG(f'property {instance.locationFmAPI = }')
+            cls.log.DEBUG(f'property {instance.locationFmDB = }')
             cls.log.DEBUG(f'property {instance.details = }')
             cls.log.DEBUG(f'property {instance.suffix = }')
             cls.log.DEBUG()
