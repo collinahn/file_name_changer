@@ -55,7 +55,7 @@
 # 기능 수정) 현재 커서는 건드리지 않도록 아예 렌더링 시 빼버림(v2.2.3)
 # 다운로드 피드백 시각화 (v2.2.4)
 
-# pip install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
+# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
 from PyQt5.QtGui import QIcon
@@ -80,6 +80,7 @@ from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
 from lib.log_gongik import Logger
 from lib.file_detect import FileDetector
+from lib.base_folder import WorkingDir
 from qMainWidget import GongikWidget
 from qVersionDialog import VersionDialog
 from qDraggable import ( #custom qobjects
@@ -106,8 +107,8 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-# VERSION_INFO = '(release)gongik_v2.2.5'
-VERSION_INFO = '(dev)gongik_v2.3.0'
+VERSION_INFO = '(release-beta)gongik_v2.3.1'
+# VERSION_INFO = '(dev)gongik_v2.3.0'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -147,16 +148,20 @@ class Gongik(QMainWindow):
 
         self.folderDialog = FolderDialog() # 파일 경로 확인 다이얼로그
         self.folderDialog.exec_()
-        self.targetFolder = self.folderDialog.path
+        self.targetFolder = WorkingDir(
+            self.folderDialog.path, 
+            utils.get_relative_path(self.folderDialog.path)
+        )
+        self.log.INFO(self.targetFolder)
 
-        self.clsFD = FileDetector(utils.get_relative_path(self.targetFolder)) # '.'는 초기 파일 체크용
+        self.clsFD = FileDetector(self.targetFolder.rel_path) # '.'는 초기 파일 체크용
         self.files = self.clsFD.file_list
 
         self.progressDlg.mark_progress(30, '파일 검사 중')
         
         if not self.files:
             self.log.WARNING('current folder empty')
-            if not self._handle_failure():
+            if not self._get_files_fm_phone():
                 sys.exit()
 
         self.progressDlg.mark_progress(80, '파일 분석 중')
@@ -171,10 +176,10 @@ class Gongik(QMainWindow):
 
     def _init_main_widget(self):
         # 메인 위젯 설정
-        qw = GongikWidget(self.targetFolder)
+        qw = GongikWidget(self.targetFolder.abs_path)
         self.setCentralWidget(qw)
 
-    def _handle_failure(self) -> bool:
+    def _get_files_fm_phone(self) -> bool:
         failDlg = InitInfoDialogue(INSTRUCTION, btn=('확인', '다음에'))
         failDlg.exec_()
 
@@ -212,7 +217,7 @@ class Gongik(QMainWindow):
 
 
     def _pop_warn_msg(self, code):
-        self.log.WARNING(const.MSG_WARN[code])
+        self.log.WARNING(repr(const.MSG_WARN[code]))
         QMessageBox.warning(self, code, const.MSG_WARN[code])
         sys.exit()
 
@@ -434,8 +439,8 @@ class RecommendDialog(QDialog):
         dataName = QLabel(f'{fProp.name}')
         labelTxt = QLabel('추출 텍스트:')
         labelTxt.setAlignment(Qt.AlignTop)
-        dataTxt = QLabel(f'{ImageOCR(fProp.name).text}')
-        # dataTxt = QLabel(f'개발 중인 기능입니다.')
+        # dataTxt = QLabel(f'{ImageOCR(fProp.name).text}')
+        dataTxt = QLabel('개발 중인 기능입니다.')
 
         self.pushBtnExit= QPushButton('확인')
         self.pushBtnExit.clicked.connect(self.onBtnClicked)
@@ -457,10 +462,19 @@ class RecommendDialog(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    # warnDlg = InitInfoDialogue(INSTRUCTION, btn=('확인했습니다.', ))
-    # warnDlg.exec_()
-    # del warnDlg
-
     ex = Gongik()
 
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except Exception as e:
+        from qDialog import InitInfoDialogue
+        from lib.new_mail_service import SendMail2Admin
+        import traceback
+        InitInfoDialogue('예기치 않은 에러가 발생하였습니다.\n로그 보내기를 누르면 로그를 수집합니다.\n파일 이동 중 발생한 오류라면 수동으로 옮기고 프로그램을 다시 실행해 주세요.',('로그 보내기', '취소')).exec_()
+        sm = SendMail2Admin()
+        sm.send_mail(
+            sm.create_mail(
+                title='System Malfunction',
+                html_contents=f'{traceback.format_exc()}<br><br>{e}<br>System Failed Due to Unexpected Exception'
+            )
+        )

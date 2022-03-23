@@ -8,7 +8,7 @@ from ppadb.client import Client as AdbClient
 
 from . import utils
 from .log_gongik import Logger
-
+from .base_folder import WorkingDir
 
 class BridgePhone(object):
     def __init__(self):
@@ -123,14 +123,14 @@ class BridgePhone(object):
         if not self._devices:
             self.log.WARNING('Attempted Transfer While 0 Connection!')
             return False
-        try: 
-            dst = utils.extract_dir()
+        try:
+            dst = WorkingDir().abs_path
             phone = self._devices[0]
             self._get_root_permission(phone)
 
             for fName in self.files:
-                targetPath = self.DCIMpath + '/' + fName
-                dstPath = dst + '/' + fName
+                targetPath = f'{self.DCIMpath}/{fName}'
+                dstPath = f'{dst}/{fName}'
                 phone.pull(targetPath, dstPath)
                 self.log.INFO('file transfered', targetPath, '->', dstPath)
 

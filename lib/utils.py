@@ -82,7 +82,7 @@ def open_image(filePath) -> Image:
     return image
 
 def get_relative_path(originPath: str) -> str:
-    return originPath.replace(extract_dir(), './')
+    return originPath.replace(extract_dir(), '.')
 
 
 if __name__ == '__main__':

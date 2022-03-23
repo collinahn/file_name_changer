@@ -106,7 +106,7 @@ class VersionDialog(QDialog):
         self.close()
 
     def onBtnDownload(self):
-        self.downProgressDlg = ProgressDialog('현재 폴더에 다운로드 중입니다.\n다운로드가 끝나면 자동으로 창이 닫힙니다.')
+        self.downProgressDlg = ProgressDialog('다운로드 요청을 보내는 중입니다.\n다운로드가 끝나면 알려드립니다.')
         self.downProgressDlg.show()
         self.downProgressDlg.raise_()
         self.downProgressDlg.mark_progress(30)
@@ -124,7 +124,7 @@ class VersionDialog(QDialog):
 
     @pyqtSlot(QNetworkReply)
     def onFinishedNetManager(self, reply): 
-        self.downProgressDlg.mark_progress(70)
+        self.downProgressDlg.mark_progress(50, '서버로부터 파일 다운로드 중')
 
         target = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
         if reply.error():
@@ -134,7 +134,7 @@ class VersionDialog(QDialog):
             return
         
         elif target:
-            self.log.WARNING('Something\'s wrong..')
+            self.log.WARNING("Something's wrong..")
             newUrl = reply.url().resolved(target)
             retry = InitInfoDialogue('문제가 생겨 다시 시도합니다. 향후 몇 초간 프로그램을 종료하지 마십시오.', ('확인', '나가기'))
             retry.exec_()
@@ -146,14 +146,13 @@ class VersionDialog(QDialog):
             self.request_new_file(newUrl)
             return
 
-
         byteStr = reply.readAll()
-
-        self.downProgressDlg.mark_progress(100)
+        self.downProgressDlg.mark_progress(80, '파일 저장 중')
         
         self.clsVI.write_latest_version(byteStr)
         self.log.INFO(len(byteStr), 'byte downloaded')
         self.log.INFO('download complete')
+        self.downProgressDlg.mark_progress(100)
 
 
         self.downProgressDlg.close()

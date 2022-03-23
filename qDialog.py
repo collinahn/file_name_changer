@@ -137,7 +137,6 @@ class ProgressTimerDialog(QDialog):
         self._progress = self.pbar.value()
         self._progress += 1
         self.pbar.setValue(self._progress)
-        self.log.DEBUG('updated?')
 
     def mark_progress(self, percentage, labelMsg=None):
         if labelMsg:
@@ -153,7 +152,7 @@ class InitInfoDialogue(QDialog):
         super().__init__()
 
         self.log = Logger()
-        self.log.INFO('Info Dialogue,', msg)
+        self.log.INFO('Info Dialogue,', repr(msg))
 
         self.title = '알림'
         self.mainMsg = msg
@@ -264,8 +263,8 @@ class FolderDialog(QDialog):
     def onBtnPushDir(self):
         self.log.INFO('dir clicked')
 
-        self.path = str(QFileDialog.getExistingDirectory(self, "폴더를 선택하세요"))
-        self.log.INFO(self.path)
+        self.path = str(QFileDialog.getExistingDirectory(self, "폴더를 선택하세요")) or self.path
+        self.log.INFO(f'path selected = {self.path}')
 
         self.btnDirectory.setText(self.path)
 
