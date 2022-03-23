@@ -81,7 +81,7 @@ class DistributorDialog(QDialog):
             # picPreview.mouseReleaseEvent = self.onClickReleasePic
             self.dctPreviewInstance[prop.name] = picPreview
 
-            picLoc = QLabel(prop.locationDB)
+            picLoc = QLabel(prop.originalLocFmDB)
             picSelect = QCheckBox()
             self.dctCheckBoxInstance[prop.name] = picSelect
             picSelect.stateChanged.connect(self.onCheckPicSelect)
@@ -137,7 +137,7 @@ class DistributorDialog(QDialog):
                 picPreview4Candidate.resize(200, 150)
                 picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
 
-                picLoc = QLabel(fProp.locationDB)
+                picLoc = QLabel(fProp.originalLocFmDB)
 
                 singleLocBoxLayout.addWidget(picPreview4Candidate, 0, widgetIdx, 1, 1)
                 singleLocBoxLayout.addWidget(picLoc, 1, widgetIdx, 1, 15)
@@ -225,11 +225,11 @@ class DistributorDialog(QDialog):
 
         for fName in tplNamesChecked:
             prop = FileProp(fName)
-            self.log.DEBUG(f'{prop.locationDB, setLocationPool}')
-            if prop.locationDB not in setLocationPool: # 점유 이름과 같으면 생성하지 않음
+            self.log.DEBUG(f'{prop.originalLocFmDB, setLocationPool}')
+            if prop.originalLocFmDB not in setLocationPool: # 점유 이름과 같으면 생성하지 않음
                 isExecutable = True
 
-                self.mstQueue.new(prop.locationDB, tplNamesChecked)
+                self.mstQueue.new(prop.originalLocFmDB, tplNamesChecked)
                 self.mstQueue.current_preview.remove_many(tplNamesChecked)
                 break
         

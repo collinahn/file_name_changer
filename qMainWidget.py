@@ -344,7 +344,7 @@ class GongikWidget(QWidget):
         self._register_input()
         self._update_file_name_preview()
 
-        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.locationAPI}-{currentPreview.locationDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
+        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.originalLocFmAPI}-{currentPreview.originalLocFmDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
 
     def onBtnShowPrevAddr(self):
         if self.masterQueue.current_pos == 1:

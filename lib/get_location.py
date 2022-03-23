@@ -40,14 +40,14 @@ class LocationInfo(object):
         for orginName, tplGPS4DB in self._dctName2GPS4DB.items():
             prop = FileProp(orginName, path=self.path)
 
-            prop.locationDB = self.clsDB.get_addr(tplGPS4DB)
+            prop.originalLocFmDB = self.clsDB.get_addr(tplGPS4DB)
             self.log.INFO('got info fm DB')
         
 
     # 스레드 재료
     def _get_api_addr_fm_coord(self, orignName, tplGPS4API):
         prop = FileProp(orignName, path=self.path)
-        prop.locationAPI = self.clsAPI.parse_addr_response(tplGPS4API)
+        prop.originalLocFmAPI = self.clsAPI.parse_addr_response(tplGPS4API)
         self.log.INFO('got info fm API')
 
 

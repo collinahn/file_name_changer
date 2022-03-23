@@ -175,11 +175,11 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
     
     def new(self, location: str, tplNames: tuple[str]):
         for name in tplNames:
-            if FileProp(name).locationDB == location:
+            if FileProp(name).originalLocFmDB == location:
                 for fName in tplNames: # 추가 전 위치 보정(보통은 초기화 때 보정되는데 나중에 추가되는 애들은 그렇지 않음)
                     fProps = FileProp(fName)
-                    fProps.correct_address(dbAddr=location, apiAddr=FileProp(name).locationAPI)
-                    self.log.INFO(fName, 'Location Updated,', fProps.locationDB, 'to', location)
+                    fProps.correct_address(dbAddr=location, apiAddr=FileProp(name).originalLocFmAPI)
+                    self.log.INFO(fName, 'Location Updated,', fProps.originalLocFmDB, 'to', location)
                 break
             
                 

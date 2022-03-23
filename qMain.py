@@ -381,8 +381,8 @@ class AddrInfoDialog(QDialog):
             fProp = FileProp(name)
             lstNameAddrTime.append((
                 QLabel(f'{fProp.name}'),
-                QLabel(f'{fProp.locationDB}'),
-                QLabel(f'{fProp.locationAPI}'),
+                QLabel(f'{fProp.originalLocFmDB}'),
+                QLabel(f'{fProp.originalLocFmAPI}'),
                 QLabel('->'),
                 QLabel(f'{fProp._locationDB}'),
                 QLabel(f'{fProp.time.strftime("%Y-%m-%d %H:%M:%S")}'),

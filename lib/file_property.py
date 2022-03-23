@@ -82,11 +82,12 @@ class FileProp(object):
         return self._locationAPI, self._locationDB
 
     @property
-    def locationAPI(self):
+    def originalLocFmAPI(self):
+        '''보정 전 지번 주소'''
         return self._originLocAPI
 
-    @locationAPI.setter
-    def locationAPI(self, newLoc):
+    @originalLocFmAPI.setter
+    def originalLocFmAPI(self, newLoc):
         if self._originLocAPI == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
@@ -95,11 +96,12 @@ class FileProp(object):
         self._locationAPI = newLoc
 
     @property
-    def locationDB(self):
+    def originalLocFmDB(self):
+        '''보정 전 도로명 주소'''
         return self._originLocDB
 
-    @locationDB.setter
-    def locationDB(self, newLoc):
+    @originalLocFmDB.setter
+    def originalLocFmDB(self, newLoc):
         if self._originLocDB == newLoc:
             self.log.WARNING('attempting to do meaningless insert,', newLoc)
 
@@ -168,41 +170,53 @@ class FileProp(object):
     def final_road_name(self): # 간략화
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
-        
-        return ''.join((
-            self._prefix,
-            '_',
-            self._locationDB or 'Undefined',
-            details if not self._details_priority else f' {self._details_priority}',
-            suffix
-        ))
+
+        return ''.join(
+            (
+                self._prefix,
+                '_',
+                self._locationDB or 'Undefined',
+                f' {self._details_priority}'
+                if self._details_priority
+                else details,
+                suffix,
+            )
+        )
     
     @property
     def final_normal_name(self): # 간략화
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
-        
-        return ''.join((
-            self._prefix,
-            '_',
-            self._locationAPI or 'Undefined',
-            details if not self._details_priority else f' {self._details_priority}',
-            suffix
-        ))
+
+        return ''.join(
+            (
+                self._prefix,
+                '_',
+                self._locationAPI or 'Undefined',
+                f' {self._details_priority}'
+                if self._details_priority
+                else details,
+                suffix,
+            )
+        )
     
     @property
     def final_full_name(self): #상세 버전
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
-        
-        return ''.join((
-            self._prefix,
-            '_',
-            self._locationAPI or 'Undefined',
-            f'({self._locationDB})',
-            details if not self._details_priority else f' {self._details_priority}',
-            suffix
-        ))
+
+        return ''.join(
+            (
+                self._prefix,
+                '_',
+                self._locationAPI or 'Undefined',
+                f'({self._locationDB})',
+                f' {self._details_priority}'
+                if self._details_priority
+                else details,
+                suffix,
+            )
+        )
 
     # 수정할 땐 이걸로
     def correct_address(self, apiAddr:str='', dbAddr:str=''):
@@ -221,7 +235,7 @@ class FileProp(object):
         기준들의 사이에 있는 사진들을 같은 위치로 분류합니다.
         '''
         dctName2Time = cls.name2Time()
-        lstTimePicTakenSorted = sorted(list(dctName2Time.values()))
+        lstTimePicTakenSorted = sorted(list(dctName2Time.values())) #많아봐야 100장
         cls.log.DEBUG(lstTimePicTakenSorted)
         cls.log.DEBUG(dctName2Time)
         dctTimeLaps: dict[datetime,str] = {} #기준 시간과 주소 삽입
@@ -234,7 +248,7 @@ class FileProp(object):
                 for fName, tDate in dctName2Time.items():
                     if tDate == timeStandard:
                         fProp: FileProp = cls._dctInstace4New[fName]
-                        dctTimeLaps[timeStandard] = fProp.locationDB, fProp.locationAPI
+                        dctTimeLaps[timeStandard] = fProp.originalLocFmDB, fProp.originalLocFmAPI
 
         for fName, tDate in dctName2Time.items():
             for tMin, (addrDB, addrAPI) in dctTimeLaps.items():
@@ -242,7 +256,7 @@ class FileProp(object):
                 if tGap.total_seconds() < const.TIME_GAP and tGap.total_seconds() >= 0:
                     try:
                         fProp = FileProp(fName)
-                        cls.log.INFO(fName, fProp.locationDB, '->', addrDB, ', ', fProp.locationAPI, '->', addrAPI)
+                        cls.log.INFO(fName, fProp.originalLocFmDB, '->', addrDB, ', ', fProp.originalLocFmAPI, '->', addrAPI)
                         fProp.correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
                         break
                     except AttributeError as ae:
@@ -272,8 +286,8 @@ class FileProp(object):
             cls.log.DEBUG()
             cls.log.DEBUG(f'property {instance.name = }')
             cls.log.DEBUG(f'property {instance.prefix = }')
-            cls.log.DEBUG(f'property {instance.locationAPI = }')
-            cls.log.DEBUG(f'property {instance.locationDB = }')
+            cls.log.DEBUG(f'property {instance.originalLocFmAPI = }')
+            cls.log.DEBUG(f'property {instance.originalLocFmDB = }')
             cls.log.DEBUG(f'property {instance.details = }')
             cls.log.DEBUG(f'property {instance.suffix = }')
             cls.log.DEBUG()
