@@ -16,10 +16,8 @@ from qWrapper import elapsed
 class VersionTeller(object):
     def __new__(cls):
         if not hasattr(cls, '_instance'):
-            cls.log = Logger()
             cls._instance = super().__new__(cls)
         
-        cls.log.INFO('calling singleton class', cls._instance)
         return cls._instance
 
     def __init__(self):
@@ -42,7 +40,7 @@ class VersionTeller(object):
 
     def _init_get_data(self) -> dict:
         try:
-            res = requests.get(self._url_get_version, timeout=1.5).text
+            res = requests.get(self._url_get_version, timeout=3).text
             res = json.loads(res)
             self.log.INFO('version info request received', f'{res = } ')
         except (ConnectionError, Timeout, HTTPError) as ce:
@@ -60,11 +58,13 @@ class VersionTeller(object):
     @property
     def is_latest(self) -> bool:
         from qMain import VERSION_INFO
+        self.log.INFO(f'checking current version {VERSION_INFO} and new version from server {self.new_version}')
         return self.new_version == VERSION_INFO
     
     @elapsed # 소요 시간 6~12초
     def _download_latest_version(self):
         try:
+            self.log.INFO('requesting server latest version')
             return requests.post(self.url_download_exe, data={'pw':DOWNLOAD_KEY})
         except (requests.exceptions.ChunkedEncodingError, ConnectionError, Timeout, HTTPError) as es:
             self.log.ERROR(es)
@@ -73,7 +73,8 @@ class VersionTeller(object):
     @elapsed # 소요시간 0.1 ~ 0.2초
     def write_latest_version(self, byteStream) -> bool:
         try:
-            with open(self.new_version + '.exe', 'wb') as f:
+            with open(f'{self.new_version}.exe', 'wb') as f:
+                self.log.INFO(f'writing {self.new_version}.exe')
                 f.write(byteStream)
         except Exception as e:
             self.log.CRITICAL(e, '/ file write failure')
@@ -85,6 +86,7 @@ class VersionTeller(object):
         ret = False
         try:
             postResponse = self._download_latest_version()
+            self.log.INFO(f'download request result = {postResponse.text}')
             if not postResponse or postResponse.status_code != 200:
                 return ret 
     
