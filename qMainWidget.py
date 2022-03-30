@@ -30,6 +30,7 @@ from lib.get_location import LocationInfo
 from lib.file_property import FileProp
 from lib.log_gongik import Logger
 from lib.change_name import NameChanger
+from lib.folder_open import FolderOpener
 from lib.queue_order import (
     MstQueue, 
     PropsQueue
@@ -60,7 +61,7 @@ class GongikWidget(QWidget):
 
         self.log = Logger()
 
-        self.targetPath = targetFolder
+        self.targetAbsPath = targetFolder
         clsLoc = LocationInfo(targetFolder) #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
         clsTI = TimeInfo(targetFolder) #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
 
@@ -89,7 +90,7 @@ class GongikWidget(QWidget):
         self.setStyleSheet(const.QSTYLE_SHEET)
 
         # 0번 레이아웃
-        self.currentPath = QLabel(f'실행 경로: {self.targetPath}')
+        self.currentPath = QLabel(f'실행 경로: {self.targetAbsPath}')
         self.mainWidgetLayout.addWidget(self.currentPath, 0, 0, 1, 2)
         self.totalPics = QLabel(f'총 사진 개수: {self.masterQueue.total_size}')
         self.totalPics.setAlignment(Qt.AlignCenter)
@@ -435,6 +436,9 @@ class GongikWidget(QWidget):
         br = BackupRestore()
         fileName2Save = br.create_file_path(self.currentLoc.current_preview.prefix)
         br.save_result(fileName2Save, FileProp.props())
+
+        fo = FolderOpener()
+        fo.open_file_browser(absPath=self.targetAbsPath)
 
         InitInfoDialogue(const.MSG_INFO['EXIT_END'], ('확인', )).exec_()
         self.log.INFO('==================================')
