@@ -39,7 +39,7 @@ class RestoreDialog(QDialog):
 
         self.log = Logger()
 
-        self.title = '위치군 조정'
+        self.title = '내역 복원'
         self.icon_path = utils.resource_path(const.IMG_DEV)
 
         self.execPath = f'{utils.extract_dir()}/.gongik/restore'
@@ -49,7 +49,7 @@ class RestoreDialog(QDialog):
         self.log.INFO(f'backup dates extracted = {self.setBackupDates}')
 
         self.clsBR = BackupRestore() # 복구 데이터 불러오는
-        self.targetData: dict or None = None # 복구 대상 데이터 
+        self.targetData: dict[str, FileProp] or None = None # 복구 대상 데이터 
         self.globalPath: str = '' # 현재 위치 공유데이터
 
         self.init_ui()
@@ -162,6 +162,7 @@ class RestoreDialog(QDialog):
         '''
         지정한 백업 파일을 읽어 정보를 표시하고 전역 변수를 업데이트한다.
         '''
+        self.remove_item_from_mem() # 이전 내역 지운다
         if hasattr(self, 'widget4ConfirmFileLayout'):
             self.remove_item_from_layout(self.widget4ConfirmFileLayout)
 
@@ -169,6 +170,7 @@ class RestoreDialog(QDialog):
             self.widget4ConfirmFileLayout.addWidget(QLabel('백업 파일이 존재하지 않습니다.'))
             self.targetData = None # 변경을 위한 공유 변수 초기화
             return
+            
         targetFile = f'{self.clsBR.savePath}/{self.comboChooseFile.currentText()}'
         self.targetData: dict[str, FileProp] = self.clsBR.load_result(targetFile)
 
@@ -207,6 +209,15 @@ class RestoreDialog(QDialog):
             self.log.ERROR(ae)
             self.widget4ConfirmFileLayout.addWidget(QLabel(f'{self.comboChooseFile.currentText()} 파일이 손상되어 진행할 수 없습니다.'))
             self.targetData = None # 공유 변수(최종 데이터)
+
+    def remove_item_from_mem(self) -> bool:
+        if not self.targetData:
+            return True
+        
+        FileProp.initialize_instances()
+        
+        return True
+
 
     def remove_item_from_layout(self, layout: QGridLayout or QHBoxLayout or any):
         self.log.INFO(f'layout ready for clear, {layout.count() = }')

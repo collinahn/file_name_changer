@@ -59,6 +59,21 @@ class FileProp(object):
     def props(cls) -> dict:
         return cls._dctInstace4New
 
+    @classmethod
+    def initialize_instances(cls) -> None:
+        '''
+        복구 클래스에서 파일들을 불러올 때 초기화 해줄 때 호출하는 클래스.
+        다른 클래스에서 호출하면 안된다.
+        '''
+        for name in cls._setInstance4Init:
+            try:
+                del cls._dctInstace4New[name]
+            except Exception as e:
+                cls.log.CRITICAL(e)
+                    
+        cls._dctInstace4New.clear()
+        cls._setInstance4Init.clear()
+
     @property
     def name(self) -> str:
         return self._name
