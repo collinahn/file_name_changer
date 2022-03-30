@@ -189,7 +189,8 @@ class RestoreDialog(QDialog):
                 locationOriginal = QLabel(str((fProp.locationFmAPI, fProp.locationFmDB)))
                 details = QLabel(fProp.specific_details or fProp.details)
                 filePath = QLabel(fProp.new_path.removesuffix(newName))
-                self.globalPath = filePath.text() # 위치 공유
+                if filePath.text():
+                    self.globalPath = filePath.text() # 위치 공유
 
                 singleInstanceLayout.addWidget(QLabel('이전 이름'), 1, 0)
                 singleInstanceLayout.addWidget(previousName, 1, 1)
@@ -210,15 +211,12 @@ class RestoreDialog(QDialog):
             self.widget4ConfirmFileLayout.addWidget(QLabel(f'{self.comboChooseFile.currentText()} 파일이 손상되어 진행할 수 없습니다.'))
             self.targetData = None # 공유 변수(최종 데이터)
 
-    def remove_item_from_mem(self) -> bool:
+    def remove_item_from_mem(self) -> None:
         if not self.targetData:
-            return True
+            return
         
         FileProp.initialize_instances()
         
-        return True
-
-
     def remove_item_from_layout(self, layout: QGridLayout or QHBoxLayout or any):
         self.log.INFO(f'layout ready for clear, {layout.count() = }')
         for i in reversed(range(layout.count())): 
@@ -246,9 +244,10 @@ class RestoreDialog(QDialog):
                     toName=fProp.abs_path
                 ): #오류 발생
                     resFail.append(fProp.new_path)
-
-            clsFO = FolderOpener()
-            clsFO.open_file_browser(absPath=self.globalPath) # 폴더 열기
+        
+            if self.globalPath:
+                clsFO = FolderOpener()
+                clsFO.open_file_browser(absPath=self.globalPath) # 폴더 열기
 
             if resFail:
                 resultDialog = InitInfoDialogue(f'**알림**\n\n이름 복구 실패 목록을 알려드립니다.\n성공:{len(self.targetData)-len(resFail)}, 실패:{len(resFail)}\n\n{NEW_LINE.join(resFail)}\n\n파일이 이동되었거나 삭제되었으면 복구가 불가합니다.', ('네',))

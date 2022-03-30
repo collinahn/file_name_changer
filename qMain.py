@@ -108,7 +108,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release-beta)gongik_v2.4.3'
+VERSION_INFO = '(release-beta)gongik_v2.4.4'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -280,8 +280,9 @@ class Gongik(QMainWindow):
         self.show()
 
     def onModalRestore(self):
-        rdlg = RestoreDialog()
-        rdlg.exec_()
+        # rdlg = RestoreDialog()
+        # rdlg.exec_()
+        InitInfoDialogue('프로그램 실행 초기 체크박스에 표시하고 진행하면 접근할 수 있습니다.', ('확인', )).exec_()
 
     def onModalDeveloperInfo(self):
         dlg = DeveloperInfoDialog()
