@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QPushButton,
     QFileDialog,
+    QCheckBox
 )
 from PyQt5.QtCore import (
     Qt,
@@ -23,7 +24,6 @@ from qDraggable import (
     QDialog, 
     QWidget
 )
-
 
 class ProgressDialog(QDialog):
     def __init__(self, labelMsg:str='        '):
@@ -211,7 +211,7 @@ class FolderDialog(QDialog):
         super(FolderDialog, self).__init__()
 
         self.log = Logger()
-        self.log.INFO('init')
+        self.log.INFO('dir setter init')
 
         self.title = '알림'
         self.iconPath = utils.resource_path('img/developer.ico')
@@ -245,20 +245,25 @@ class FolderDialog(QDialog):
         self.btnDirectory = QPushButton(currentDir)
         self.btnDirectory.clicked.connect(self.onBtnPushDir)
 
+        #TODO: 여기에 복원모드로 여는 체크박스 
+        self.checkboxRestoreMode = QCheckBox('복구모드 열기')
+        self.checkboxRestoreMode.stateChanged.connect(self.onStateChangeRestoreMode)
+
         self.btnOK = QPushButton('확인')
         self.btnOK.setMaximumWidth(50)
-        self.btnOK.clicked.connect(self.close)
+        self.btnOK.clicked.connect(self.onBtnClose)
 
-        self.layout.addWidget(self.labelExplain, 0, 0, -1, -1, Qt.AlignTop)
-        self.layout.addWidget(QLabel(''), 0, 0)
-        self.layout.addWidget(QLabel(''), 1, 0)
-        self.layout.addWidget(self.labelInfoDate, 2, 0)
-        self.layout.addWidget(self.labelDisplayDate, 2, 1)
-        self.layout.addWidget(QLabel(''), 3, 0)
-        self.layout.addWidget(self.labelInfoPath, 4, 0)
-        self.layout.addWidget(self.btnDirectory, 4, 1)
-        self.layout.addWidget(QLabel(''), 5, 0)
-        self.layout.addWidget(self.btnOK, 6, 1, alignment=Qt.AlignRight)
+        # self.layout.addWidget(QLabel(''), 0, 0)
+        self.layout.addWidget(self.labelExplain, 1, 0, -1, -1, Qt.AlignTop)
+        self.layout.addWidget(QLabel(''), 2, 0)
+        self.layout.addWidget(self.labelInfoDate, 3, 0)
+        self.layout.addWidget(self.labelDisplayDate, 3, 1)
+        self.layout.addWidget(QLabel(''), 4, 0)
+        self.layout.addWidget(self.labelInfoPath, 5, 0)
+        self.layout.addWidget(self.btnDirectory, 5, 1)
+        self.layout.addWidget(self.checkboxRestoreMode, 6, 0, -1, -1, alignment=Qt.AlignCenter)
+        self.layout.addWidget(QLabel(''), 7, 0)
+        self.layout.addWidget(self.btnOK, 8, 1, alignment=Qt.AlignRight)
 
     def onBtnPushDir(self):
         self.log.INFO('dir clicked')
@@ -268,6 +273,22 @@ class FolderDialog(QDialog):
 
         self.btnDirectory.setText(self.path)
 
+    def onStateChangeRestoreMode(self):
+        if self.checkboxRestoreMode.isChecked():
+            self.btnDirectory.setDisabled(True)
+            self.log.INFO('restoreMode checkbox checked')
+        else:
+            self.btnDirectory.setEnabled(True)
+            self.log.INFO('restoreMode checkbox unchecked')
+
+    def onBtnClose(self):
+        if not self.checkboxRestoreMode.isChecked():
+            self.log.INFO('closing')
+            self.close()
+            
+        from qRestoreDialog import RestoreDialog
+        rdlg = RestoreDialog()
+        rdlg.exec_()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
