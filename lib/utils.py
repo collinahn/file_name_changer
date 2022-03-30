@@ -7,7 +7,9 @@ from PIL import Image
 from PIL import UnidentifiedImageError
 
 
-def get_today_date_formated(separator) -> str:
+def get_today_date_formated(separator:str=None) -> str:
+    if separator is None:
+        separator = ""
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
 
 # 취급하는 파일 확장자 표시
@@ -20,17 +22,8 @@ def get_car_candidates():
 def get_handled_suffix():
     return tuple( f'{_}_' for _ in get_car_candidates() )
 
-# 파일 목록 추출
-# jpg 확장자가 아니거나 이미 바꾼 목록은 건들지 않음
-def extract_file_name_sorted(dir='.'):
-    fileExt = get_valid_file_ext()
-    alreadyHandled = get_handled_suffix()
 
-    lstRes: list[str] = os.listdir(dir)
-    return [ _ for _ in lstRes if _.endswith(fileExt) and not _.startswith(alreadyHandled) ]
-
-
-def extract_dir(winDir=False): # 부모 디렉터리 추출
+def extract_dir(winDir=False):
     return os.getcwd() if winDir else os.getcwd().replace('\\', '/')
 
 def resource_path(relative_path):

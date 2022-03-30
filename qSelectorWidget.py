@@ -8,12 +8,6 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QGroupBox, 
-    QHBoxLayout, 
-    QVBoxLayout,
-    QCheckBox,
-    QRadioButton,
-    QToolTip, 
     QWidget, 
     QApplication, 
     QGridLayout,

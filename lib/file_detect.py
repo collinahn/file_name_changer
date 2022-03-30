@@ -1,5 +1,7 @@
 # 현재 위치에서 파일 목록을 찾아서 보유한다.
 
+import os 
+
 from . import utils
 from .log_gongik import Logger
 
@@ -8,7 +10,7 @@ class FileDetector(object):
     __dctArg2Instance: dict = {}
     __setIsInit: set = set()
 
-    def __new__(cls, targetDir=utils.extract_dir(), *args):
+    def __new__(cls, targetDir:str=utils.extract_dir(), isBackup:bool=False, *args):
         if targetDir in cls.__dctArg2Instance:
             return cls.__dctArg2Instance[targetDir]
 
@@ -19,21 +21,53 @@ class FileDetector(object):
         cls.log.INFO(cls._instance, f'{targetDir = }')
         return cls._instance
 
-    def __init__(self, targetDir=utils.extract_dir(), *args):
+    def __init__(self, targetDir:str=utils.extract_dir(), isBackup:bool=False, *args):
         cls = type(self)
         if targetDir not in cls.__setIsInit:
-            self.lstPic: list[str] = utils.extract_file_name_sorted(targetDir)
+            
+            if isBackup:
+                self.lstFile: list[str] = self.sort_out_backup_file(targetDir)
+            else:
+                self.lstFile: list[str] = self.sort_out_pics_name(targetDir)
             self.log.INFO(f'file list in {targetDir}\n')
-            self.log.INFO('list:', self.lstPic)
+            self.log.INFO('list:', self.lstFile)
 
             cls.__setIsInit.add(targetDir)
 
     @property
     def file_list(self):
-        return self.lstPic
+        return self.lstFile
 
+    # 파일 목록 추출
+    # jpg 확장자가 아니거나 이미 바꾼 목록은 건들지 않음
+    def sort_out_pics_name(self, dir='.'):
+        fileExt = utils.get_valid_file_ext()
+        alreadyHandled = utils.get_handled_suffix()
+
+        lstRes: list[str] = os.listdir(dir)
+        return [ 
+            _ for _ in lstRes 
+            if _.endswith(fileExt) and not _.startswith(alreadyHandled)
+        ]
+
+    def sort_out_backup_file(self, dir='./.gongik/restore') -> list:
+        '''
+        형식에 맞는 파일들의 이름들을 가져온다.
+        '''
+        fileExt = ('gongik', )
+        validHeaders = ('2', '6', )
+        try:
+            lstRes: list[str] = os.listdir(dir)
+        except FileNotFoundError as fe:
+            self.log.ERROR(fe)
+            return []
+        return sorted([
+            _ for _ in lstRes
+            if _.endswith(fileExt) and _.startswith(validHeaders) and _.count('_')==2
+        ], reverse=True)
 
 if __name__ == '__main__':
-    dt = FileDetector()
+    dt = FileDetector('.')
+    dt = FileDetector(f'{utils.extract_dir()}\\.gongik/restore', isBackup=True)
 
 

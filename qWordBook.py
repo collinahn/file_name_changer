@@ -52,6 +52,7 @@ MSG_WARN = {
 MSG_TIP = {
     'EXIT':'프로그램을 종료합니다. 진행 상황이 저장되지 않습니다.',
     'RECOMMEND':'이미지에서 텍스트를 추출해 키워드를 추천합니다.',
+    'RESTORE':'이전에 완료했던 작업들을 복구합니다.',
     'INFO':'프로그램의 정보를 확인합니다.',
     'UPDATE':'버전정보를 확인하고 새 버전을 다운받습니다. 온라인에서만 동작합니다.',
     'LIST':'사진 정보 목록을 불러옵니다.',
@@ -70,6 +71,7 @@ MSG_TIP = {
 MSG_SHORTCUT = {
     'EXIT':'Ctrl+Shift+Q',
     'RECOMMEND':'Ctrl+E',
+    'RESTORE':'Ctrl+R',
     'INFO':'Ctrl+I',
     'UPDATE':'Ctrl+U',
     'LIST':'Ctrl+G',
@@ -94,31 +96,32 @@ MSG_SHORTCUT = {
 
 QSTYLE_SHEET = '''
 QWidget {
-background-color: rgb(37, 37, 38);
-color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 38);
+    color: rgb(255, 255, 255);
 }
 QWidget .QPushButton {
-color: yellow;
-background-color: rgb(37, 37, 38);
-border: 2px solid yellow;
-border-radius: 5px;
+    color: yellow;
+    background-color: rgb(37, 37, 38);
+    border: 2px solid yellow;
+    border-radius: 5px;
 }
 QWidget .QPushButton:hover {
-border:0px;
-background-color: yellow;
-color: black
+    border:0px;
+    background-color: yellow;
+    color: black
 }
 
 QLineEdit {
-border:2px solid rgb(67, 67, 70);
-background-color: rgb(51, 51, 55);
-color: rgb(255, 255, 255);
+    border:2px solid rgb(67, 67, 70);
+    background-color: rgb(51, 51, 55);
+    color: rgb(255, 255, 255);
 }
 QLineEdit:disabled {
-border:1px solid rgb(67, 67, 70);
-background-color: rgb(45, 45, 48);
-color: rgb(255, 255, 255);
+    border:1px solid rgb(67, 67, 70);
+    background-color: rgb(45, 45, 48);
+    color: rgb(255, 255, 255);
 }
+
 '''
 
 QSTYLE_NO_BORDER_BOX = '''
@@ -127,18 +130,33 @@ QGroupBox { border: 0px; }
 
 QSTYLE_SHEET_POPUP = '''
 QWidget {
-background-color: rgb(82, 82, 83);
-color: rgb(255, 255, 255);
+    background-color: rgb(82, 82, 83);
+    color: rgb(255, 255, 255);
 }
 QWidget .QPushButton {
-color: yellow;
-background-color: rgb(82, 82, 83);
-border: 2px solid yellow;
-border-radius: 5px;
+    color: yellow;
+    background-color: rgb(82, 82, 83);
+    border: 2px solid yellow;
+    border-radius: 5px;
 }
 QWidget .QPushButton:hover {
-border:0px;
-background-color: yellow;
-color: black
+    border:0px;
+    background-color: yellow;
+    color: black
 }
+QWidget .QPushButton:disabled {
+    border: 2px solid grey;
+    background-color: rgb(82, 82, 83);
+    color: yellow
+}
+
+QComboBox {
+    text-align: center;
+    border: 1px solid darkgray;
+    border-radius: 0px;
+    padding-right: 20px;
+    min-width: 6em;
+    color: white;
+}
+
 '''

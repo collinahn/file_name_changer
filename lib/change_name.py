@@ -40,20 +40,38 @@ class NameChanger(object):
                 newName = ''.join((newName, f' ({idx}).jpg'))
                 newPath = f'{props.abs_path[:-len(props.name)]}{newName}'
 
-                self.log.INFO('renaming', props.abs_path, 'to', newPath)
+                self.log.INFO(f'renaming {props.abs_path} to {newPath}')
                 os.rename(props.abs_path, newPath)
+                props.new_path = newPath # 이때 처음 초기화
         except FileExistsError as fe:
             self.log.WARNING(fe)
             ret = 1 # 파일 이미 있음
         except (AttributeError, IndexError, KeyError) as es:
             self.log.ERROR(es)
+            import traceback
+            self.log.ERROR(f'{traceback.format_exc()}')
             ret = 2 # 처리 오류(로그 참조)
         except Exception as e:
             self.log.CRITICAL(e)
             ret = 99 # 기타 오류(로그 참조)
+            import traceback
+            self.log.ERROR(f'{traceback.format_exc()}')
 
         return ret
 
+
+    def change_name_designated(self, *, fromName: str, toName: str) -> bool:
+        try:
+            self.log.INFO(f'renaming {fromName} to {toName}')
+            os.rename(fromName, toName)
+            self.log.INFO(f'{toName} restored')
+        except Exception as e:
+            self.log.CRITICAL(f'{e} / failed while restoring {fromName}')
+            import traceback
+            self.log.ERROR(f'{traceback.format_exc()}')
+            return False
+        
+        return True
 
 if __name__ == '__main__':
     cn = NameChanger()
