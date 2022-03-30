@@ -55,6 +55,8 @@
 # 기능 수정) 현재 커서는 건드리지 않도록 아예 렌더링 시 빼버림(v2.2.3)
 # 다운로드 피드백 시각화 (v2.2.4)
 
+# 기능 추가) 초기 경로 설정 추가, 초기 로딩화면에서 업데이트 내역 알림
+
 # pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
@@ -97,9 +99,8 @@ from qDialog import (
 from qWrapper import (
     catch_except,
     elapsed
-
 )
-
+from qRestoreDialog import RestoreDialog
 
 '''
 exe 빌드하기
@@ -107,7 +108,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release-beta)gongik_v2.3.1'
+VERSION_INFO = '(release-beta)gongik_v2.4.0'
 # VERSION_INFO = '(dev)gongik_v2.3.0'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
@@ -240,6 +241,12 @@ class Gongik(QMainWindow):
         recommendAction.setStatusTip(const.MSG_TIP['RECOMMEND'])
         recommendAction.triggered.connect(self.onModalRecommend)
 
+        # 작업 복구 메뉴
+        restoreAction = QAction(QIcon(self.dev_icon_path), '복구하기', self)
+        restoreAction.setShortcut(const.MSG_SHORTCUT['RESTORE'])
+        restoreAction.setStatusTip(const.MSG_TIP['RESTORE'])
+        restoreAction.triggered.connect(self.onModalRestore)
+
         #메뉴 바 - info
         infoAction = QAction(QIcon(self.dev_icon_path), '프로그램 정보', self)
         infoAction.setShortcut(const.MSG_SHORTCUT['INFO'])
@@ -264,6 +271,7 @@ class Gongik(QMainWindow):
         progMenu = menu.addMenu('&실행')
         additionalMenu = menu.addMenu('&정보')
         
+        progMenu.addAction(restoreAction)
         progMenu.addAction(recommendAction)
         progMenu.addAction(exitAction)
         additionalMenu.addAction(infoAction)
@@ -271,6 +279,10 @@ class Gongik(QMainWindow):
         additionalMenu.addAction(updateAction)
 
         self.show()
+
+    def onModalRestore(self):
+        rdlg = RestoreDialog()
+        rdlg.exec_()
 
     def onModalDeveloperInfo(self):
         dlg = DeveloperInfoDialog()

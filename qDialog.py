@@ -75,8 +75,8 @@ class ProgressDialog(QDialog):
 class ProgressDialog4Start(ProgressDialog):
     def __init__(self, labelMsg:str=''):
         super(ProgressDialog4Start, self).__init__(labelMsg)
+        
         clsCC = ConnectionCheck()
-
         if not clsCC.check_online():
             return
 
@@ -241,7 +241,7 @@ class FolderDialog(QDialog):
 
         self.labelDisplayDate = QLabel(self.date)
 
-        currentDir = utils.extract_dir() # TODO: 이후 변경 예정
+        currentDir = utils.extract_dir() # TODO: 초기값은 현재 폴더
         self.btnDirectory = QPushButton(currentDir)
         self.btnDirectory.clicked.connect(self.onBtnPushDir)
 
@@ -280,6 +280,7 @@ if __name__ == '__main__':
     # pdlg = ProgressTimerDialog('test')
     # pdlg.show()
     # pdlg.mark_progress(80)
+    # pdlg.close()
 
     # ProgressDialog4Start('test').exec_()
     FolderDialog().exec_()

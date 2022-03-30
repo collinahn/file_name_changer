@@ -30,7 +30,8 @@ class FileProp(object):
     def __init__(self, name:str, path:str=None, *args) -> None:
         if name not in self._setInstance4Init:
             self._name: str = name
-            self._absPath: str = f'{path}/{name}'
+            self._path = path or '.' # unpickling 을 위해 보존
+            self._absPath: str = f'{self._path}/{name}'
             self._time: datetime = datetime.strptime('0001:01:01 00:00:00', '%Y:%m:%d %H:%M:%S')
             self._originLocAPI: str = '' #파일 기본 지번주소
             self._originLocDB: str = ''  #파일 기본 도로명주소
@@ -39,6 +40,7 @@ class FileProp(object):
             self._details: str = ''          #상세(같은 주소면 동일한 상세)
             self._details_priority: str = '' #단일 인스턴스 상세(우선순위 높음)
             self._suffix: str = ''
+            self._newPath: str= '' # 나중에 초기화되는 최종 이름(절대경로)
 
             self._setInstance4Init.add(name)
             self.log.INFO(name, 'fileProp init', f'{self._name = }, {self._originLocAPI = }')
@@ -46,6 +48,31 @@ class FileProp(object):
 
     def __str__(self) -> str:
         return self._name if hasattr(self, '_name') else super().__str__()
+
+    def __getnewargs_ex__(self) -> tuple[tuple,dict]:
+        '''
+        unpickling을 위한 함수
+        '''
+        return ((self._name, self._path), {})
+
+    @classmethod
+    def props(cls) -> dict:
+        return cls._dctInstace4New
+
+    @classmethod
+    def initialize_instances(cls) -> None:
+        '''
+        복구 클래스에서 파일들을 불러올 때 초기화 해줄 때 호출하는 클래스.
+        다른 클래스에서 호출하면 안된다.
+        '''
+        for name in cls._setInstance4Init:
+            try:
+                del cls._dctInstace4New[name]
+            except Exception as e:
+                cls.log.CRITICAL(e)
+                    
+        cls._dctInstace4New.clear()
+        cls._setInstance4Init.clear()
 
     @property
     def name(self) -> str:
@@ -134,6 +161,14 @@ class FileProp(object):
     @suffix.setter
     def suffix(self, newSuf):
         self._suffix = newSuf
+
+    @property
+    def new_path(self):
+        return self._newPath
+
+    @new_path.setter
+    def new_path(self, path: str):
+        self._newPath = path
 
 
     @classmethod

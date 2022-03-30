@@ -41,14 +41,14 @@ class LocationInfo(object):
             prop = FileProp(orginName, path=self.path)
 
             prop.locationFmDB = self.clsDB.get_addr(tplGPS4DB)
-            self.log.INFO('got info fm DB')
+            self.log.INFO(f'got info fm DB, {orginName} {tplGPS4DB} -> {prop.locationFmDB}')
         
 
     # 스레드 재료
-    def _get_api_addr_fm_coord(self, orignName, tplGPS4API):
-        prop = FileProp(orignName, path=self.path)
+    def _get_api_addr_fm_coord(self, originName, tplGPS4API):
+        prop = FileProp(originName, path=self.path)
         prop.locationFmAPI = self.clsAPI.parse_addr_response(tplGPS4API)
-        self.log.INFO('got info fm API')
+        self.log.INFO(f'got info fm API, {originName} {tplGPS4API} -> {prop.locationFmAPI}')
 
 
     # TODO: 적당한 수의 스레드로 나눈다

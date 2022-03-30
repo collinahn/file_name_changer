@@ -20,9 +20,10 @@ from PyQt5.QtWidgets import (
     QScrollArea,
     QButtonGroup,
     QAbstractButton,
-    QDialog,
     QWidget, 
 )
+from qDraggable import QDialog
+
 
 import lib.utils as utils
 import qWordBook as const
@@ -249,7 +250,7 @@ if __name__ == '__main__':
     from lib.meta_data import TimeInfo
     from lib.get_location import LocationInfo
     TimeInfo()
-    LocationInfo() 
+    LocationInfo('.') 
 
     app = QApplication(sys.argv)
     screen = DistributorDialog()

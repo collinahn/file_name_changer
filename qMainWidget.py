@@ -38,6 +38,7 @@ from lib.meta_data import (
     GPSInfo, 
     TimeInfo
 )
+from lib.restore_result import BackupRestore
 from qDistributorDialog import DistributorDialog
 from qDialog import InitInfoDialogue
 
@@ -208,7 +209,7 @@ class GongikWidget(QWidget):
         self.checkChangeCurrentLoc.stateChanged.connect(self.onCheckModifyLoc)
         self.inputPriorityDetails = QLineEdit()
         self.inputPriorityDetails.setDisabled(True)
-        self.inputPriorityDetails.setPlaceholderText('상세 정보를 바꾸려면 체크 후 입력')
+        self.inputPriorityDetails.setPlaceholderText('개별 상세 정보를 등록하려면 체크 후 입력')
         self.inputPriorityDetails.setMinimumWidth(300)
         self.inputPriorityDetails.textChanged.connect(self.onModifyDetailsPrior)
         self.inputPriorityDetails.returnPressed.connect(self.onModifyDetailsPrior)
@@ -300,7 +301,7 @@ class GongikWidget(QWidget):
 
     #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
     def _setRadioBtnAsChecked(self):
-        currentPreview = self.currentLoc.current_preview
+        currentPreview: FileProp = self.currentLoc.current_preview
 
         if   currentPreview.suffix == const.EMPTY_STR:    self.radioBtnDefault.setChecked(True)
         elif currentPreview.suffix == const.BEFORE_FIX:   self.radioBtnBefore.setChecked(True)
@@ -429,7 +430,11 @@ class GongikWidget(QWidget):
             errorDlg = InitInfoDialogue(const.MSG_WARN['OS_ERROR'], ('확인', ))
             errorDlg.exec_()
 
-        progDlg.mark_progress(100, '마무리 중')
+        progDlg.mark_progress(100, '내역 저장 중')
+
+        br = BackupRestore()
+        fileName2Save = br.create_file_path(self.currentLoc.current_preview.prefix)
+        br.save_result(fileName2Save, FileProp.props())
 
         InitInfoDialogue(const.MSG_INFO['EXIT_END'], ('확인', )).exec_()
         self.log.INFO('==================================')
@@ -488,7 +493,7 @@ class GongikWidget(QWidget):
             self.inputPriorityDetails.setDisabled(True)
             self.inputPriorityDetails.setText('')
             fProps.specific_details = ''
-            self.log.INFO(f'priority details deleted')
+            self.log.INFO('priority details deleted')
 
         self._update_file_name_preview()
 
@@ -533,7 +538,7 @@ class GongikWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    screen = GongikWidget()
+    screen = GongikWidget('.')
     # screen.resize(540, 100)
     screen.show()
  
