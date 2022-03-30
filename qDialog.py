@@ -285,10 +285,15 @@ class FolderDialog(QDialog):
         if not self.checkboxRestoreMode.isChecked():
             self.log.INFO('closing')
             self.close()
-            
+            return
+
         from qRestoreDialog import RestoreDialog
         rdlg = RestoreDialog()
         rdlg.exec_()
+        
+        self.log.INFO('restore dialog closing')
+        self.close() # TODO: 싱글턴 메모리 공유 분리 문제 때문에 지금은 일단 실행 후 바로 닫는다
+        sys.exit()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication

@@ -237,7 +237,7 @@ class RestoreDialog(QDialog):
             if not reconfirmDialog.answer:
                 return
 
-            res = []
+            resFail = []
             clsNC = NameChanger()
             for fProp in self.targetData.values():
                 fProp: FileProp
@@ -245,13 +245,13 @@ class RestoreDialog(QDialog):
                     fromName=fProp.new_path,
                     toName=fProp.abs_path
                 ): #오류 발생
-                    res.append(fProp.new_path)
+                    resFail.append(fProp.new_path)
 
             clsFO = FolderOpener()
             clsFO.open_file_browser(absPath=self.globalPath) # 폴더 열기
 
-            if res:
-                resultDialog = InitInfoDialogue(f'**알림**\n\n이름 복구 실패 목록을 알려드립니다.\n\n{NEW_LINE.join(res)}\n\n파일이 이동되었거나 삭제되었으면 복구가 불가합니다.', ('네',))
+            if resFail:
+                resultDialog = InitInfoDialogue(f'**알림**\n\n이름 복구 실패 목록을 알려드립니다.\n성공:{len(self.targetData)-len(resFail)}, 실패:{len(resFail)}\n\n{NEW_LINE.join(resFail)}\n\n파일이 이동되었거나 삭제되었으면 복구가 불가합니다.', ('네',))
             else:
                 resultDialog = InitInfoDialogue('변환이 완료되었습니다. \n확인을 누르면 창을 닫습니다.', ('네',))
             resultDialog.exec_()
