@@ -34,7 +34,7 @@ class LocalDB(object):
     
     # 지정된 범위 내의 좌표를 가진 레코드들을 전부 불러온다
     def _query_db(self, tplCoord: tuple[float,float]) -> list[tuple]:
-        conn: Connection = None
+        conn: Connection or None = None
         lstRet: list = []
 
         xCoord = tplCoord[0]
@@ -92,8 +92,18 @@ class LocalDB(object):
             self.log.ERROR(es)
             buildingNo = 'UndefinedBuildingNo'
 
-        # 도로명 + 공백 + 건물번호
-        return roadName + " " + buildingNo
+        try: 
+            subBuildingNo: int = int(lstDBRet[minIdx][10])
+        except(AttributeError, IndexError) as es:
+            self.log.ERROR(es)
+            subBuildingNo: int = 0
+
+        # 도로명 + 공백 + 건물번호 + 0이 아닌경우 부속건물번호
+        return (
+            f'{roadName} {buildingNo}-{subBuildingNo}'
+            if subBuildingNo
+            else f'{roadName} {buildingNo}'
+        )
 
 
 
