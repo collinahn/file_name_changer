@@ -95,6 +95,7 @@ class QWebEngineInstalled(QWidget):
         
         self.btnRenewLocation = QPushButton('주소 변경하기')
         self.btnRenewLocation.setToolTip('선택한 주소로 변경합니다.')
+        self.btnRenewLocation.setMinimumHeight(50)
         self.btnRenewLocation.clicked.connect(self.onBtnChangeLocation)
         mapBoxLayout.addWidget(self.btnRenewLocation)
 
