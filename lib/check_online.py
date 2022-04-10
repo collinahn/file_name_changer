@@ -30,6 +30,9 @@ class ConnectionCheck(object):
         except socket.error as ex:
             self.log.WARNING(ex)
             return False
+        except Exception as e:
+            self.log.ERROR(e)
+            return False
 
 if __name__ == '__main__':
     on = ConnectionCheck()

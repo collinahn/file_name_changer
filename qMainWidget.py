@@ -42,6 +42,7 @@ from lib.meta_data import (
 from lib.restore_result import BackupRestore
 from qDistributorDialog import DistributorDialog
 from qDialog import InitInfoDialogue
+from qWidgets.web_engine import QWebEngineInstalled
 
 # TIME_GAP
 
@@ -77,7 +78,7 @@ class GongikWidget(QWidget):
         self.masterQueue = MstQueue() # 위치에 따라 큐를 생성하고 초기화시 자기자신에 삽입
         self.currentLoc: PropsQueue = self.masterQueue.current_preview
 
-        self._use_name:int = const.USE_BOTH
+        self._use_name:int = const.USE_ROAD # 도로명주소 우선
 
         self._init_ui()
         self._refresh_widget(self.currentLoc.current_preview)
@@ -170,15 +171,16 @@ class GongikWidget(QWidget):
         self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeBoth)
         self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeNormal)
         self.changeAddrTypeLayout.addWidget(self.radioBtnAddrTypeRoad)
-        self.radioBtnAddrTypeBoth.setChecked(True)
+        # self.radioBtnAddrTypeBoth.setChecked(True)
+        self.radioBtnAddrTypeRoad.setChecked(True)
 
-        self.picPreview = QLabel('사진 미리보기')
+        self.picPreview = QLabel('Pixmap preview')
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
         self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview.abs_path).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
         self.picPreview.setToolTip(const.MSG_TIP['PHOTO'])
         self.picPreview.mouseDoubleClickEvent = self.onClickShowImage
-        self.mainWidgetLayout.addWidget(self.picPreview, 2, 2, 3, -1)
+        self.mainWidgetLayout.addWidget(self.picPreview, 2, 2, 3, 1)
 
         self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT["FORWARD"]})')
         self.btnNextAddr.setShortcut(const.MSG_SHORTCUT['FORWARD'])
@@ -267,6 +269,13 @@ class GongikWidget(QWidget):
         self.btnNextPicSameAddr.clicked.connect(self.onBtnNextPreview)
         btnBoxOtherPicsLayout.addWidget(self.btnNextPicSameAddr)
 
+        # 웹엔진 관련 기능 위젯
+        self.webEngineWidget = QWebEngineInstalled()
+        self.webEngineWidget.init_page(*self.currentLoc.current_preview.coord)
+        self.webEngineWidget.btnRenewLocation.clicked.connect(self.onBtnRefresh)
+        self.mainWidgetLayout.addWidget(self.webEngineWidget, 0, 3, -1, -1)
+        
+
     # 이름 뒤 구분 명칭을 결정하는 라디오 버튼을 만든다
     def _make_suffix_radio_btn(self, tplRadioBtn, shortcutCode, seq):
         result = QRadioButton(tplRadioBtn[seq], self)
@@ -338,6 +347,8 @@ class GongikWidget(QWidget):
         self._setModifyLocStill()
         self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
         self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
+        self.webEngineWidget.init_page(*props.coord) # 웹뷰 변경
+
         
         self.log.INFO(props.name, 'refreshed')
 
@@ -352,12 +363,10 @@ class GongikWidget(QWidget):
         if self.masterQueue.current_pos == 1:
             InitInfoDialogue(const.MSG_INFO['SOF'], ('확인', )).exec_()
             return
-        
-        if not self.currentLoc.queue: #변경되어 현재 큐에 아무것도 없을 경우
-            self.currentLoc = self.masterQueue.refresh()
-        else:
-            self.currentLoc = self.masterQueue.view_previous() # 장소 변경
-        
+            
+        # 변경되어 현재 큐에 아무것도 없는 경우 리프레시, 아니면 장소 변경
+        self.currentLoc: PropsQueue = self.masterQueue.view_previous() if self.currentLoc.queue else self.masterQueue.refresh()
+
         nextFile: FileProp = self.currentLoc.current_preview
         self._refresh_widget(nextFile)
         self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
@@ -368,10 +377,8 @@ class GongikWidget(QWidget):
             InitInfoDialogue(const.MSG_INFO['EOF'], ('확인', )).exec_()
             return
 
-        if not self.currentLoc.queue: #변경되어 현재 큐에 아무것도 없는 경우
-            self.currentLoc = self.masterQueue.refresh()
-        else:
-            self.currentLoc = self.masterQueue.view_next() # 장소 변경
+        # 변경되어 현재 큐에 아무것도 없는 경우 리프레시, 아니면 장소 변경
+        self.currentLoc: PropsQueue = self.masterQueue.view_next() if self.currentLoc.queue else self.masterQueue.refresh()
 
         nextFile: FileProp = self.currentLoc.current_preview
         self._refresh_widget(nextFile)
@@ -538,6 +545,9 @@ class GongikWidget(QWidget):
         self.currentLoc = self.masterQueue.refresh()
 
         self._refresh_widget(self.currentLoc.current_preview)
+
+    def onBtnRefresh(self):
+        self._update_file_name_preview()
         
 
 if __name__ == '__main__':

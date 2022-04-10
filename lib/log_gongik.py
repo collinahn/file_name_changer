@@ -85,7 +85,7 @@ class Logger:
 
     @staticmethod
     def assemble_msg(msg):
-        return ''.join(str(word) + ' ' for word in msg)
+        return ''.join(f'{str(word)} ' for word in msg)
 
     @classmethod
     def DEBUG(cls, *message):

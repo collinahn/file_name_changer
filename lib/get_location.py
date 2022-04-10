@@ -48,6 +48,7 @@ class LocationInfo(object):
     def _get_api_addr_fm_coord(self, originName, tplGPS4API):
         prop = FileProp(originName, path=self.path)
         prop.locationFmAPI = self.clsAPI.parse_addr_response(tplGPS4API)
+        prop.coord = tuple(list(tplGPS4API)[::-1]) # 후에 써먹기 유리하도록 순서를 뒤집는다
         self.log.INFO(f'got info fm API, {originName} {tplGPS4API} -> {prop.locationFmAPI}')
 
 
