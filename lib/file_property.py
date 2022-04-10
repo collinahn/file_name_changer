@@ -41,6 +41,7 @@ class FileProp(object):
             self._details_priority: str = '' #단일 인스턴스 상세(우선순위 높음)
             self._suffix: str = ''
             self._newPath: str= '' # 나중에 초기화되는 최종 이름(절대경로)
+            self._tplCoordinance: tuple[float, float] or None = None # WGS84위도경도값
 
             self._setInstance4Init.add(name)
             self.log.INFO(name, 'fileProp init', f'{self._name = }, {self._originLocAPI = }')
@@ -63,7 +64,7 @@ class FileProp(object):
     def initialize_instances(cls) -> None:
         '''
         복구 클래스에서 파일들을 불러올 때 초기화 해줄 때 호출하는 클래스.
-        다른 클래스에서 호출하면 안된다.
+        복구 클래스 이외 다른 클래스에서 호출할 일은 없다.
         '''
         for name in cls._setInstance4Init:
             try:
@@ -169,6 +170,17 @@ class FileProp(object):
     @new_path.setter
     def new_path(self, path: str):
         self._newPath = path
+
+    @property
+    def coord(self):
+        return self._tplCoordinance
+    
+    @coord.setter
+    def coord(self, newCoord):
+        if self._tplCoordinance:
+            return
+        
+        self._tplCoordinance = newCoord
 
 
     @classmethod

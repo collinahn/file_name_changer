@@ -138,14 +138,20 @@ class MstQueue(QueueReadOnly): # 분류해서 집어넣음
             self.log.INFO(f'MstQueue init, size = {self.size}, queue = {self.queue}')
             cls._init = True
 
+    @classmethod
+    def is_init(cls):
+        return hasattr(cls, '_init')
+
     @property
     def total_size(self):
         ret = 0
         try:
             for file in self.queue:
+                file:PropsQueue
                 ret += file.size
         except Exception as e:
             self.log.ERROR(e, '/ while getting total number')
+            return -1
 
         return ret
 
@@ -220,6 +226,12 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
             prop: FileProp
             prop.details = inputDetail
             self._sharedDetail = inputDetail
+
+    def set_common_location(self, inputLocation):
+        '''지도 입력으로부터 얻은 공통 신주소로 주소를 업데이트한다'''
+        for prop in self.queue:
+            prop: FileProp
+            prop.locationFmDB = inputLocation
 
     def append_props(self, instance: FileProp):
         if not isinstance(instance, FileProp):

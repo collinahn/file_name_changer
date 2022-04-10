@@ -23,7 +23,7 @@ class LocalDB(object):
         if not hasattr(cls, '_init'):
             self.DB_FILE = utils.resource_path('db/addr.db')
 
-            clsGPS = GPSInfo() #어디부터??****** 
+            clsGPS = GPSInfo() #두 번째 호출
             self.gpsData = clsGPS.gps_GRS80
 
             cls._init = True
