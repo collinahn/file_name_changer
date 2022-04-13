@@ -139,8 +139,8 @@ class QWebEngineInstalled(QWidget):
     def onMapClick(self, value):
         self.labelLocationCandidate.setText(value)
         self.log.INFO(f'user clicked {value = }')
-
-
+        
+        
 def main():
     import sys
 

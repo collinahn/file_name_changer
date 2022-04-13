@@ -71,6 +71,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QMessageBox, 
     QPushButton, 
+    QDesktopWidget,
     qApp
 )
 from lib.file_copy import BridgePhone
@@ -108,7 +109,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release-beta)gongik_v2.5.4'
+VERSION_INFO = '(release)gongik_v2.5.4'
 
 INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
@@ -173,6 +174,7 @@ class Gongik(QMainWindow):
 
         self.progressDlg.close()
         del self.progressDlg
+
 
     def _init_main_widget(self):
         # 메인 위젯 설정
@@ -277,7 +279,15 @@ class Gongik(QMainWindow):
         additionalMenu.addAction(checkAction)
         additionalMenu.addAction(updateAction)
 
+        # self.center()
+        self.move(200,200)
         self.show()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def onModalRestore(self):
         rdlg = RestoreDialog()
@@ -474,6 +484,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     ex = Gongik()
+    
 
     try:
         sys.exit(app.exec_())

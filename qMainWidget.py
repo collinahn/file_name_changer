@@ -285,7 +285,7 @@ class GongikWidget(QWidget):
         self.webEngineWidget.init_page(*self.currentLoc.current_preview.coord)
         self.webEngineWidget.btnRenewLocation.clicked.connect(self.onBtnRefresh)
         self.mainWidgetLayout.addWidget(self.webEngineWidget, 0, 3, -1, -1)
-        
+
 
     # 이름 뒤 구분 명칭을 결정하는 라디오 버튼을 만든다
     def _make_suffix_radio_btn(self, tplRadioBtn, shortcutCode, seq):

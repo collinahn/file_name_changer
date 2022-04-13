@@ -28,7 +28,7 @@ class BackupRestore(object):
     def save_result(self, filePath: str, fPropData: dict[str,FileProp]) -> bool:
         '''
         데이터를 바이너리 파일로 저장한다.\n
-        규칙: 튜플에 {'이전파일이름':<FileProp객체>} 사전형 객체를 순서대로 저장한다.
+        규칙: {'이전파일이름':<FileProp객체>}.
         '''
         try:
             with open(filePath, 'wb') as bf:
@@ -40,7 +40,7 @@ class BackupRestore(object):
 
         return True
 
-    def load_result(self, filePath: str) -> tuple or None:
+    def load_result(self, filePath: str) -> dict or None:
         try:
             with open(filePath, 'rb') as bf:
                 data: dict = pickle.load(bf)
