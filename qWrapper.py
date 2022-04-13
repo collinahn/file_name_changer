@@ -18,9 +18,9 @@ def catch_except(original_func):
 def elapsed(original_func):
     @functools.wraps(original_func)
     def wrapper(*args, **kwargs):
-        start = time.time()
+        start = time.perf_counter()
         result = original_func(*args, **kwargs)
-        end = time.time()
+        end = time.perf_counter()
         Logger().INFO(f"{original_func.__name__} elapsed: {end - start} sec")
         return result
 

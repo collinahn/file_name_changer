@@ -6,7 +6,10 @@ from PyQt5.QtGui import (
     QFont,
     QMouseEvent,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    Qt,
+    QTimer,
+)
 from PyQt5.QtWidgets import (
     QGroupBox, 
     QHBoxLayout, 
@@ -82,6 +85,12 @@ class GongikWidget(QWidget):
 
         self._init_ui()
         self._refresh_widget(self.currentLoc.current_preview)
+
+        timer = QTimer(self)
+        timer.timeout.connect(self.onTimerFlash)
+        timer.start(100)
+        self.timerCnt = 0
+        
         self.log.INFO('init complete')
         
     def _init_ui(self):
@@ -153,7 +162,9 @@ class GongikWidget(QWidget):
 
         self.fileNamePreview = QLabel() # 변환된 파일명의 미리보기
         self.fileNamePreview.setAlignment(Qt.AlignCenter)
+        self.fileNamePreview.setStyleSheet('font-weight: bold; color: yellow')
         self.fileNameBoxLayout.addWidget(self.fileNamePreview)
+        self.bgFlash = False
 
         self.changeAddrGroupType = QGroupBox('') # 그룹박스 내 그룹박스(라디오버튼)
         self.changeAddrGroupType.setStyleSheet(const.QSTYLE_NO_BORDER_BOX)
@@ -164,7 +175,7 @@ class GongikWidget(QWidget):
         
         self.radioBtnAddrTypeBoth = QRadioButton('자세히', self)
         self.radioBtnAddrTypeNormal = QRadioButton('지번주소', self)        
-        self.radioBtnAddrTypeRoad = QRadioButton('도로명주소(인터넷 연결 없을 시)', self)
+        self.radioBtnAddrTypeRoad = QRadioButton('도로명주소(기본)', self)
         self.radioBtnAddrTypeBoth.clicked.connect(self.onCheckRadioAddrType)
         self.radioBtnAddrTypeNormal.clicked.connect(self.onCheckRadioAddrType)
         self.radioBtnAddrTypeRoad.clicked.connect(self.onCheckRadioAddrType)
@@ -289,7 +300,7 @@ class GongikWidget(QWidget):
 
     def _generate_text_loc_indicator(self):
         return f'\n완료율: {self.masterQueue.current_pos} / {self.masterQueue.size} \
-            \n현재 위치: {self.currentLoc.name}'
+            \n촬영 위치: {self.currentLoc.name}'
 
     def _register_input(self):
         # 현재 커서의 지정 이름 저장
@@ -459,9 +470,17 @@ class GongikWidget(QWidget):
         elif self._use_name == const.USE_ROAD:
             return self.currentLoc.current_preview.final_road_name
         return self.currentLoc.current_preview.final_normal_name
+
+
+    def _set_file_name_preview_text(self, text: str = None):
+        if text is None:
+            text = f'<미리보기>\n{self._get_new_name()}'
+        self.fileNamePreview.setText(text)
     
     def _update_file_name_preview(self):
-        self.fileNamePreview.setText(f'<미리보기>\n{self._get_new_name()}')
+        self.timerCnt = 0 # 깜빡이기
+        self.bgFlash = False
+        self._set_file_name_preview_text()
     
     def _update_suffix(self, suffix):
         self.currentLoc.current_preview.suffix = suffix
@@ -548,7 +567,18 @@ class GongikWidget(QWidget):
 
     def onBtnRefresh(self):
         self._update_file_name_preview()
-        
+
+    def onTimerFlash(self):
+        if self.timerCnt > 3: 
+            # 2번 이상 했으면 깜빡이지 않는다.
+            return
+        if self.bgFlash:
+            self._set_file_name_preview_text()
+            self.bgFlash = False
+        else:
+            self._set_file_name_preview_text('')
+            self.bgFlash = True
+        self.timerCnt += 1
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
