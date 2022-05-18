@@ -47,13 +47,15 @@ def extract_parent_folder(dir) -> str:
     return '2구역'
 
 def get_car_no_from_parent_dir() -> str:
+    from lib.base_folder import WorkingDir
+
     gubun = '2'
-    parentFolderName = extract_parent_folder(extract_dir())
+    parentFolderName: str = extract_parent_folder(WorkingDir().abs_path)
 
     #호차 구분
-    if '1' in parentFolderName:
+    if parentFolderName.startswith('1'):
         gubun = '6' #1조는 6으로
-    elif '2' in parentFolderName:
+    elif parentFolderName.startswith('2'):
         gubun = '2'
 
     return gubun

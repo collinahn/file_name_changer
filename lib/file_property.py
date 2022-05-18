@@ -13,7 +13,6 @@ from . import utils
 class FileProp(object):
     _setInstance4Init = set()
     _dctInstace4New = {}
-    _prefix = utils.get_car_no_from_parent_dir()
     _lock = Lock()
 
     def __new__(cls, fileName:str, path:str=None, *args):
@@ -29,6 +28,7 @@ class FileProp(object):
 
     def __init__(self, name:str, path:str=None, *args) -> None:
         if name not in self._setInstance4Init:
+            self._prefix = utils.get_car_no_from_parent_dir()
             self._name: str = name
             self._path = path or '.' # unpickling 을 위해 보존
             self._absPath: str = f'{self._path}/{name}'

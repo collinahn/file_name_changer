@@ -128,16 +128,12 @@ class QWebEngineInstalled(QWidget):
         currentLoc: PropsQueue = mstQ.current_preview
         currentLoc.set_common_location(self.newLocFmPic.value)
         self.log.INFO(f'location changed to {currentLoc.name} -> {self.newLocFmPic.value}')
-
-        # InitInfoDialogue('개발중인 기능입니다.', ('기다릴게요',)).exec_()
-        
-        # if MstQueue.is_init():
-        #     self.init_page(*MstQueue().current_preview.current_preview.coord)
         
 
     @QtCore.pyqtSlot(str)
     def onMapClick(self, value):
         self.labelLocationCandidate.setText(value)
+        self.onBtnChangeLocation()
         self.log.INFO(f'user clicked {value = }')
         
         

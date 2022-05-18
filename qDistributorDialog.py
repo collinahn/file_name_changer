@@ -29,7 +29,10 @@ import lib.utils as utils
 import qWordBook as const
 from lib.get_location import LocationInfo
 from lib.file_property import FileProp
-from lib.queue_order import MstQueue, PropsQueue
+from lib.queue_order import (
+    MstQueue, 
+    PropsQueue
+)
 from lib.log_gongik import Logger
 from qDialog import InitInfoDialogue
 
@@ -46,11 +49,11 @@ class DistributorDialog(QDialog):
         self.dctCheckBoxInstance: dict[str, QCheckBox] = {} # 체크된 객체 추적
         self.dctPreviewInstance: dict[str, QLabel] = {} # 레이블 클릭 여부 추적
 
-        self.init_ui()
+        self._init_ui()
 
         self.log.INFO('init complete')
         
-    def init_ui(self):
+    def _init_ui(self):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(self.icon_path))
 

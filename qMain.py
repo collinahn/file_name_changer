@@ -1,62 +1,3 @@
-# v1.3
-# 다음 보는 버튼이 사진에 가려서 안보임 레이아웃 조정 완료(v1.3.1)
-# 같은 위치에 찍힌 사진 수량 보여주기 -완료(v1.3.1)
-# 스펙시트 보여주기(v1.3.1)
-# 시간순으로 정렬, 같은 시간대에 찍힌거면 맨 처음 지정한 위치로 통일 - 완료(v1.3.2)
-
-# v1.4
-# 파일이 없으면 지정된 경로에서 파일을 옮겨옴(ppadb 이용)(v1.4.0)
-# 같은 폴더에 exif정보가 없는 사진이 있으면 예외처리를 못하던 문제 수정(v1.4.1)
-# 연결 전 adb 서버를 가동하여 USB footprint를 pc에 저장한다.(v1.4.2)
-# 충돌 있는 키보드 단축키 변경(v1.4.3)
-# Logger 추가(v1.4.3)
-# 1호차 구분이 제대로 되지 않는 버그 수정(v1.4.4)
-# 안내장부착 버튼 추가(v1.4.5)
-
-# v1.5
-# 하단 상태바에 현재 진행 중인 작업 표시(v1.5.0) --> cancelled
-# 로딩 중일 시 알려주는 다이얼로그와 프로그레스 바를 띄워준다(v1.5.0)
-# 카카오API로 주소를 받아온다(v1.5.1)
-# 계고장 부착(v1.5.1)
-# 파일명 미리보기 기능 추가(v1.5.2)
-# 사진 상세에서 제목이 가운데 정렬 되지 않는 버그 수정(v1.5.2)
-# QLineEdit입력 시 즉시 미리보기 업데이트되도록 수정(v1.5.3)
-# 호차 관련 오류 수정(v1.5.4)
-# 파일 옮기기에 프로그레스 바 표시 (v1.5.5)
-# 파일 이름 변경에 프로그레스 바 표시 -> QTimer 이용 (v1.5.5)
-# GPS 정보 보낼 때 바로 보내지 않고 인터넷 연결을 확인하고 보내도록 수정(v1.5.6)
-
-# 파일을 옮겨온 후에 다시 실행할 필요 없이 바로 초기화하도록 수정(v1.6.0b)
-# 최초 실행시 유의사항 띄우기(v1.6.1)
-# adb 연결 체크 시 따로 쉘을 열지 않고도 실행하도록 수정(v1.6.2)
-# 좀 더 다양한 에러 사항을 유저에게 전달하여 대처할 수 있도록 안내 세분화(v1.6.3)
-# 긴급패치) 오프라인 상황에서 Undefined로 나오는 문제 수정 (v1.6.4)
-# 긴급패치) 주소 없는 이미지가 엉뚱한 주소로 나오는 문제 수정 (v1.6.5)
-# keyError 예외처리하여 크래시 나지 않도록 수정(v1.6.6)
-
-# 주소 수정 가능하도록 기능 추가(v1.7.0b)
-# 주소 수정을 세부사항 수정으로 수정, 그 외 코드 간소화(v1.7.1b)
-# 사진을 클릭하면 열리는 기능 추가(v1.7.1b)
-
-# api 기능 추가(v2.0)
-# 버전 정보 판별 기능 추가 (v2.0.1b)
-# 최신 버전 다운로드 기능 추가(v2.0.1b)
-# 버튼(수거 전, 수거 후) 추가(v2.0.1)
-
-# MVC구조로 수정(파일 미리보기 구조). 양방향 탐색 기능 추가(v2.1.0)
-# MVC구조로 전면 수정(파일 속성 데이터), '더 자세히'선택권 부여 (v2.1.1)
-# 보정된 위치로 표시되도록 수정(v2.1.2)
-# 위치 병합 및 수정 기능 추가(v2.2.0b)
-# 최종 실행 전 묻는 팝업창 띄우기(v2.2.0b)
-# 위치 추가 기능 추가 및 안정화(v2.2.1)
-# 버그fix) 1개의 위치군만 남아있는 상태에서 모든 사진을 선택 후 다른데로 옮기면 크래시, 추후 리팩토링 예정(v2.2.2)
-# 기능추가) 사진 일괄 선택 기능 -> 해당 다이얼로그의 취지와 맞지 않아서 취소
-
-# 기능 수정) 현재 커서는 건드리지 않도록 아예 렌더링 시 빼버림(v2.2.3)
-# 다운로드 피드백 시각화 (v2.2.4)
-
-# 기능 추가) 초기 경로 설정 추가, 초기 로딩화면에서 업데이트 내역 알림
-
 # pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
@@ -109,15 +50,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.5.4'
-
-INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
-연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
-
-**주의사항**
-파일 전송 전 핸드폰을 "잠금이 해제된 상태"로 유지하세요.
-'''
-
+VERSION_INFO = '(release)gongik_v2.5'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -153,7 +86,7 @@ class Gongik(QMainWindow):
             self.folderDialog.path, 
             utils.get_relative_path(self.folderDialog.path)
         )
-        self.log.INFO(self.targetFolder)
+        self.log.INFO(f'{self.targetFolder = }')
 
         self.clsFD = FileDetector(self.targetFolder.rel_path) # '.'는 초기 파일 체크용
         self.files = self.clsFD.file_list
@@ -182,7 +115,7 @@ class Gongik(QMainWindow):
         self.setCentralWidget(qw)
 
     def _get_files_fm_phone(self) -> bool:
-        failDlg = InitInfoDialogue(INSTRUCTION, btn=('확인', '다음에'))
+        failDlg = InitInfoDialogue(const.NO_FILE_INSTRUCTION, btn=('확인', '다음에'))
         failDlg.exec_()
 
         self.progressDlg.show()
@@ -481,12 +414,9 @@ class RecommendDialog(QDialog):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    ex = Gongik()
-    
-
     try:
+        app = QApplication(sys.argv)
+        ex = Gongik()
         sys.exit(app.exec_())
     except Exception as e:
         from qDialog import InitInfoDialogue

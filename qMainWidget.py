@@ -284,6 +284,7 @@ class GongikWidget(QWidget):
         self.webEngineWidget = QWebEngineInstalled()
         self.webEngineWidget.init_page(*self.currentLoc.current_preview.coord)
         self.webEngineWidget.btnRenewLocation.clicked.connect(self.onBtnRefresh)
+        self.webEngineWidget.newLocFmPic.valueChanged.connect(self.onBtnRefresh) # 지도 클릭시 값이 변경되고 바로 반영
         self.mainWidgetLayout.addWidget(self.webEngineWidget, 0, 3, -1, -1)
 
 
@@ -350,7 +351,6 @@ class GongikWidget(QWidget):
         self.log.INFO(f'{fProp.name = } {fProp.specific_details = }')
 
     def _refresh_widget(self, props: FileProp):
-
         self.nameInput.setText(props.details) # 입력 필드 불러오기
         self._update_pixmap(props.abs_path)
         self._update_file_name_preview()

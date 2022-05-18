@@ -1,3 +1,9 @@
+NO_FILE_INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
+연결된 핸드폰에서 금일 촬영된 사진을 불러옵니다.
+
+**주의사항**
+파일 전송 전 핸드폰을 "잠금이 해제된 상태"로 유지하세요.
+'''
 
 PROGRAM_INFO = '''1. 최초 실행시 실행 폴더에 파일이 없을 경우 연결된 핸드폰 기본 카메라 폴더에서 오늘 생성된 파일만을 가져옵니다.
 2. 한 장소에서 3분 이내에 찍힌 사진들은 같은 장소로 취급됩니다.
@@ -21,16 +27,13 @@ IMG_FROG2 = 'img/final.ico'
 IMG_EXIT = 'img/exit.ico'
 IMG_DEV = 'img/developer.ico'
 
-
 #이름 타입
 USE_BOTH = 0
 USE_ROAD = 1
 USE_NORMAL = 2
 
 
-
 #QMessageBox Msg
-
 MSG_INFO = {
     'COMPLETE':'처리가 완료되었습니다.',
     'SOF':'시작 장소입니다.',
