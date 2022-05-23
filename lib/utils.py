@@ -22,6 +22,11 @@ def get_car_candidates():
 def get_handled_suffix():
     return tuple( f'{_}_' for _ in get_car_candidates() )
 
+def get_touched_char() -> tuple:
+    '''
+    도로명 주소 혹은 지번주소가 이름에 이미 들어간 파일은 제외한다
+    '''
+    return '동', '로'
 
 def extract_dir(winDir=False):
     return os.getcwd() if winDir else os.getcwd().replace('\\', '/')

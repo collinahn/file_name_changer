@@ -50,7 +50,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.5'
+VERSION_INFO = '(release)gongik_v2.5.7'
 
 class Gongik(QMainWindow):
     def __init__(self):

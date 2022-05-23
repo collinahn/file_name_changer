@@ -10,7 +10,7 @@ class FileDetector(object):
     __dctArg2Instance: dict = {}
     __setIsInit: set = set()
 
-    def __new__(cls, targetDir:str=utils.extract_dir(), isBackup:bool=False, *args):
+    def __new__(cls, targetDir:str=utils.extract_dir(), *args, **kwargs):
         if targetDir in cls.__dctArg2Instance:
             return cls.__dctArg2Instance[targetDir]
 
@@ -27,8 +27,11 @@ class FileDetector(object):
             
             if isBackup:
                 self.lstFile: list[str] = self.sort_out_backup_file(targetDir)
+                self.log.INFO('detecting backup files in backup mode')
             else:
                 self.lstFile: list[str] = self.sort_out_pics_name(targetDir)
+                self.log.INFO('detecting pictures in normal mode')
+
             self.log.INFO(f'file list in {targetDir}\n')
             self.log.INFO('list:', self.lstFile)
 
@@ -40,14 +43,17 @@ class FileDetector(object):
 
     # 파일 목록 추출
     # jpg 확장자가 아니거나 이미 바꾼 목록은 건들지 않음
-    def sort_out_pics_name(self, dir='.'):
+    def sort_out_pics_name(self, dir='.') -> list:
         fileExt = utils.get_valid_file_ext()
         alreadyHandled = utils.get_handled_suffix()
+        touchedFileName = utils.get_touched_char()
 
-        lstRes: list[str] = os.listdir(dir)
-        return [ 
-            _ for _ in lstRes 
-            if _.endswith(fileExt) and not _.startswith(alreadyHandled)
+        files: list[str] = os.listdir(dir)
+        return [
+            _ for _ in files 
+            if _.endswith(fileExt) # 확장자 거름
+            and not _.startswith(alreadyHandled) # 이미 프로그램으로 다뤄진 파일들 거름
+            and all(ch not in _ for ch in touchedFileName) # 수동으로 다뤄진 파일들 거름
         ]
 
     def sort_out_backup_file(self, dir='./.gongik/restore') -> list:

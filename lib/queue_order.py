@@ -267,8 +267,8 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
 
         ret = 0
         try:
-            for fNames in tplNames:
-                ret += self.remove(FileProp(fNames))
+            for fName in tplNames:
+                ret += self.remove(FileProp(fName))
         except Exception as e:
             self.log.CRITICAL(e)
         
