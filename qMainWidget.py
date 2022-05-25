@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (
     QLineEdit, 
     QSizePolicy
 )
+from lib.base_folder import WorkingDir
 
 
 import lib.utils as utils
@@ -46,8 +47,6 @@ from lib.restore_result import BackupRestore
 from qDistributorDialog import DistributorDialog
 from qDialog import InitInfoDialogue
 from qWidgets.web_engine import QWebEngineInstalled
-
-# TIME_GAP
 
 class QPushButton(QPushButton):
     def __init__(self, parent = None):
@@ -552,7 +551,6 @@ class GongikWidget(QWidget):
 
         self._update_file_name_preview()
 
-
     def onBtnDistributePics(self):
         dWidget = DistributorDialog()
         dWidget.exec_()
@@ -561,9 +559,9 @@ class GongikWidget(QWidget):
             self.log.WARNING('Deleting vacant mstQueue element')
             self.masterQueue.remove_location(self.masterQueue.current_preview)
 
-        self.currentLoc = self.masterQueue.refresh()
-
-        self._refresh_widget(self.currentLoc.current_preview)
+        if dWidget.isChanged:
+            self.currentLoc = self.masterQueue.refresh()
+            self._refresh_widget(self.currentLoc.current_preview)
 
     def onBtnRefresh(self):
         self._update_file_name_preview()
@@ -582,6 +580,7 @@ class GongikWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    wd = WorkingDir('.','.')
     screen = GongikWidget('.')
     # screen.resize(540, 100)
     screen.show()

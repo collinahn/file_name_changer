@@ -1,5 +1,6 @@
 # 파일들의 속성(=유저의 입력값)을 저장한다
 
+from PyQt5.QtGui import QPixmap
 from threading import Lock
 from datetime import (
     datetime, 
@@ -42,6 +43,7 @@ class FileProp(object):
             self._suffix: str = ''
             self._newPath: str= '' # 나중에 초기화되는 최종 이름(절대경로)
             self._tplCoordinance: tuple[float, float] or None = None # WGS84위도경도값
+            self._pixmap_scaled: QPixmap = QPixmap(self._absPath).scaled(220, 165) # 캐싱
 
             self._setInstance4Init.add(name)
             self.log.INFO(name, 'fileProp init', f'{self._name = }, {self._originLocAPI = }')
@@ -118,7 +120,7 @@ class FileProp(object):
     def locationFmAPI(self, newLoc):
         '''originalLoc 은 처음 한 번만 초기화됨'''
         if self._originLocAPI == newLoc:
-            self.log.WARNING('attempting to do meaningless insert,', newLoc)
+            self.log.DEBUG('attempting to do meaningless insert,', newLoc)
 
         if not self._originLocAPI:
             self._originLocAPI = newLoc
@@ -133,7 +135,7 @@ class FileProp(object):
     def locationFmDB(self, newLoc):
         '''originalLoc 은 처음 한 번만 초기화됨'''
         if self._originLocDB == newLoc:
-            self.log.WARNING('attempting to do meaningless insert,', newLoc)
+            self.log.DEBUG('attempting to do meaningless insert,', newLoc)
 
         if not self._originLocDB:
             self._originLocDB = newLoc
@@ -182,6 +184,9 @@ class FileProp(object):
         
         self._tplCoordinance = newCoord
 
+    @property
+    def pixmap(self) -> QPixmap:
+        return self._pixmap_scaled
 
     @classmethod
     def name2AddrAPIOrigin(cls):

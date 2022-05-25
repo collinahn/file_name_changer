@@ -3,7 +3,8 @@ from PyQt5.QtGui import (
     QPixmap,
     QFont,
     QIcon,
-    QMouseEvent,
+    QImage,
+    QPainter
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -48,6 +49,7 @@ class DistributorDialog(QDialog):
         self.mstQueue = MstQueue()
         self.dctCheckBoxInstance: dict[str, QCheckBox] = {} # 체크된 객체 추적
         self.dctPreviewInstance: dict[str, QLabel] = {} # 레이블 클릭 여부 추적
+        self.isChanged = False
 
         self._init_ui()
 
@@ -80,9 +82,9 @@ class DistributorDialog(QDialog):
             singleInstanceBox.setLayout(singleInstanceLayout)
 
             picPreview = QLabel(prop.name)
-            picPreview.resize(200, 150)
-            picPreview.setPixmap(QPixmap(prop.abs_path).scaled(200, 150))
-            # picPreview.mouseReleaseEvent = self.onClickReleasePic
+            # picPreview.resize(200, 150)
+            # picPreview.setPixmap(QPixmap(prop.abs_path).scaled(400, 300))
+            picPreview.setPixmap(prop.pixmap.scaledToWidth(350))
             self.dctPreviewInstance[prop.name] = picPreview
 
             picLoc = QLabel(prop.locationFmDB)
@@ -138,8 +140,9 @@ class DistributorDialog(QDialog):
                 fProp: FileProp
 
                 picPreview4Candidate = QLabel(fProp.name)
-                picPreview4Candidate.resize(200, 150)
-                picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
+                # picPreview4Candidate.resize(200, 150)
+                # picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
+                picPreview4Candidate.setPixmap(fProp.pixmap)
 
                 picLoc = QLabel(fProp.locationFmDB)
 
@@ -240,6 +243,7 @@ class DistributorDialog(QDialog):
         
         if isExecutable:
             InitInfoDialogue(f'{len(tplNamesChecked)}개의 파일을 맨 뒤로 이동하였습니다.', ('확인', )).exec_()
+            self.isChanged = True
             self.close()
         else:
             InitInfoDialogue('장소가 기준과 같은 사진들은 신규로 생성할 수 없습니다.', ('확인', )).exec_()
@@ -252,10 +256,12 @@ if __name__ == '__main__':
             
     from lib.meta_data import TimeInfo
     from lib.get_location import LocationInfo
+    from lib.base_folder import WorkingDir
+    app = QApplication(sys.argv)
+    WorkingDir('.', '.')
     TimeInfo()
     LocationInfo('.') 
 
-    app = QApplication(sys.argv)
     screen = DistributorDialog()
     # screen.resize(540, 100)
     screen.show()
