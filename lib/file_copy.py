@@ -31,7 +31,8 @@ class BridgePhone(object):
         self.log.INFO('ADB connect success')
         self._dctName2Date = self._init_peek_files()
         self.lstNamesTookToday = self._init_filter_today_pic()
-        self.log.INFO('pictures from today:', self.lstNamesTookToday)
+        self.log.DEBUG(f'total pics: {len(self._dctName2Date)} {self._dctName2Date = }')
+        self.log.INFO(f'{len(self.lstNamesTookToday)} pictures from today: {self.lstNamesTookToday}')
         
     def __del__(self):
         with contextlib.suppress(Exception):
