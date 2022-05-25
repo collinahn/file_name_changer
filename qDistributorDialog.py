@@ -193,6 +193,7 @@ class DistributorDialog(QDialog):
             return
 
         if removeRet + addRet == 0:
+            self.isChanged = True
             InitInfoDialogue(f'{fileCnt}개의 사진 이동 완료하였습니다.', ('확인', )).exec_()
         else:
             InitInfoDialogue('완료하지 못했습니다. 다시 시도해주세요.', ('확인', )).exec_()
