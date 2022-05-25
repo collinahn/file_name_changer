@@ -82,9 +82,7 @@ class DistributorDialog(QDialog):
             singleInstanceBox.setLayout(singleInstanceLayout)
 
             picPreview = QLabel(prop.name)
-            # picPreview.resize(200, 150)
-            # picPreview.setPixmap(QPixmap(prop.abs_path).scaled(400, 300))
-            picPreview.setPixmap(prop.pixmap.scaledToWidth(350))
+            picPreview.setPixmap(prop.pixmap.scaledToWidth(300))
             self.dctPreviewInstance[prop.name] = picPreview
 
             picLoc = QLabel(prop.locationFmDB)
@@ -105,8 +103,8 @@ class DistributorDialog(QDialog):
         scrollAreaChoosePic.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         scrollAreaChoosePic.setWidgetResizable(True)
         scrollAreaChoosePic.setWidget(widget4ChoosePic)
-        scrollAreaChoosePic.setMinimumHeight(250)
-        scrollAreaChoosePic.setMinimumWidth(800)
+        scrollAreaChoosePic.setMinimumHeight(350)
+        scrollAreaChoosePic.setMinimumWidth(1000)
 
         self.layout.addWidget(scrollAreaChoosePic, 1, 0, 1, -1)
 
@@ -140,8 +138,6 @@ class DistributorDialog(QDialog):
                 fProp: FileProp
 
                 picPreview4Candidate = QLabel(fProp.name)
-                # picPreview4Candidate.resize(200, 150)
-                # picPreview4Candidate.setPixmap(QPixmap(fProp.abs_path).scaled(200, 150))
                 picPreview4Candidate.setPixmap(fProp.pixmap)
 
                 picLoc = QLabel(fProp.locationFmDB)
@@ -153,7 +149,6 @@ class DistributorDialog(QDialog):
 
         # Scroll Area Properties
         scrollAreaChooseDest = QScrollArea()
-        # scroll.setFrameShape(frame)
         scrollAreaChooseDest.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         scrollAreaChooseDest.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scrollAreaChooseDest.setWidgetResizable(True)
@@ -169,13 +164,6 @@ class DistributorDialog(QDialog):
         btnCancel = QPushButton('취소')
         btnCancel.clicked.connect(self.onBtnCancel)
         self.layout.addWidget(btnCancel, 3, 3)
-        
-    # def onClickReleasePic(self, event: QMouseEvent):
-    #     self.log.DEBUG(event.pos())
-    #     for fName, preview in self.dctPreviewInstance.items():
-    #         if self.childAt(event.pos()) == preview:
-    #             self.log.INFO('clicked', fName)
-    #             self.dctCheckBoxInstance[fName].toggle()
 
     def onCheckPicSelect(self):
         lstCheckedCheckBox = [ 
@@ -246,7 +234,7 @@ class DistributorDialog(QDialog):
             self.isChanged = True
             self.close()
         else:
-            InitInfoDialogue('장소가 기준과 같은 사진들은 신규로 생성할 수 없습니다.', ('확인', )).exec_()
+            InitInfoDialogue('같은 주소에서 찍은 사진들은 분리할 수 없습니다.', ('확인', )).exec_()
 
     def onBtnCancel(self):
         self.log.INFO('User Canceled Distribution')

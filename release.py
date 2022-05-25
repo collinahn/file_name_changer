@@ -77,8 +77,8 @@ if __name__ == '__main__':
         print('build failed')
         raise(RuntimeError)
 
-    clsSM = SSHManager()
-    clsSM.create_ssh_client(IP, PORT_SSH, 'pi', pw)
+    ssh_manager = SSHManager()
+    ssh_manager.create_ssh_client(IP, PORT_SSH, 'pi', pw)
 
     targetFile = './dist/qMain.exe'
     dstFileName = f'./dist/{VERSION_INFO}.exe'
@@ -91,11 +91,11 @@ if __name__ == '__main__':
     os.rename(targetFile, dstFileName)
     print(f'file renamed to ./dist/{VERSION_INFO}.exe, preparing to send')
 
-    clsSM.send_file('./version.txt', '/home/pi/change-file-name-api-server/')
-    clsSM.send_file(f'./dist/{VERSION_INFO}.exe', '/home/pi/change-file-name-api-server/release/')
+    ssh_manager.send_file('./version.txt', '/home/pi/change-file-name-api-server/')
+    ssh_manager.send_file(f'./dist/{VERSION_INFO}.exe', '/home/pi/change-file-name-api-server/release/')
     print('transfer complete')
 
-    clsSM.close_ssh_client()
+    ssh_manager.close_ssh_client()
 
     print('=============================')
     print(VERSION_INFO, 'released')
