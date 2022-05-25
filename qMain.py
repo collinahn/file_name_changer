@@ -50,7 +50,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.5.8'
+VERSION_INFO = '(release)gongik_v2.5.10'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -193,17 +193,22 @@ class Gongik(QMainWindow):
         checkAction.setStatusTip(const.MSG_TIP['LIST'])
         checkAction.triggered.connect(self.onModalAddrInfo)
 
+        # 업데이트
         updateAction = QAction(QIcon(self.final_icon_path), '업데이트 확인', self)
         updateAction.setShortcut(const.MSG_SHORTCUT['UPDATE'])
         updateAction.setStatusTip(const.MSG_TIP['UPDATE'])
         updateAction.triggered.connect(self.onModalUpdateApp)
 
+        logReportAction = QAction(QIcon(self.dev_icon_path), '로그 보고하기', self)
+        logReportAction.triggered.connect(self.onReportRecentLog)
+
         self.statusBar()
 
         menu = self.menuBar()
         menu.setNativeMenuBar(False)
-        progMenu = menu.addMenu('&실행')
-        additionalMenu = menu.addMenu('&정보')
+        progMenu = menu.addMenu('실행')
+        additionalMenu = menu.addMenu('정보')
+        logMenu = menu.addMenu('보고')
         
         progMenu.addAction(restoreAction)
         progMenu.addAction(recommendAction)
@@ -211,6 +216,7 @@ class Gongik(QMainWindow):
         additionalMenu.addAction(infoAction)
         additionalMenu.addAction(checkAction)
         additionalMenu.addAction(updateAction)
+        logMenu.addAction(logReportAction)
 
         # self.center()
         self.move(200,200)
@@ -241,6 +247,9 @@ class Gongik(QMainWindow):
     def onModalRecommend(self):
         rlg = RecommendDialog()
         rlg.exec_()
+
+    def onReportRecentLog(self):
+        ...
 
 class DeveloperInfoDialog(QDialog):
     def __init__(self):

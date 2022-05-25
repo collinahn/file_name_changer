@@ -274,14 +274,6 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
         
         return ret
 
-    @property
-    def common_addr_db(self):
-        return self._commonAddrDB
-
-    @property
-    def common_addr_api(self):
-        return self._commonAddrApi
-
 if __name__ == '__main__':
     mq0 = MstQueue((1, None, 3))
     mq1 = MstQueue()

@@ -223,7 +223,7 @@ class DistributorDialog(QDialog):
             if checkBox.isChecked()
         ) # 체크되어있는 목록 반환(파일 이름 리스트)
 
-        dctLocationPool = FileProp.name2AddrDBCorrected()
+        dctLocationPool = FileProp.name2AddrDBOrigin()
         setLocationPool = set(dctLocationPool.values()) # init 정보 클래스 변수는 어떨까?
 
         self.log.DEBUG(f'{dctLocationPool = }')
