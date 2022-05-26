@@ -23,7 +23,7 @@ import qWordBook as const
 from lib.change_name import NameChanger
 from lib.get_location import LocationInfo
 from lib.file_property import FileProp
-from lib.file_detect import FileDetector
+from lib.file_detect import BackupFileDetector
 from lib.restore_result import BackupRestore
 from lib.log_gongik import Logger
 from qDialog import InitInfoDialogue
@@ -42,8 +42,7 @@ class RestoreDialog(QDialog):
         self.title = '내역 복원'
         self.icon_path = utils.resource_path(const.IMG_DEV)
 
-        self.execPath = f'{utils.extract_dir()}/.gongik/restore'
-        self.clsFD = FileDetector(self.execPath, isBackup=True)
+        self.clsFD = BackupFileDetector()
         self.listBackupFiles: list = self.clsFD.file_list
         self.setBackupDates: set = {_.split('_')[1] for _ in self.listBackupFiles}
         self.log.INFO(f'backup dates extracted = {self.setBackupDates}')

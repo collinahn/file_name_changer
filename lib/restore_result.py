@@ -7,7 +7,7 @@ import secrets
 
 from lib.log_gongik import Logger 
 from lib.file_property import FileProp
-from lib.file_detect import FileDetector # 파일 탐지
+from lib.file_detect import BackupFileDetector # 파일 탐지
 from lib.utils import (
     get_today_date_formated,
     extract_dir
@@ -21,7 +21,7 @@ class BackupRestore(object):
         if not os.path.exists(self.savePath):
             os.mkdir(self.savePath)
 
-        self.clsFD = FileDetector(self.savePath, isBackup=True)
+        self.clsFD = BackupFileDetector(self.savePath)
         
         self.log.INFO(f'{self.savePath} init')
 
