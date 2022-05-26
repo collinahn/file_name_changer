@@ -70,7 +70,7 @@ class BackupFileDetector(Detector):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._lstFile: list[str] = self.sort_out()
-        self.log.INFO(f'pic files from {self.backup_file_dir} detected')
+        self.log.INFO(f'backup files from {self.backup_file_dir} detected')
         self.log.INFO('list:', self._lstFile)
 
     def sort_out(self) -> list:
@@ -99,7 +99,7 @@ class LogFileDetector(Detector):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._lstFile: list[str] = self.sort_out()
-        self.log.INFO(f'pic files from {self.log_file_dir} detected')
+        self.log.INFO(f'log files from {self.log_file_dir} detected')
         self.log.INFO('list:', self._lstFile)
 
     def sort_out(self):

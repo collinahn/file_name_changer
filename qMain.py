@@ -13,6 +13,9 @@ from PyQt5.QtWidgets import (
     QMessageBox, 
     QPushButton, 
     QDesktopWidget,
+    QButtonGroup,
+    QAbstractButton,
+    QGroupBox,
     qApp
 )
 from lib.file_copy import BridgePhone
@@ -22,11 +25,16 @@ import qWordBook as const
 from lib.file_property import FileProp
 from lib.queue_order import MstQueue
 from lib.version_info import VersionTeller
+from lib.send_file import LogFileSender
 from lib.log_gongik import Logger
-from lib.file_detect import FileDetector
 from lib.base_folder import WorkingDir
 from qMainWidget import GongikWidget
 from qVersionDialog import VersionDialog
+from qRestoreDialog import RestoreDialog
+from lib.file_detect import (
+    FileDetector, 
+    LogFileDetector
+)
 from qDraggable import ( #custom qobjects
     QDialog, 
     QMainWindow, 
@@ -42,7 +50,6 @@ from qWrapper import (
     catch_except,
     elapsed
 )
-from qRestoreDialog import RestoreDialog
 
 '''
 exe 빌드하기
@@ -50,7 +57,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.5.12'
+VERSION_INFO = '(release)gongik_v2.6.0'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -219,7 +226,7 @@ class Gongik(QMainWindow):
         logMenu.addAction(logReportAction)
 
         # self.center()
-        self.move(200,200)
+        self.move(120, 250)
         self.show()
 
     def center(self):
@@ -249,7 +256,8 @@ class Gongik(QMainWindow):
         rlg.exec_()
 
     def onReportRecentLog(self):
-        ...
+        rllg = ReportLogDialog()
+        rllg.exec_()
 
 class DeveloperInfoDialog(QDialog):
     def __init__(self):
@@ -379,7 +387,7 @@ class RecommendDialog(QDialog):
         super().__init__()
 
         self.log = Logger()
-        self.log.INFO('Addr Info Dialog')
+        self.log.INFO('Recommend Dialog')
 
         self.title = '텍스트 추천'
         self.iconPath = utils.resource_path(const.IMG_DEV)
@@ -417,9 +425,73 @@ class RecommendDialog(QDialog):
         layout.addWidget(self.pushBtnExit, 4, 2)
 
     def onBtnClicked(self):
-        self.log.INFO('Addr Info Dialog closed')
+        self.log.INFO('Recommend Dialog closed')
         self.close()
 
+
+class ReportLogDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.log = Logger()
+        self.log.INFO('Report Logfile Dialog')
+
+        self.title = '오류 보고'
+        self.iconPath = utils.resource_path(const.IMG_DEV)
+
+        self.log_detector = LogFileDetector()
+        self.log_files = self.log_detector.file_list
+
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(self.iconPath))
+        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+
+        self.buttonGroup = QButtonGroup() #버튼들 추적
+        self.buttonGroup.buttonClicked[QAbstractButton].connect(self.onBtnSendLogFile)
+        for btnIdx, log in enumerate(self.log_files): # 1칸 = 같은 위치 사진들 깔아놓기
+
+            TextAndBtnBox = QGroupBox()
+            TextAndBtnBoxLayout = QGridLayout()
+            TextAndBtnBox.setLayout(TextAndBtnBoxLayout)
+
+            labelReport = QLabel('보고하기')
+
+            btnSendLogFile = QPushButton(log)
+            self.buttonGroup.addButton(btnSendLogFile, btnIdx)
+            btnSendLogFile.setFixedWidth(100)
+            btnSendLogFile.setFixedHeight(40)
+            
+            TextAndBtnBoxLayout.addWidget(btnSendLogFile, btnIdx, 0)
+            TextAndBtnBoxLayout.addWidget(labelReport, btnIdx, 1)
+            layout.addWidget(TextAndBtnBox)
+
+        self.pushBtnExit= QPushButton('취소')
+        self.pushBtnExit.setFixedHeight(40)
+        self.pushBtnExit.clicked.connect(self.onBtnExit)
+
+        layout.addWidget(self.pushBtnExit, 11, 0)
+
+    def onBtnExit(self):
+        self.log.INFO('Report Logfile Dialog closed')
+        self.close()
+
+    def onBtnSendLogFile(self, btn):
+        target_log_file = f'{self.log_detector.log_file_dir}/{btn.text()}'
+        self.log.DEBUG(f'{btn.text()} btn clicked!')
+        self.log.INFO(f'preparing to send {target_log_file}')
+
+        sender = LogFileSender(target_log_file)
+        if sender.report():
+            InitInfoDialogue('성공', ('확인',)).exec_()
+        else:
+            InitInfoDialogue('로그 전송에 실패하였습니다.', ('다시시도',)).exec_()
 
 
 if __name__ == '__main__':
@@ -428,14 +500,6 @@ if __name__ == '__main__':
         ex = Gongik()
         sys.exit(app.exec_())
     except Exception as e:
-        from qDialog import InitInfoDialogue
-        from lib.new_mail_service import SendMail2Admin
-        import traceback
-        InitInfoDialogue('예기치 않은 에러가 발생하였습니다.\n로그 보내기를 누르면 로그를 수집합니다.\n파일 이동 중 발생한 오류라면 수동으로 옮기고 프로그램을 다시 실행해 주세요.',('로그 보내기', '취소')).exec_()
-        sm = SendMail2Admin()
-        sm.send_mail(
-            sm.create_mail(
-                title='System Malfunction',
-                html_contents=f'{traceback.format_exc()}<br><br>{e}<br>System Failed Due to Unexpected Exception'
-            )
-        )
+        log_detector = LogFileDetector()
+        sender = LogFileSender(f'{log_detector.log_file_dir}/gongik.log')
+        sender.report()
