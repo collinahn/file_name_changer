@@ -57,7 +57,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.6.1'
+VERSION_INFO = '(release)gongik_v2.6.3'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -277,38 +277,45 @@ class DeveloperInfoDialog(QDialog):
         self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
 
-        label0 = QLabel('버전:')
-        label0.setAlignment(Qt.AlignTop)
-        label0_a = QLabel(f'{VERSION_INFO}')
-        label1 = QLabel('개발자:')
-        label1.setAlignment(Qt.AlignTop)
-        label1_a = QLabel('안태영(Collin Ahn)')
-        label2 = QLabel('연락처:')
-        label2.setAlignment(Qt.AlignTop)
-        label2_a = QLabel('collinahn@gmail.com')
-        label3 = QLabel('참고사항:')
-        label3.setAlignment(Qt.AlignTop)
-        label3_a = QLabel(const.PROGRAM_INFO)
-        label4 = QLabel('License:')
-        label4.setAlignment(Qt.AlignTop)
-        label4_a = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
+        lVersion = QLabel('버전:')
+        lVersionInfo = QLabel(f'{VERSION_INFO}')
+        lDeveloper = QLabel('개발자:')
+        lDeveloperInfo = QLabel('안태영(Collin Ahn)')
+        lSourceCode = QLabel('소스코드:')
+        lSourceCodeUrl = QLabel('https://github.com/collinahn/file_name_changer')
+        lContact = QLabel('연락처:')
+        lContactInfo = QLabel('collinahn@gmail.com')
+        lRef = QLabel('참고사항:')
+        lRefInfo = QLabel(const.PROGRAM_INFO)
+        lLicense = QLabel('License:')
+        lLicenseInfo = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
 
+        
         self.pushBtnExit= QPushButton('확인')
         self.pushBtnExit.clicked.connect(self.onBtnClicked)
 
+        lVersion.setAlignment(Qt.AlignTop)
+        lDeveloper.setAlignment(Qt.AlignTop)
+        lSourceCode.setAlignment(Qt.AlignTop)
+        lContact.setAlignment(Qt.AlignTop)
+        lRef.setAlignment(Qt.AlignTop)
+        lLicense.setAlignment(Qt.AlignTop)
+
         layout = QGridLayout()
         self.setLayout(layout)
-        layout.addWidget(label0, 0, 0)
-        layout.addWidget(label0_a, 0, 1)
-        layout.addWidget(label1, 1, 0)
-        layout.addWidget(label1_a, 1, 1)
-        layout.addWidget(label2, 2, 0)
-        layout.addWidget(label2_a, 2, 1)
-        layout.addWidget(label3, 3, 0)
-        layout.addWidget(label3_a, 3, 1)
-        layout.addWidget(label4, 4, 0)
-        layout.addWidget(label4_a, 4, 1)
-        layout.addWidget(self.pushBtnExit, 4, 2)
+        layout.addWidget(lVersion, 0, 0)
+        layout.addWidget(lVersionInfo, 0, 1)
+        layout.addWidget(lDeveloper, 1, 0)
+        layout.addWidget(lDeveloperInfo, 1, 1)
+        layout.addWidget(lSourceCode, 2, 0)
+        layout.addWidget(lSourceCodeUrl, 2, 1)
+        layout.addWidget(lContact, 3, 0)
+        layout.addWidget(lContactInfo, 3, 1)
+        layout.addWidget(lRef, 4, 0)
+        layout.addWidget(lRefInfo, 4, 1)
+        layout.addWidget(lLicense, 5, 0)
+        layout.addWidget(lLicenseInfo, 5, 1)
+        layout.addWidget(self.pushBtnExit, 5, 2)
 
     def onBtnClicked(self):
         self.log.INFO('Developer Info Dialog closed')
