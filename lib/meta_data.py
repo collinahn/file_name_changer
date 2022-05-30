@@ -48,6 +48,9 @@ class MetaData(object):
             self._dctDecodedMeta[decodedData] = value
 
     def show_image(self, full_path):
+        '''
+        webbrowser 모듈로 교체
+        '''
         image: Image = utils.open_image(full_path)
         if image:
             image.show()

@@ -455,7 +455,7 @@ class GongikWidget(QWidget):
         br.save_result(fileName2Save, FileProp.props())
 
         fo = FolderOpener()
-        fo.open_file_browser(absPath=self.targetFolderAbsPath)
+        fo.open_file_browser(abs_path=self.targetFolderAbsPath)
 
         InitInfoDialogue(const.MSG_INFO['EXIT_END'], ('확인', )).exec_()
         self.log.INFO('==================================')
@@ -536,9 +536,9 @@ class GongikWidget(QWidget):
         self._update_file_name_preview()
 
     def onClickShowImage(self, event: QMouseEvent):
-        clsGI = GPSInfo()
         fProp:FileProp = self.currentLoc.current_preview
-        clsGI.show_image(fProp.abs_path)
+        fileOpener = FolderOpener()
+        fileOpener.open_file_browser(abs_path=fProp.abs_path)
         self.log.INFO('opening', fProp.name)
 
     def onCheckRadioAddrType(self):
@@ -580,8 +580,8 @@ class GongikWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    wd = WorkingDir('.','.')
-    screen = GongikWidget('.')
+    wd = WorkingDir(utils.extract_dir(),'.')
+    screen = GongikWidget(utils.extract_dir())
     # screen.resize(540, 100)
     screen.show()
  

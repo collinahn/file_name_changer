@@ -246,7 +246,7 @@ class RestoreDialog(QDialog):
         
             if self.globalPath:
                 clsFO = FolderOpener()
-                clsFO.open_file_browser(absPath=self.globalPath) # 폴더 열기
+                clsFO.open_file_browser(abs_path=self.globalPath) # 폴더 열기
 
             if resFail:
                 resultDialog = InitInfoDialogue(f'**알림**\n\n이름 복구 실패 목록을 알려드립니다.\n성공:{len(self.targetData)-len(resFail)}, 실패:{len(resFail)}\n\n{NEW_LINE.join(resFail)}\n\n파일이 이동되었거나 삭제되었으면 복구가 불가합니다.', ('네',))
