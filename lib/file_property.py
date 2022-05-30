@@ -278,8 +278,13 @@ class FileProp(object):
             self._locationAPI = apiAddr
         if dbAddr:
             self._locationDB = dbAddr
-  
 
+    @classmethod
+    def delete_pixmap_to_save(cls):
+        for prop in cls._dctInstace4New.values():
+            prop: FileProp
+            prop._pixmap_scaled = None
+  
     @classmethod
     def self_correct_address(cls):
         '''

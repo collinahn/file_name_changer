@@ -450,9 +450,10 @@ class GongikWidget(QWidget):
 
         progDlg.mark_progress(100, '내역 저장 중')
 
-        br = BackupRestore()
-        fileName2Save = br.create_file_path(self.currentLoc.current_preview.prefix)
-        br.save_result(fileName2Save, FileProp.props())
+        backup = BackupRestore()
+        fileName2Save = backup.create_file_path(self.currentLoc.current_preview.prefix)
+        FileProp.delete_pixmap_to_save() # 저장 공간 최적화를 위해 사진 정보는 빼고 저장한다.
+        backup.save_result(fileName2Save, FileProp.props())
 
         fo = FolderOpener()
         fo.open_file_browser(abs_path=self.targetFolderAbsPath)
