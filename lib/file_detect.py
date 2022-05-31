@@ -34,9 +34,9 @@ class FileDetector(Detector):
     __setIsInit: set = set()
 
     def __init__(self, targetDir:str=utils.extract_dir(), *args):
-        super().__init__()
         cls = type(self)
         if targetDir not in cls.__setIsInit:
+            super().__init__()
             self._lstFile: list[str] = self.sort_out(targetDir)
             self.log.INFO(f'pic files from {targetDir} detected')
             self.log.INFO('list:', self._lstFile)
