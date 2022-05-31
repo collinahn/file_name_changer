@@ -46,6 +46,7 @@ from lib.meta_data import (
 from lib.restore_result import BackupRestore
 from qDistributorDialog import DistributorDialog
 from qDialog import InitInfoDialogue
+from qWidgets.progress_display import ProgressWidgetThreaded
 from qWidgets.web_engine import QWebEngineInstalled
 
 class QPushButton(QPushButton):
@@ -416,10 +417,9 @@ class GongikWidget(QWidget):
         self.log.INFO('file = ', nextFile, 'location =', self.currentLoc)
 
     def onBtnChangeFileName(self):
-        from qDialog import ProgressTimerDialog
-        progDlg = ProgressTimerDialog()
-        progDlg.show()
-        progDlg.mark_progress(10, '준비 중')
+        progress_dlg = ProgressWidgetThreaded()
+        progress_dlg.show()
+        progress_dlg.update(10, '준비 중')
 
         self._register_input() # 처리되지 않고 넘어간 현재 파일 이름 처리
 
@@ -427,10 +427,10 @@ class GongikWidget(QWidget):
         confirmDlg.exec_()
 
         if not confirmDlg.answer:
-            progDlg.close()
+            progress_dlg.close()
             return
 
-        progDlg.mark_progress(80, '이름 변경 중')
+        progress_dlg.update(80, '이름 변경 중')
 
         clsNc = NameChanger()
         retChangeName = clsNc.change_name_on_btn(self._use_name)
@@ -448,7 +448,7 @@ class GongikWidget(QWidget):
             errorDlg = InitInfoDialogue(const.MSG_WARN['OS_ERROR'], ('확인', ))
             errorDlg.exec_()
 
-        progDlg.mark_progress(100, '내역 저장 중')
+        progress_dlg.update(10, '내역 저장 중')
 
         backup = BackupRestore()
         fileName2Save = backup.create_file_path(self.currentLoc.current_preview.prefix)

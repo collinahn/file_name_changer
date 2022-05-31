@@ -1,6 +1,7 @@
 # pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
+import time
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import (
     Qt,
@@ -19,6 +20,7 @@ from PyQt5.QtWidgets import (
     qApp
 )
 from lib.file_copy import BridgePhone
+from lib.progress_counter import ProgressSignalSingleton
 
 import lib.utils as utils
 import qWordBook as const
@@ -31,6 +33,7 @@ from lib.base_folder import WorkingDir
 from qMainWidget import GongikWidget
 from qVersionDialog import VersionDialog
 from qRestoreDialog import RestoreDialog
+from qWidgets.progress_display import ProgressWidgetThreaded4Start
 from lib.file_detect import (
     FileDetector, 
     LogFileDetector
@@ -41,8 +44,6 @@ from qDraggable import ( #custom qobjects
     QWidget,
 )
 from qDialog import (
-    ProgressDialog,
-    ProgressDialog4Start,
     InitInfoDialogue,
     FolderDialog
 )
@@ -57,7 +58,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.6.3'
+VERSION_INFO = '(release)gongik_v2.6.5'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -73,9 +74,10 @@ class Gongik(QMainWindow):
         self.log.INFO('')
 
 
-        self.progressDlg = ProgressDialog4Start('기본 정보를 가져오는 중')
-        self.progressDlg.show()
-        self.progressDlg.mark_progress(10)
+        self.progress_dlg = ProgressWidgetThreaded4Start()
+        self.progress_dlg.update(5, 'init')
+        self.progress_dlg.show()
+        self.progress_dlg.update(10, '기본 정보를 가져오는 중')
 
         super().__init__()
 
@@ -85,7 +87,7 @@ class Gongik(QMainWindow):
         self.exit_icon_path = utils.resource_path(const.IMG_EXIT)
         self.dev_icon_path = utils.resource_path(const.IMG_DEV)
 
-        self.progressDlg.mark_progress(20, '로딩 중')
+        self.progress_dlg.update(5, '위치를 탐색하는 중')
 
         self.folderDialog = FolderDialog() # 파일 경로 확인 다이얼로그
         self.folderDialog.exec_()
@@ -98,23 +100,20 @@ class Gongik(QMainWindow):
         self.clsFD = FileDetector(self.targetFolder.rel_path) # '.'는 초기 파일 체크용
         self.files = self.clsFD.file_list
 
-        self.progressDlg.mark_progress(30, '파일 검사 중')
+        self.progress_dlg.update(5, '파일 불러오는 중')
         
         if not self.files:
             self.log.WARNING('current folder empty')
             if not self._get_files_fm_phone():
                 sys.exit()
 
-        self.progressDlg.mark_progress(80, '파일 분석 중')
+        self.progress_dlg.update(10, '파일 분석 중')
 
         self._init_ui()
         self._init_main_widget()
         
-        self.progressDlg.mark_progress(100, '무결성 검사 중', True)
-
-        self.progressDlg.close()
-        del self.progressDlg
-
+        self.progress_dlg.update(10, '무결성 검사 중')
+        self.progress_dlg.close()
 
     def _init_main_widget(self):
         # 메인 위젯 설정
@@ -125,7 +124,7 @@ class Gongik(QMainWindow):
         failDlg = InitInfoDialogue(const.NO_FILE_INSTRUCTION, btn=('확인', '다음에'))
         failDlg.exec_()
 
-        self.progressDlg.show()
+        self.progress_dlg.show()
 
         if not failDlg.answer:
             QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
@@ -135,16 +134,13 @@ class Gongik(QMainWindow):
         clsBP = BridgePhone()
         self._handle_ADB_failure(clsBP)
 
-        self.progressDlg.mark_progress(50, '파일 복사 중')
+        self.progress_dlg.update(20, '파일 복사 중')
 
         if not clsBP.transfer_files():
             QMessageBox.information(self, 'TRANSFER_FAIL', const.MSG_INFO['TRANSFER_FAIL'])
             return False
         
-        self.progressDlg.mark_progress(70, '이상 감지 중')
-
-        # QMessageBox.information(self, 'TRANSFER_SUCCESS', const.MSG_INFO['TRANSFER_SUCCESS'])
-
+        self.progress_dlg.update(10, '이상 감지 중')
         return True
 
     def _handle_ADB_failure(self, clsBridgePhone: BridgePhone):
@@ -479,7 +475,7 @@ class ReportLogDialog(QDialog):
             TextAndBtnBoxLayout.addWidget(labelReport, btnIdx, 1)
             layout.addWidget(TextAndBtnBox)
 
-        self.pushBtnExit= QPushButton('취소')
+        self.pushBtnExit = QPushButton('취소')
         self.pushBtnExit.setFixedHeight(40)
         self.pushBtnExit.clicked.connect(self.onBtnExit)
 
@@ -491,7 +487,6 @@ class ReportLogDialog(QDialog):
 
     def onBtnSendLogFile(self, btn):
         target_log_file = f'{self.log_detector.log_file_dir}/{btn.text()}'
-        self.log.DEBUG(f'{btn.text()} btn clicked!')
         self.log.INFO(f'preparing to send {target_log_file}')
 
         sender = LogFileSender(target_log_file)
@@ -507,6 +502,7 @@ if __name__ == '__main__':
         ex = Gongik()
         sys.exit(app.exec_())
     except Exception as e:
+        Logger().CRITICAL(e)
         log_detector = LogFileDetector()
         sender = LogFileSender(f'{log_detector.log_file_dir}/gongik.log')
         sender.report()

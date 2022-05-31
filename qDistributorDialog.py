@@ -38,6 +38,9 @@ from lib.log_gongik import Logger
 from qDialog import InitInfoDialogue
 
 class DistributorDialog(QDialog):
+    '''
+    실행 초기 위치군 분배를 위해 실행되는 클래스
+    '''
     def __init__(self, parent = None):
         super(DistributorDialog, self).__init__(parent)
 

@@ -29,11 +29,8 @@ from qDraggable import ( #custom qobjects
     QMainWindow, 
     QWidget,
 )
-from qDialog import (
-    ProgressDialog,
-    InitInfoDialogue,
-    ProgressTimerDialog
-)
+from qDialog import InitInfoDialogue
+from qWidgets.progress_display import ProgressWidgetThreaded
 
 
 
@@ -106,10 +103,10 @@ class VersionDialog(QDialog):
         self.close()
 
     def onBtnDownload(self):
-        self.downProgressDlg = ProgressDialog('다운로드 요청을 보내는 중입니다.\n다운로드가 끝나면 알려드립니다.')
-        self.downProgressDlg.show()
-        self.downProgressDlg.raise_()
-        self.downProgressDlg.mark_progress(30)
+        self.down_progress_dlg = ProgressWidgetThreaded()
+        self.down_progress_dlg.show()
+        self.down_progress_dlg.raise_()
+        self.down_progress_dlg.update(20, '다운로드 요청 보내는 중')
         
         self.request_new_file(self.clsVI.url_download_exe)
 
@@ -124,25 +121,22 @@ class VersionDialog(QDialog):
 
     @pyqtSlot(QNetworkReply)
     def onFinishedNetManager(self, reply): 
-        self.downProgressDlg.mark_progress(50, '서버로부터 파일 다운로드 중')
+        self.down_progress_dlg.update(50, '서버로부터 파일 받는 중')
 
         target = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
         if reply.error():
             self.log.ERROR(reply.errorString())
-            self.downProgressDlg.close()
+            self.down_progress_dlg.close()
             InitInfoDialogue('서버의 문제로 다운로드가 실패하였습니다. 다시 시도해 주세요.', ('나가기', )).exec_()
             return
 
         byteStr = reply.readAll()
-        self.downProgressDlg.mark_progress(80, '파일 저장 중')
+        self.down_progress_dlg.update(30, '파일 저장 중')
         
         self.clsVI.write_latest_version(byteStr)
         self.log.INFO(len(byteStr), 'byte downloaded')
         self.log.INFO('download complete')
-        self.downProgressDlg.mark_progress(100)
-
-
-        self.downProgressDlg.close()
+        self.down_progress_dlg.close()
         finishInfo = InitInfoDialogue(f'현재 폴더에 다운로드가 완료되었습니다.\n({utils.extract_dir()})', ('예', ))
         finishInfo.exec_() 
 
@@ -151,6 +145,10 @@ class VersionDialog(QDialog):
 
 
 if __name__ == '__main__':
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineView, 
+        QWebEnginePage,
+    )
     app = QApplication(sys.argv)
 
     VersionDialog().exec_()
