@@ -2,14 +2,13 @@
 
 from threading import Thread
 
-
-
 from lib.check_online import ConnectionCheck
 from lib.log_gongik import Logger
 from lib.meta_data import GPSInfo
 from lib.local_db_gps import LocalDB
 from lib.reverse_geocode import LocationRequest #온라인 체크
 from lib.file_property import FileProp
+from qWrapper import elapsed
 
 
 class LocationInfo(object):
@@ -53,29 +52,35 @@ class LocationInfo(object):
 
 
     # TODO: 적당한 수의 스레드로 나눈다
-    def run_thread_get_name(self) -> dict:
+    @elapsed
+    def run_thread_get_name(self):
+        db_thread = Thread(target=self._get_db_addr_fm_coord)
+        db_thread.start()
+        self.log.INFO('db thread started')
+        
         clsO = ConnectionCheck()
         online = clsO.check_online()
         
-        lstThreads = [
+        lst_threads_api = [
             Thread(target=self._get_api_addr_fm_coord, args=(orginName, tplGPS4API))
             for orginName, tplGPS4API in self._dctName2GPS4API.items()
         ] if online else []
 
-        lstThreads.append(Thread(target=self._get_db_addr_fm_coord))
+        for api_threads in lst_threads_api:
+            api_threads.start()
 
-        for thread in lstThreads:
-            thread.start()
+        self.log.INFO('api threads started')
 
-        self.log.INFO('threads started')
-
-
-        for thread in lstThreads:
+        for api_threads in lst_threads_api:
             try:
-                thread.join()
+                api_threads.join()
             except Exception as e:
                 self.log.CRITICAL(e, '/ caught error while joining')
 
+        try:
+            db_thread.join()
+        except Exception as e:
+            self.log.CRITICAL(e, '/ caught error while joining')
 
 if __name__ == '__main__':
     import time
