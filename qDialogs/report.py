@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import (
     QPushButton, 
     QAbstractButton,
     QGroupBox,
+    QButtonGroup
+
 )
 
 import lib.utils as utils
@@ -49,7 +51,8 @@ class ReportLogDialog(QDialog):
 
         layout = QGridLayout()
         self.setLayout(layout)
-
+        
+        self.buttonGroup = QButtonGroup()
         self.buttonGroup.buttonClicked[QAbstractButton].connect(self.onBtnSendLogFile)
         for btnIdx, log in enumerate(self.log_files): # 1칸 = 같은 위치 사진들 깔아놓기
 
