@@ -6,10 +6,10 @@ from pyproj import Proj
 from pyproj import transform
 from functools import partial
 
-from . import utils
-from .log_gongik import Logger
-from .file_detect import FileDetector
-from .file_property import FileProp
+import lib.utils as utils
+from lib.log_gongik import Logger
+from lib.file_detect import FileDetector
+from lib.file_property import FileProp
 
 class MetaData(object):
     def __new__(cls, *args):

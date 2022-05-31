@@ -4,8 +4,8 @@
 from PIL import Image 
 import pytesseract
 
-from . import utils
-from .log_gongik import Logger
+import lib.utils as utils
+from lib.log_gongik import Logger
 
 pytesseract.pytesseract.tesseract_cmd = rf'{utils.resource_path("")}tesseract-ocr\tesseract.exe'
 

@@ -2,15 +2,14 @@
 
 import json
 import requests
-import asyncio
 from requests.exceptions import (
     ConnectionError,
     Timeout,
     HTTPError,
 )
 
-from .log_gongik import Logger
-from .__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
+from lib.log_gongik import Logger
+from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
 from qWrapper import elapsed
 
 class VersionTeller(object):

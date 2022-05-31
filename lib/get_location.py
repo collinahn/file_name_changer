@@ -4,12 +4,12 @@ from threading import Thread
 
 
 
-from .check_online import ConnectionCheck
-from .log_gongik import Logger
-from .meta_data import GPSInfo
-from .local_db_gps import LocalDB
-from .reverse_geocode import LocationRequest #온라인 체크
-from .file_property import FileProp
+from lib.check_online import ConnectionCheck
+from lib.log_gongik import Logger
+from lib.meta_data import GPSInfo
+from lib.local_db_gps import LocalDB
+from lib.reverse_geocode import LocationRequest #온라인 체크
+from lib.file_property import FileProp
 
 
 class LocationInfo(object):
@@ -80,7 +80,7 @@ class LocationInfo(object):
 if __name__ == '__main__':
     import time
     now = time.time()
-    n = LocationInfo()
+    n = LocationInfo('.')
     # elapsedTime = time.time() - now
 
     # print(f'{elapsedTime = }')

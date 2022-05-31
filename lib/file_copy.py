@@ -3,13 +3,11 @@
 
 import contextlib
 import subprocess
-import os
-import ctypes
 from ppadb.client import Client as AdbClient
 
-from . import utils
-from .log_gongik import Logger
-from .base_folder import WorkingDir
+import lib.utils as utils
+from lib.log_gongik import Logger
+from lib.base_folder import WorkingDir
 
 class BridgePhone(object):
     def __init__(self):

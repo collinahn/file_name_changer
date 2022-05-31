@@ -1,7 +1,7 @@
 import socket
 from threading import Lock
 
-from .log_gongik import Logger
+from lib.log_gongik import Logger
 
 class ConnectionCheck(object):
     lock = Lock()

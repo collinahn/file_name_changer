@@ -70,11 +70,11 @@ def open_image(filePath) -> Image:
     try:
         image = Image.open(filePath)
     except UnidentifiedImageError as ue:
-        from .log_gongik import Logger
+        from lib.log_gongik import Logger
         Logger().ERROR('Unidentified Image', ue)
         return None
     except Exception as e:
-        from .log_gongik import Logger
+        from lib.log_gongik import Logger
         Logger().ERROR('Unexpected Error', e)
         return None
 

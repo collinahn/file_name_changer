@@ -5,7 +5,7 @@ import copy
 
 import qWordBook as const
 from lib.file_property import FileProp
-from .log_gongik import Logger
+from lib.log_gongik import Logger
 
 
 class NameChanger(object):

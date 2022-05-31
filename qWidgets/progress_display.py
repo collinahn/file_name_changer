@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import (
     QApplication,
     QBoxLayout,
     QLabel,
-    QPushButton,
-    QDesktopWidget
 )
 from PyQt5.QtCore import (
     Qt,
@@ -18,7 +16,6 @@ from PyQt5.QtCore import (
     QMutex,
     pyqtSlot,
 )
-from PyQt5 import QtGui
 from PyQt5.QtGui import QIcon
 
 import qWordBook as const

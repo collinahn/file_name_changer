@@ -8,7 +8,7 @@ from requests.exceptions import (
 
 from lib.json_parser import TextParser
 from lib.log_gongik import Logger
-from .__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
+from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
 
 class LogFileSender(object):
     def __init__(self, target_file_dir: str) -> None:

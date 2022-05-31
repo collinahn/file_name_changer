@@ -9,9 +9,9 @@ from requests.exceptions import (
     HTTPError,
 )
 
-from .__PRIVATE import API_KEY
-from .log_gongik import Logger
-from .meta_data import GPSInfo
+from lib.__PRIVATE import API_KEY
+from lib.log_gongik import Logger
+from lib.meta_data import GPSInfo
 
 
 class LocationRequest(object):

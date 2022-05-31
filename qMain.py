@@ -19,14 +19,12 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     qApp
 )
-from lib.file_copy import BridgePhone
-from lib.progress_counter import ProgressSignalSingleton
 
 import lib.utils as utils
 import qWordBook as const
+from lib.file_copy import BridgePhone
 from lib.file_property import FileProp
 from lib.queue_order import MstQueue
-from lib.version_info import VersionTeller
 from lib.send_file import LogFileSender
 from lib.log_gongik import Logger
 from lib.base_folder import WorkingDir
@@ -47,10 +45,6 @@ from qDialog import (
     InitInfoDialogue,
     FolderDialog
 )
-from qWrapper import (
-    catch_except,
-    elapsed
-)
 
 '''
 exe 빌드하기
@@ -58,7 +52,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.6.5'
+VERSION_INFO = '(release)gongik_v2.6.6'
 
 class Gongik(QMainWindow):
     def __init__(self):

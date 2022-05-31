@@ -7,9 +7,9 @@ from datetime import (
     timedelta
 )
 
-from .log_gongik import Logger
+import lib.utils as utils
 import qWordBook as const
-from . import utils
+from lib.log_gongik import Logger
 
 class FileProp(object):
     _setInstance4Init = set()

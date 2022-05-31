@@ -4,19 +4,11 @@ from dataclasses import (
     dataclass,
     field
 )
-
-
-class MetaSingleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
+from lib.meta_classes import MetaSingletonThreaded
 
 
 @dataclass(frozen=True)
-class WorkingDir(metaclass=MetaSingleton):
+class WorkingDir(metaclass=MetaSingletonThreaded):
     abs_path: str = field(default_factory='')
     rel_path: str = field(default_factory='')
 

@@ -1,8 +1,8 @@
 # 순서에 관여하는 클래스
 
-from . import utils
-from .log_gongik import Logger
-from .file_property import FileProp
+import lib.utils as utils
+from lib.log_gongik import Logger
+from lib.file_property import FileProp
 
 
 class QueueReadOnly(object):
