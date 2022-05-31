@@ -50,7 +50,7 @@ pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
-VERSION_INFO = '(release)gongik_v2.6.6'
+VERSION_INFO = '(release)gongik_v2.6.7'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -89,8 +89,8 @@ class Gongik(QMainWindow):
         )
         self.log.INFO(f'{self.targetFolder = }')
 
-        self.clsFD = FileDetector(self.targetFolder.rel_path) # '.'는 초기 파일 체크용
-        self.files = self.clsFD.file_list
+        self.file_detector = FileDetector(self.targetFolder.rel_path) # '.'는 초기 파일 체크용
+        self.files = self.file_detector.file_list
 
         self.progress_dlg.update(5, '파일 불러오는 중')
         
@@ -122,27 +122,31 @@ class Gongik(QMainWindow):
             QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
             return False
 
-        from lib.file_copy import BridgePhone
-        clsBP = BridgePhone()
-        self._handle_ADB_failure(clsBP)
+        adb_connect = BridgePhone()
+        self._handle_ADB_failure(adb_connect)
 
-        self.progress_dlg.update(20, '파일 복사 중')
+        self.progress_dlg.update(20, f'{len(adb_connect.files)}개의 파일 복사 중')
 
-        if not clsBP.transfer_files():
-            QMessageBox.information(self, 'TRANSFER_FAIL', const.MSG_INFO['TRANSFER_FAIL'])
+        if not adb_connect.transfer_files():
+            QMessageBox.information(self, 'TRANSFER_FAILURE', const.MSG_INFO['TRANSFER_FAILURE'])
+            self.progress_dlg.update(10, '다시 시도 중')
+            if adb_connect.transfer_files(): # 현재는 객체 재활용, 안먹히면 다시 생성
+                InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_SUCCESS', 'TRANSFER_RETRY_SUCCESS'), ('확인',)).exec_()
+                return True
+            InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_FAILURE', 'TRANSFER_RETRY_FAILURE'), ('확인', )).exec_()
             return False
         
-        self.progress_dlg.update(10, '이상 감지 중')
+        self.progress_dlg.update(10, '파일 검사 중')
         return True
 
-    def _handle_ADB_failure(self, clsBridgePhone: BridgePhone):
-        if not clsBridgePhone.connected:
+    def _handle_ADB_failure(self, adb_conn: BridgePhone):
+        if not adb_conn.connected:
             self._pop_warn_msg('CONNECTION_ERROR')
 
-        if not clsBridgePhone.executable:
+        if not adb_conn.executable:
             self._pop_warn_msg('MULTI_CONNECTION_ERROR')
 
-        if not clsBridgePhone.files:
+        if not adb_conn.files:
             self._pop_warn_msg('EMPTY_FILE_ERROR')
 
 
