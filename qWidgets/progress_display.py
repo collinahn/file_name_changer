@@ -40,7 +40,7 @@ class ProgressCounterThead(QThread):
         self.cond = QWaitCondition()
         self.mutex = QMutex()
         self._pusher = ProgressSignalSingleton()
-        self._status = True
+        self._status = False # 처음엔 대기
         self._cnt = 0
 
     def __del__(self):
@@ -78,7 +78,6 @@ class ProgressWidgetThreaded(QWidget):
 
         self.init_widget()
         self.counter_thread.start()
-        self.counter_thread.toggle_status()
         self.counter_thread.counter_value.connect(self.update_progress)
         self.counter_thread.hint_value.connect(self.update_hint)
         self.log.INFO('counter thread start')

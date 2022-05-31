@@ -7,29 +7,27 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import (
     QApplication, 
-    QGridLayout, 
-    QLabel, 
     QAction,
     QMessageBox, 
-    QPushButton, 
     QDesktopWidget,
-    QButtonGroup,
-    QAbstractButton,
-    QGroupBox,
     qApp
 )
 
 import lib.utils as utils
 import qWordBook as const
 from lib.file_copy import BridgePhone
-from lib.file_property import FileProp
-from lib.queue_order import MstQueue
 from lib.send_file import LogFileSender
 from lib.log_gongik import Logger
 from lib.base_folder import WorkingDir
 from qWidgets.main_widget import GongikWidget
 from qDialogs.version import VersionDialog
 from qDialogs.restore import RestoreDialog
+from qDialogs.info_dialog import InitInfoDialogue
+from qDialogs.folder_dialog import FolderDialog
+from qDialogs.developer import DeveloperInfoDialog
+from qDialogs.recommend import RecommendDialog
+from qDialogs.report import ReportLogDialog
+from qDialogs.summary import AddrInfoDialog
 from qWidgets.progress_display import ProgressWidgetThreaded4Start
 from lib.file_detect import (
     FileDetector, 
@@ -40,8 +38,7 @@ from qDraggable import ( #custom qobjects
     QMainWindow, 
     QWidget,
 )
-from qDialogs.info_dialog import InitInfoDialogue
-from qDialogs.folder_dialog import FolderDialog
+from qWordBook import VERSION_INFO
 
 
 '''
@@ -49,8 +46,6 @@ exe 빌드하기
 pyinstaller -F --clean qMain.spec
 pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
-
-VERSION_INFO = '(release)gongik_v2.6.7'
 
 class Gongik(QMainWindow):
     def __init__(self):
@@ -222,10 +217,7 @@ class Gongik(QMainWindow):
         self.show()
 
     def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        self.move(QApplication.desktop().screen().rect().center() - self.rect().center())
 
     def onModalRestore(self):
         rdlg = RestoreDialog()
@@ -250,246 +242,6 @@ class Gongik(QMainWindow):
     def onReportRecentLog(self):
         rllg = ReportLogDialog()
         rllg.exec_()
-
-class DeveloperInfoDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Developer Info Dialog')
-
-        self.title = '프로그램 정보'
-        self.iconPath = utils.resource_path(const.IMG_DEV)
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-
-        lVersion = QLabel('버전:')
-        lVersionInfo = QLabel(f'{VERSION_INFO}')
-        lDeveloper = QLabel('개발자:')
-        lDeveloperInfo = QLabel('안태영(Collin Ahn)')
-        lSourceCode = QLabel('소스코드:')
-        lSourceCodeUrl = QLabel('https://github.com/collinahn/file_name_changer')
-        lContact = QLabel('연락처:')
-        lContactInfo = QLabel('collinahn@gmail.com')
-        lRef = QLabel('참고사항:')
-        lRefInfo = QLabel(const.PROGRAM_INFO)
-        lLicense = QLabel('License:')
-        lLicenseInfo = QLabel('MIT License \nCopyright (c) 2021 Collin Ahn')
-
-        
-        self.pushBtnExit= QPushButton('확인')
-        self.pushBtnExit.clicked.connect(self.onBtnClicked)
-
-        lVersion.setAlignment(Qt.AlignTop)
-        lDeveloper.setAlignment(Qt.AlignTop)
-        lSourceCode.setAlignment(Qt.AlignTop)
-        lContact.setAlignment(Qt.AlignTop)
-        lRef.setAlignment(Qt.AlignTop)
-        lLicense.setAlignment(Qt.AlignTop)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(lVersion, 0, 0)
-        layout.addWidget(lVersionInfo, 0, 1)
-        layout.addWidget(lDeveloper, 1, 0)
-        layout.addWidget(lDeveloperInfo, 1, 1)
-        layout.addWidget(lSourceCode, 2, 0)
-        layout.addWidget(lSourceCodeUrl, 2, 1)
-        layout.addWidget(lContact, 3, 0)
-        layout.addWidget(lContactInfo, 3, 1)
-        layout.addWidget(lRef, 4, 0)
-        layout.addWidget(lRefInfo, 4, 1)
-        layout.addWidget(lLicense, 5, 0)
-        layout.addWidget(lLicenseInfo, 5, 1)
-        layout.addWidget(self.pushBtnExit, 5, 2)
-
-    def onBtnClicked(self):
-        self.log.INFO('Developer Info Dialog closed')
-        self.close()
-
-
-class AddrInfoDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Addr Info Dialog')
-
-        self.title = '사진 상세'
-        self.iconPath = utils.resource_path(const.IMG_FROG)
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-
-        mq = MstQueue()
-
-        lstNameAddrTime = [(
-            QLabel(' 파일 이름'), 
-            QLabel(' 도로명 주소'),
-            QLabel(' 지번 주소'),
-            QLabel(' '),
-            QLabel('처리 위치'), 
-            QLabel('촬영 시각'), 
-            QLabel('최종 이름'),
-            QLabel('현재 커서'))]
-        for label in lstNameAddrTime[-1]:
-            label.setAlignment(Qt.AlignCenter)
-
-        # QLabel 객체 삽입
-        for name in FileProp.get_names():
-            fProp = FileProp(name)
-            lstNameAddrTime.append((
-                QLabel(f'{fProp.name}'),
-                QLabel(f'{fProp.locationFmDB}'),
-                QLabel(f'{fProp.locationFmAPI}'),
-                QLabel('->'),
-                QLabel(f'{fProp._locationDB}'),
-                QLabel(f'{fProp.time.strftime("%Y-%m-%d %H:%M:%S")}'),
-                QLabel(f'{fProp.final_full_name}'),
-                QLabel('<<') if mq.current_preview.current_preview.name == fProp.name else QLabel('')
-            ))
-            
-        lstNameAddrTime.sort(key=lambda x: x[1].text()) #주소 기준 정렬
-
-        # 확인버튼
-        self.pushButton1= QPushButton('확인')
-        self.pushButton1.clicked.connect(self.onBtnClicked)
-
-        layout = QGridLayout()
-
-        for gridLoc, tplNameAddrTime in enumerate(lstNameAddrTime):
-            for idx, data in enumerate(tplNameAddrTime):
-                layout.addWidget(data, gridLoc, idx)
-
-        layout.addWidget(self.pushButton1, len(lstNameAddrTime)+1, 0, -1, -1)
-
-        self.setLayout(layout)
-
-    def onBtnClicked(self):
-        self.log.INFO('Addr Info Dialog closed')
-        self.close()
-
-
-class RecommendDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Recommend Dialog')
-
-        self.title = '텍스트 추천'
-        self.iconPath = utils.resource_path(const.IMG_DEV)
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-
-        mq = MstQueue()
-        fProp = mq.current_preview.current_preview
-
-        # from lib.file_translate import ImageOCR
-
-        labelName = QLabel('파일 이름')
-        labelName.setAlignment(Qt.AlignTop)
-        dataName = QLabel(f'{fProp.name}')
-        labelTxt = QLabel('추출 텍스트:')
-        labelTxt.setAlignment(Qt.AlignTop)
-        # dataTxt = QLabel(f'{ImageOCR(fProp.name).text}')
-        dataTxt = QLabel('개발 중인 기능입니다.')
-
-        self.pushBtnExit= QPushButton('확인')
-        self.pushBtnExit.clicked.connect(self.onBtnClicked)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-        layout.addWidget(labelName, 0, 0)
-        layout.addWidget(dataName, 0, 1)
-        layout.addWidget(labelTxt, 1, 0)
-        layout.addWidget(dataTxt, 1, 1)
-        layout.addWidget(self.pushBtnExit, 4, 2)
-
-    def onBtnClicked(self):
-        self.log.INFO('Recommend Dialog closed')
-        self.close()
-
-
-class ReportLogDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.log = Logger()
-        self.log.INFO('Report Logfile Dialog')
-
-        self.title = '오류 보고'
-        self.iconPath = utils.resource_path(const.IMG_DEV)
-
-        self.log_detector = LogFileDetector()
-        self.log_files = self.log_detector.file_list
-
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(self.iconPath))
-        self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-
-        layout = QGridLayout()
-        self.setLayout(layout)
-
-        self.buttonGroup = QButtonGroup() #버튼들 추적
-        self.buttonGroup.buttonClicked[QAbstractButton].connect(self.onBtnSendLogFile)
-        for btnIdx, log in enumerate(self.log_files): # 1칸 = 같은 위치 사진들 깔아놓기
-
-            TextAndBtnBox = QGroupBox()
-            TextAndBtnBoxLayout = QGridLayout()
-            TextAndBtnBox.setLayout(TextAndBtnBoxLayout)
-
-            labelReport = QLabel('보고하기')
-
-            btnSendLogFile = QPushButton(log)
-            self.buttonGroup.addButton(btnSendLogFile, btnIdx)
-            btnSendLogFile.setFixedWidth(100)
-            btnSendLogFile.setFixedHeight(40)
-            
-            TextAndBtnBoxLayout.addWidget(btnSendLogFile, btnIdx, 0)
-            TextAndBtnBoxLayout.addWidget(labelReport, btnIdx, 1)
-            layout.addWidget(TextAndBtnBox)
-
-        self.pushBtnExit = QPushButton('취소')
-        self.pushBtnExit.setFixedHeight(40)
-        self.pushBtnExit.clicked.connect(self.onBtnExit)
-
-        layout.addWidget(self.pushBtnExit, 11, 0)
-
-    def onBtnExit(self):
-        self.log.INFO('Report Logfile Dialog closed')
-        self.close()
-
-    def onBtnSendLogFile(self, btn):
-        target_log_file = f'{self.log_detector.log_file_dir}/{btn.text()}'
-        self.log.INFO(f'preparing to send {target_log_file}')
-
-        sender = LogFileSender(target_log_file)
-        if sender.report():
-            InitInfoDialogue('성공', ('확인',)).exec_()
-        else:
-            InitInfoDialogue('로그 전송에 실패하였습니다.', ('다시시도',)).exec_()
 
 
 if __name__ == '__main__':

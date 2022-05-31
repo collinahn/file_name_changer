@@ -10,6 +10,7 @@ from requests.exceptions import (
 
 from lib.log_gongik import Logger
 from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
+from qWordBook import VERSION_INFO
 from qWrapper import elapsed
 
 class VersionTeller(object):
@@ -56,7 +57,6 @@ class VersionTeller(object):
 
     @property
     def is_latest(self) -> bool:
-        from qMain import VERSION_INFO
         self.log.INFO(f'checking current version {VERSION_INFO} and new version from server {self.new_version}')
         return self.new_version == VERSION_INFO
     

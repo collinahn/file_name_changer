@@ -31,6 +31,7 @@ from qDraggable import ( #custom qobjects
 )
 from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
+from qWordBook import VERSION_INFO
 
 
 
@@ -58,7 +59,6 @@ class VersionDialog(QDialog):
         self.setWindowIcon(QIcon(self.iconPath))
         self.setStyleSheet(const.QSTYLE_SHEET_POPUP)
         self.setWindowFlags(Qt.FramelessWindowHint)
-        from qMain import VERSION_INFO
 
         currentVersion_a = QLabel('현재 버전:')
         currentVersion_a.setAlignment(Qt.AlignTop)
@@ -106,7 +106,7 @@ class VersionDialog(QDialog):
         self.down_progress_dlg = ProgressWidgetThreaded()
         self.down_progress_dlg.show()
         self.down_progress_dlg.raise_()
-        self.down_progress_dlg.update(20, '다운로드 요청 보내는 중')
+        self.down_progress_dlg.update(18, '다운로드 요청 보내는 중')
         
         self.request_new_file(self.clsVI.url_download_exe)
 
@@ -121,7 +121,7 @@ class VersionDialog(QDialog):
 
     @pyqtSlot(QNetworkReply)
     def onFinishedNetManager(self, reply): 
-        self.down_progress_dlg.update(50, '서버로부터 파일 받는 중')
+        self.down_progress_dlg.update(40, '서버로부터 파일 받는 중')
 
         target = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
         if reply.error():
@@ -131,7 +131,7 @@ class VersionDialog(QDialog):
             return
 
         byteStr = reply.readAll()
-        self.down_progress_dlg.update(30, '파일 저장 중')
+        self.down_progress_dlg.update(39, '파일 저장 중')
         
         self.clsVI.write_latest_version(byteStr)
         self.log.INFO(len(byteStr), 'byte downloaded')

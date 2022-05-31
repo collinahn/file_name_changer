@@ -5,7 +5,7 @@ from scp import SCPClient, SCPException
 import getpass 
 import os
 
-from qMain import VERSION_INFO
+from qWordBook import VERSION_INFO
 from lib.__PRIVATE import IP, PORT_SSH
 
 class SSHManager:
