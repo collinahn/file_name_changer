@@ -35,7 +35,7 @@ from lib.queue_order import (
     PropsQueue
 )
 from lib.log_gongik import Logger
-from qDialog import InitInfoDialogue
+from qDialogs.info_dialog import InitInfoDialogue
 
 class DistributorDialog(QDialog):
     '''

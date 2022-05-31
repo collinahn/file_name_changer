@@ -26,7 +26,7 @@ from lib.file_property import FileProp
 from lib.file_detect import BackupFileDetector
 from lib.restore_result import BackupRestore
 from lib.log_gongik import Logger
-from qDialog import InitInfoDialogue
+from qDialogs.info_dialog import InitInfoDialogue
 from qDraggable import (
     QDialog,
 )

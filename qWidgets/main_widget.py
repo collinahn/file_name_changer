@@ -44,8 +44,8 @@ from lib.meta_data import (
     TimeInfo
 )
 from lib.restore_result import BackupRestore
-from qDistributorDialog import DistributorDialog
-from qDialog import InitInfoDialogue
+from qDialogs.distributor import DistributorDialog
+from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
 from qWidgets.web_engine import QWebEngineInstalled
 

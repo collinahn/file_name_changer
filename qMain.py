@@ -1,7 +1,6 @@
 # pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
 
 import sys
-import time
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import (
     Qt,
@@ -28,9 +27,9 @@ from lib.queue_order import MstQueue
 from lib.send_file import LogFileSender
 from lib.log_gongik import Logger
 from lib.base_folder import WorkingDir
-from qMainWidget import GongikWidget
-from qVersionDialog import VersionDialog
-from qRestoreDialog import RestoreDialog
+from qWidgets.main_widget import GongikWidget
+from qDialogs.version import VersionDialog
+from qDialogs.restore import RestoreDialog
 from qWidgets.progress_display import ProgressWidgetThreaded4Start
 from lib.file_detect import (
     FileDetector, 
@@ -41,10 +40,9 @@ from qDraggable import ( #custom qobjects
     QMainWindow, 
     QWidget,
 )
-from qDialog import (
-    InitInfoDialogue,
-    FolderDialog
-)
+from qDialogs.info_dialog import InitInfoDialogue
+from qDialogs.folder_dialog import FolderDialog
+
 
 '''
 exe 빌드하기

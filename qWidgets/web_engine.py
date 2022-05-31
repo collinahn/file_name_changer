@@ -29,7 +29,7 @@ import json
 
 import lib.utils as utils
 import qWordBook as const
-from qDialog import InitInfoDialogue
+from qDialogs.info_dialog import InitInfoDialogue
 from lib.queue_order import MstQueue, PropsQueue
 from lib.log_gongik import Logger
 from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY

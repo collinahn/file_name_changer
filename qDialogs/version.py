@@ -29,7 +29,7 @@ from qDraggable import ( #custom qobjects
     QMainWindow, 
     QWidget,
 )
-from qDialog import InitInfoDialogue
+from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
 
 
