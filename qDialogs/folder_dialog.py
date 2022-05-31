@@ -13,6 +13,8 @@ from PyQt5.QtGui import QIcon
 
 import lib.utils as utils
 from lib.log_gongik import Logger
+from lib.path_finder import PathFinder
+from qDialogs.restore import RestoreDialog
 from qDraggable import (
     QMainWindow,
     QDialog, 
@@ -30,11 +32,10 @@ class FolderDialog(QDialog):
         self.title = '알림'
         self.iconPath = utils.resource_path('img/developer.ico')
 
-        sep = '.'
-        self.date = utils.get_today_date_formated(sep)
-        year, month, day = self.date.split(sep)
+        self.date = utils.get_today_date_formated('-')
 
-        self.path = utils.extract_dir()
+        path_finder = PathFinder()
+        self.path = path_finder.path_2nd
         self.setup_ui()
 
         self.proceed = False
@@ -55,11 +56,9 @@ class FolderDialog(QDialog):
 
         self.labelDisplayDate = QLabel(self.date)
 
-        currentDir = utils.extract_dir() # TODO: 초기값은 현재 폴더
-        self.btnDirectory = QPushButton(currentDir)
+        self.btnDirectory = QPushButton(self.path)
         self.btnDirectory.clicked.connect(self.onBtnPushDir)
 
-        #TODO: 여기에 복원모드로 여는 체크박스 
         self.checkboxRestoreMode = QCheckBox('복구모드 열기')
         self.checkboxRestoreMode.stateChanged.connect(self.onStateChangeRestoreMode)
 
@@ -82,7 +81,7 @@ class FolderDialog(QDialog):
     def onBtnPushDir(self):
         self.log.INFO('dir clicked')
 
-        self.path = str(QFileDialog.getExistingDirectory(self, "폴더를 선택하세요")) or self.path
+        self.path = str(QFileDialog.getExistingDirectory(self, "폴더를 선택하세요", directory=self.path)) or self.path
         self.log.INFO(f'path selected = {self.path}')
 
         self.btnDirectory.setText(self.path)
@@ -101,7 +100,6 @@ class FolderDialog(QDialog):
             self.close()
             return
 
-        from qDialogs.restore import RestoreDialog
         rdlg = RestoreDialog()
         rdlg.exec_()
         

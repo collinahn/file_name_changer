@@ -13,6 +13,12 @@ def get_today_date_formated(separator:str=None) -> str:
         separator = ""
     return datetime.now().strftime(f'%Y{separator}%m{separator}%d')
 
+def get_year_month_day() -> tuple[str, str, str]:
+    sep = '-'
+    date = get_today_date_formated(sep)
+    year, month, day = date.split(sep)
+    return year, str(int(month)), str(int(day))
+
 # 취급하는 파일 확장자 표시
 def get_valid_file_ext():
     return ( r'.jpg', r'.jpeg' )
