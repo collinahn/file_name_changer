@@ -37,7 +37,7 @@ USE_ROAD = 1
 USE_NORMAL = 2
 
 
-#QMessageBox Msg
+#Interact Msg
 MSG_INFO = {
     'COMPLETE':'처리가 완료되었습니다.',
     'SOF':'시작 장소입니다.',

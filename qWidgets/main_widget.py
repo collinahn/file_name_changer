@@ -79,12 +79,12 @@ class GongikWidget(QWidget):
         # FileProp.debug_info()
 
         self.masterQueue = MstQueue() # 위치에 따라 큐를 생성하고 초기화시 자기자신에 삽입
-        self.currentLoc: PropsQueue = self.masterQueue.current_preview
+        self.current_loc: PropsQueue = self.masterQueue.current_preview
 
         self._use_name:int = const.USE_ROAD # 도로명주소 우선
 
         self._init_ui()
-        self._refresh_widget(self.currentLoc.current_preview)
+        self._refresh_widget(self.current_loc.current_preview)
 
         timer = QTimer(self)
         timer.timeout.connect(self.onTimerFlash)
@@ -127,14 +127,14 @@ class GongikWidget(QWidget):
         self.radioGroupBox.setLayout(self.radioBoxLayout)
 
         txtRadioBtn = [
-            f'정비 전\n({const.MSG_SHORTCUT["BEFORE_FIX"]})', 
-            f'정비 후\n({const.MSG_SHORTCUT["AFTER_FIX"]})',
-            f'안내장\n({const.MSG_SHORTCUT["ATTACH_FLYER"]})',
-            f'1차계고장\n({const.MSG_SHORTCUT["WARN_1ST"]})',
-            f'2차계고장\n({const.MSG_SHORTCUT["WARN_2ST"]})',
-            f'수거 전\n({const.MSG_SHORTCUT["BEFORE_FETCH"]})',
-            f'수거 후\n({const.MSG_SHORTCUT["AFTER_FETCH"]})',
-            f'지정안함\n({const.MSG_SHORTCUT["SET_NONE"]})'
+            f'정비 전\n({const.MSG_SHORTCUT.get("BEFORE_FIX")})',
+            f'정비 후\n({const.MSG_SHORTCUT.get("AFTER_FIX")})',
+            f'안내장\n({const.MSG_SHORTCUT.get("ATTACH_FLYER")})',
+            f'1차계고\n({const.MSG_SHORTCUT.get("WARN_1ST")})',
+            f'2차계고\n({const.MSG_SHORTCUT.get("WARN_2ST")})',
+            f'수거 전\n({const.MSG_SHORTCUT.get("BEFORE_FETCH")})',
+            f'수거 후\n({const.MSG_SHORTCUT.get("AFTER_FETCH")})',
+            f'지정안함\n({const.MSG_SHORTCUT.get("SET_NONE")})',
         ]
         self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FIX', 0)
         self.radioBtnAfter = self._make_suffix_radio_btn(txtRadioBtn, 'AFTER_FIX', 1)
@@ -147,9 +147,9 @@ class GongikWidget(QWidget):
         self.radioBtnDefault.setChecked(True)
         self.radioBoxLayout.addStretch()
 
-        self.btnPreviousAddr = QPushButton(f'이전 장소 보기\n({const.MSG_SHORTCUT["BACKWARD"]})')
-        self.btnPreviousAddr.setShortcut(const.MSG_SHORTCUT['BACKWARD'])
-        self.btnPreviousAddr.setToolTip(const.MSG_TIP['BACKWARD'])
+        self.btnPreviousAddr = QPushButton(f'이전 장소 보기\n({const.MSG_SHORTCUT.get("BACKWARD")})')
+        self.btnPreviousAddr.setShortcut(const.MSG_SHORTCUT.get('BACKWARD'))
+        self.btnPreviousAddr.setToolTip(const.MSG_TIP.get('BACKWARD', 'BACKWARD'))
         self.btnPreviousAddr.clicked.connect(self.onBtnShowPrevAddr)
         self.mainWidgetLayout.addWidget(self.btnPreviousAddr, 2, 0)
 
@@ -188,14 +188,14 @@ class GongikWidget(QWidget):
         self.picPreview = QLabel('Pixmap preview')
         self.picPreview.resize(540, 540)
         self.picPreview.setAlignment(Qt.AlignCenter)
-        self.picPreview.setPixmap(QPixmap(self.currentLoc.current_preview.abs_path).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
-        self.picPreview.setToolTip(const.MSG_TIP['PHOTO'])
+        self.picPreview.setPixmap(QPixmap(self.current_loc.current_preview.abs_path).scaled(1280//2, 720//2))#, Qt.KeepAspectRatio))
+        self.picPreview.setToolTip(const.MSG_TIP.get('PHOTO', 'PHOTO'))
         self.picPreview.mouseDoubleClickEvent = self.onClickShowImage
         self.mainWidgetLayout.addWidget(self.picPreview, 2, 2, 3, 1)
 
-        self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT["FORWARD"]})')
-        self.btnNextAddr.setShortcut(const.MSG_SHORTCUT['FORWARD'])
-        self.btnNextAddr.setToolTip(const.MSG_TIP['FORWARD'])
+        self.btnNextAddr = QPushButton(f'다음 장소 보기\n({const.MSG_SHORTCUT.get("FORWARD")})')
+        self.btnNextAddr.setShortcut(const.MSG_SHORTCUT.get('FORWARD'))
+        self.btnNextAddr.setToolTip(const.MSG_TIP.get('FORWARD', 'FORWARD'))
         self.btnNextAddr.clicked.connect(self.onBtnShowNextAddr)
         self.mainWidgetLayout.addWidget(self.btnNextAddr, 3, 0)
 
@@ -236,22 +236,22 @@ class GongikWidget(QWidget):
         self.radioBoxCarLayout = QHBoxLayout()
         self.radioGroupCar.setLayout(self.radioBoxCarLayout)
 
-        self.radioBtn1stCar = QRadioButton(f'1호차({const.MSG_SHORTCUT["1CAR"]})', self)
+        self.radioBtn1stCar = QRadioButton(f'1호차({const.MSG_SHORTCUT.get("1CAR")})', self)
         self.radioBtn1stCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn1stCar.setShortcut(const.MSG_SHORTCUT['1CAR'])
+        self.radioBtn1stCar.setShortcut(const.MSG_SHORTCUT.get('1CAR'))
         self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=Qt.AlignTop)
-        self.radioBtn2ndCar = QRadioButton(f'2호차({const.MSG_SHORTCUT["2CAR"]})', self)
+        self.radioBtn2ndCar = QRadioButton(f'2호차({const.MSG_SHORTCUT.get("2CAR")})', self)
         self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT["2CAR"])
+        self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT.get("2CAR"))
         self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
-        if self.currentLoc.current_preview.prefix == '6': self.radioBtn1stCar.setChecked(True)
-        elif self.currentLoc.current_preview.prefix == '2': self.radioBtn2ndCar.setChecked(True)
+        if self.current_loc.current_preview.prefix == '6': self.radioBtn1stCar.setChecked(True)
+        elif self.current_loc.current_preview.prefix == '2': self.radioBtn2ndCar.setChecked(True)
         self.radioBoxCarLayout.addStretch()
 
-        self.btn2Change = QPushButton(f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT["FINISH"]})')
-        self.btn2Change.setShortcut(const.MSG_SHORTCUT['FINISH'])
+        self.btn2Change = QPushButton(f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT.get("FINISH")})')
+        self.btn2Change.setShortcut(const.MSG_SHORTCUT.get('FINISH'))
         self.btn2Change.setMinimumHeight(70)
-        self.btn2Change.setToolTip(const.MSG_TIP['FINISH'])
+        self.btn2Change.setToolTip(const.MSG_TIP.get('FINISH', 'FINISH'))
         self.btn2Change.clicked.connect(self.onBtnChangeFileName)
         self.mainWidgetLayout.addWidget(self.btn2Change, 5, 0, -1, 2)
 
@@ -263,26 +263,26 @@ class GongikWidget(QWidget):
         btnBoxOtherPicsLayout.setContentsMargins(0,0,0,0)
         btnGroupOtherPics.setLayout(btnBoxOtherPicsLayout)
 
-        self.btnPreviousPicSameAddr = QPushButton(f'같은 장소 이전 사진 보기\n({const.MSG_SHORTCUT["PREVIOUS"]})')
-        self.btnPreviousPicSameAddr.setShortcut(const.MSG_SHORTCUT['PREVIOUS'])
-        self.btnPreviousPicSameAddr.setToolTip(const.MSG_TIP['PREVIOUS'])
+        self.btnPreviousPicSameAddr = QPushButton(f'같은 장소 이전 사진 보기\n({const.MSG_SHORTCUT.get("PREVIOUS")})')
+        self.btnPreviousPicSameAddr.setShortcut(const.MSG_SHORTCUT.get('PREVIOUS'))
+        self.btnPreviousPicSameAddr.setToolTip(const.MSG_TIP.get('PREVIOUS', 'PREVIOUS'))
         self.btnPreviousPicSameAddr.clicked.connect(self.onBtnPrevPreview)
         btnBoxOtherPicsLayout.addWidget(self.btnPreviousPicSameAddr)
 
         self.btnLabelPicSeqInfo = QPushButton(self._generate_text_pic_indicator())
-        self.btnLabelPicSeqInfo.setToolTip(const.MSG_TIP['SEQUENCE'])
+        self.btnLabelPicSeqInfo.setToolTip(const.MSG_TIP.get('SEQUENCE'))
         self.btnLabelPicSeqInfo.clicked.connect(self.onBtnDistributePics)
         btnBoxOtherPicsLayout.addWidget(self.btnLabelPicSeqInfo)
 
-        self.btnNextPicSameAddr = QPushButton(f'같은 장소 다음 사진 보기\n({const.MSG_SHORTCUT["NEXT"]})')
-        self.btnNextPicSameAddr.setShortcut(const.MSG_SHORTCUT['NEXT'])
-        self.btnNextPicSameAddr.setToolTip(const.MSG_TIP['NEXT'])
+        self.btnNextPicSameAddr = QPushButton(f'같은 장소 다음 사진 보기\n({const.MSG_SHORTCUT.get("NEXT")})')
+        self.btnNextPicSameAddr.setShortcut(const.MSG_SHORTCUT.get('NEXT'))
+        self.btnNextPicSameAddr.setToolTip(const.MSG_TIP.get('NEXT', 'NEXT'))
         self.btnNextPicSameAddr.clicked.connect(self.onBtnNextPreview)
         btnBoxOtherPicsLayout.addWidget(self.btnNextPicSameAddr)
 
         # 웹엔진 관련 기능 위젯
         self.webEngineWidget = QWebEngineInstalled()
-        self.webEngineWidget.init_page(*self.currentLoc.current_preview.coord)
+        self.webEngineWidget.init_page(*self.current_loc.current_preview.coord)
         self.webEngineWidget.btnRenewLocation.clicked.connect(self.onBtnRefresh)
         self.webEngineWidget.newLocFmPic.valueChanged.connect(self.onBtnRefresh) # 지도 클릭시 값이 변경되고 바로 반영
         self.mainWidgetLayout.addWidget(self.webEngineWidget, 0, 3, -1, -1)
@@ -292,23 +292,23 @@ class GongikWidget(QWidget):
     def _make_suffix_radio_btn(self, tplRadioBtn, shortcutCode, seq):
         result = QRadioButton(tplRadioBtn[seq], self)
         result.clicked.connect(self.onRadioBtnSuffix)
-        result.setShortcut(const.MSG_SHORTCUT[shortcutCode])
+        result.setShortcut(const.MSG_SHORTCUT.get(shortcutCode))
         self.radioBoxLayout.addWidget(result, alignment=Qt.AlignTop)
         return result
 
     def _generate_text_pic_indicator(self):
-        return f'{self.currentLoc.current_pos} / {self.currentLoc.size}'
+        return f'{self.current_loc.current_pos} / {self.current_loc.size}'
 
     def _generate_text_loc_indicator(self):
         return f'\n완료율: {self.masterQueue.current_pos} / {self.masterQueue.size} \
-            \n촬영 위치: {self.currentLoc.name}'
+            \n촬영 위치: {self.current_loc.name}'
 
     def _register_input(self):
         # 현재 커서의 지정 이름 저장
         text = self.nameInput.text().strip()
-        self.currentLoc.set_common_details(text)
+        self.current_loc.set_common_details(text)
 
-        self.log.INFO('filename =', self.currentLoc.current_preview, 'details=', text)
+        self.log.INFO('filename =', self.current_loc.current_preview, 'details=', text)
 
     # 사진과 설명을 업데이트한다.
     def _update_pixmap(self, srcName):
@@ -323,7 +323,7 @@ class GongikWidget(QWidget):
 
     #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
     def _setRadioBtnAsChecked(self):
-        currentPreview: FileProp = self.currentLoc.current_preview
+        currentPreview: FileProp = self.current_loc.current_preview
 
         if   currentPreview.suffix == const.EMPTY_STR:    self.radioBtnDefault.setChecked(True)
         elif currentPreview.suffix == const.BEFORE_FIX:   self.radioBtnBefore.setChecked(True)
@@ -338,7 +338,7 @@ class GongikWidget(QWidget):
 
     #위치 변경 여부를 기억한다
     def _setModifyLocStill(self):
-        fProp: FileProp = self.currentLoc.current_preview
+        fProp: FileProp = self.current_loc.current_preview
         if fProp.specific_details:
             self.checkChangeCurrentLoc.setChecked(True)
             self.inputPriorityDetails.setEnabled(True)
@@ -364,57 +364,57 @@ class GongikWidget(QWidget):
         self.log.INFO(props.name, 'refreshed')
 
     def onEnterRegisterCommonDetails(self):
-        currentPreview: FileProp = self.currentLoc.current_preview
+        current_view: FileProp = self.current_loc.current_preview
         self._register_input()
         self._update_file_name_preview()
 
-        self.log.INFO(currentPreview.name, '->', f'{currentPreview.prefix}_{currentPreview.locationFmAPI}-{currentPreview.locationFmDB} {self.nameInput.text().strip()} {currentPreview.suffix}')
+        self.log.INFO(current_view.name, '->', f'{current_view.prefix}_{current_view.locationFmAPI}-{current_view.locationFmDB} {self.nameInput.text().strip()} {current_view.suffix}')
 
     def onBtnShowPrevAddr(self):
         if self.masterQueue.current_pos == 1:
-            InitInfoDialogue(const.MSG_INFO['SOF'], ('확인', )).exec_()
+            InitInfoDialogue(const.MSG_INFO.get('SOF', 'start'), ('확인', )).exec_()
             return
             
         # 변경되어 현재 큐에 아무것도 없는 경우 리프레시, 아니면 장소 변경
-        self.currentLoc: PropsQueue = self.masterQueue.view_previous() if self.currentLoc.queue else self.masterQueue.refresh()
+        self.current_loc: PropsQueue = self.masterQueue.view_previous() if self.current_loc.queue else self.masterQueue.refresh()
 
-        nextFile: FileProp = self.currentLoc.current_preview
+        nextFile: FileProp = self.current_loc.current_preview
         self._refresh_widget(nextFile)
-        self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
+        self.log.INFO('Location:', self.current_loc.name, 'Next File:', nextFile.name)
 
     def onBtnShowNextAddr(self):
 
         if self.masterQueue.current_pos >= self.masterQueue.size:
-            InitInfoDialogue(const.MSG_INFO['EOF'], ('확인', )).exec_()
+            InitInfoDialogue(const.MSG_INFO.get('EOF', 'end'), ('확인', )).exec_()
             return
 
         # 변경되어 현재 큐에 아무것도 없는 경우 리프레시, 아니면 장소 변경
-        self.currentLoc: PropsQueue = self.masterQueue.view_next() if self.currentLoc.queue else self.masterQueue.refresh()
+        self.current_loc: PropsQueue = self.masterQueue.view_next() if self.current_loc.queue else self.masterQueue.refresh()
 
-        nextFile: FileProp = self.currentLoc.current_preview
+        nextFile: FileProp = self.current_loc.current_preview
         self._refresh_widget(nextFile)
-        self.log.INFO('Location:', self.currentLoc.name, 'Next File:', nextFile.name)
+        self.log.INFO('Location:', self.current_loc.name, 'Next File:', nextFile.name)
 
     def onBtnPrevPreview(self):
-        if not self.currentLoc.queue:
+        if not self.current_loc.queue:
             infoDlg = InitInfoDialogue('이동된 파일입니다. 다음/이전 장소 보기를 누르면 새로고침 됩니다.', ('확인', ))
             infoDlg.exec_()
             return
 
-        nextFile: FileProp = self.currentLoc.view_previous()
+        nextFile: FileProp = self.current_loc.view_previous()
         self._refresh_widget(nextFile)
-        self.log.INFO('file = ', nextFile, 'location =', self.currentLoc)
+        self.log.INFO('file = ', nextFile, 'location =', self.current_loc)
 
 
     def onBtnNextPreview(self):
-        if not self.currentLoc.queue:
+        if not self.current_loc.queue:
             infoDlg = InitInfoDialogue('이동된 파일입니다. 다음/이전 장소 보기를 누르면 새로고침 됩니다.', ('확인', ))
             infoDlg.exec_()
             return
 
-        nextFile: FileProp = self.currentLoc.view_next()
+        nextFile: FileProp = self.current_loc.view_next()
         self._refresh_widget(nextFile)
-        self.log.INFO('file = ', nextFile, 'location =', self.currentLoc)
+        self.log.INFO('file = ', nextFile, 'location =', self.current_loc)
 
     def onBtnChangeFileName(self):
         progress_dlg = ProgressWidgetThreaded()
@@ -423,42 +423,42 @@ class GongikWidget(QWidget):
 
         self._register_input() # 처리되지 않고 넘어간 현재 파일 이름 처리
 
-        confirmDlg = InitInfoDialogue('현재까지의 진행 상황을 파일 이름에 반영합니다.\n변환 후 프로그램은 종료됩니다.', ('예', '아니오'))
-        confirmDlg.exec_()
+        confirm_dlg = InitInfoDialogue('현재까지의 진행 상황을 파일 이름에 반영합니다.\n변환 후 프로그램은 종료됩니다.', ('예', '아니오'))
+        confirm_dlg.exec_()
 
-        if not confirmDlg.answer:
+        if not confirm_dlg.answer:
             progress_dlg.close()
             return
 
         progress_dlg.update(80, '이름 변경 중')
 
-        clsNc = NameChanger()
-        retChangeName = clsNc.change_name_on_btn(self._use_name)
+        name_changer = NameChanger()
+        ret_val = name_changer.change_name_on_btn(self._use_name)
 
-        if retChangeName == 0:
+        if ret_val == 0:
             self.log.INFO('mission complete')
-            completeDlg = InitInfoDialogue(const.MSG_INFO['COMPLETE'], ('확인', ))
-            completeDlg.exec_()
-        elif retChangeName == 1:
+            complete_dlg = InitInfoDialogue(const.MSG_INFO.get('COMPLETE', 'COMPLETE'), ('확인', ))
+            complete_dlg.exec_()
+        elif ret_val == 1:
             self.log.ERROR('file name error')
-            errorDlg = InitInfoDialogue(const.MSG_WARN['FILE_NAME_ERROR'], ('확인', ))
-            errorDlg.exec_()
+            error_dlg = InitInfoDialogue(const.MSG_WARN.get('FILE_NAME_ERROR', 'FILE_NAME_ERROR'), ('확인', ))
+            error_dlg.exec_()
         else:
             self.log.ERROR('mission fail')
-            errorDlg = InitInfoDialogue(const.MSG_WARN['OS_ERROR'], ('확인', ))
-            errorDlg.exec_()
+            error_dlg = InitInfoDialogue(const.MSG_WARN.get('OS_ERROR', 'OS_ERROR'), ('확인', ))
+            error_dlg.exec_()
 
         progress_dlg.update(10, '내역 저장 중')
 
         backup = BackupRestore()
-        fileName2Save = backup.create_file_path(self.currentLoc.current_preview.prefix)
+        name4save = backup.create_file_path(self.current_loc.current_preview.prefix)
         FileProp.delete_pixmap_to_save() # 저장 공간 최적화를 위해 사진 정보는 빼고 저장한다.
-        backup.save_result(fileName2Save, FileProp.props())
+        backup.save_result(name4save, FileProp.props())
 
-        fo = FolderOpener()
-        fo.open_file_browser(abs_path=self.targetFolderAbsPath)
+        folder_opener = FolderOpener()
+        folder_opener.open_file_browser(abs_path=self.targetFolderAbsPath)
 
-        InitInfoDialogue(const.MSG_INFO['EXIT_END'], ('확인', )).exec_()
+        InitInfoDialogue(const.MSG_INFO.get('EXIT_END', 'EXIT'), ('확인', )).exec_()
         self.log.INFO('==================================')
         self.log.INFO('program exit')
         self.log.INFO('==================================')
@@ -466,10 +466,10 @@ class GongikWidget(QWidget):
 
     def _get_new_name(self):
         if self._use_name == const.USE_BOTH:
-            return self.currentLoc.current_preview.final_full_name
+            return self.current_loc.current_preview.final_full_name
         elif self._use_name == const.USE_ROAD:
-            return self.currentLoc.current_preview.final_road_name
-        return self.currentLoc.current_preview.final_normal_name
+            return self.current_loc.current_preview.final_road_name
+        return self.current_loc.current_preview.final_normal_name
 
 
     def _set_file_name_preview_text(self, text: str = None):
@@ -483,12 +483,12 @@ class GongikWidget(QWidget):
         self._set_file_name_preview_text()
     
     def _update_suffix(self, suffix):
-        self.currentLoc.current_preview.suffix = suffix
+        self.current_loc.current_preview.suffix = suffix
         self._update_file_name_preview()
-        self.log.INFO(f'{self.currentLoc.current_preview.name = }, "{suffix}"')
+        self.log.INFO(f'{self.current_loc.current_preview.name = }, "{suffix}"')
 
     def onTextCommonDetailsModified(self):
-        self.currentLoc.set_common_details(self.nameInput.text().strip()) # 공통 부분으로 업데이트
+        self.current_loc.set_common_details(self.nameInput.text().strip()) # 공통 부분으로 업데이트
         self._update_file_name_preview()
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.
@@ -503,7 +503,7 @@ class GongikWidget(QWidget):
         elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
 
     def onRadioBtnCar(self):
-        currentFile = self.currentLoc.current_preview
+        currentFile = self.current_loc.current_preview
         if self.radioBtn1stCar.isChecked():
             self.log.INFO('selected 1호차')
             currentFile.prefix = '6'
@@ -515,7 +515,7 @@ class GongikWidget(QWidget):
         self._update_file_name_preview()
 
     def onCheckModifyLoc(self):
-        fProps: FileProp = self.currentLoc.current_preview
+        fProps: FileProp = self.current_loc.current_preview
 
         if self.checkChangeCurrentLoc.isChecked():
             self.inputPriorityDetails.setEnabled(True)            
@@ -529,7 +529,7 @@ class GongikWidget(QWidget):
 
 
     def onModifyDetailsPrior(self):
-        fProps: FileProp = self.currentLoc.current_preview
+        fProps: FileProp = self.current_loc.current_preview
 
         if self.checkChangeCurrentLoc.isChecked():
             fProps.specific_details = self.inputPriorityDetails.text()
@@ -537,7 +537,7 @@ class GongikWidget(QWidget):
         self._update_file_name_preview()
 
     def onClickShowImage(self, event: QMouseEvent):
-        fProp:FileProp = self.currentLoc.current_preview
+        fProp:FileProp = self.current_loc.current_preview
         fileOpener = FolderOpener()
         fileOpener.open_file_browser(abs_path=fProp.abs_path)
         self.log.INFO('opening', fProp.name)
@@ -556,13 +556,13 @@ class GongikWidget(QWidget):
         dWidget = DistributorDialog()
         dWidget.exec_()
         
-        if not self.currentLoc.queue:
+        if not self.current_loc.queue:
             self.log.WARNING('Deleting vacant mstQueue element')
             self.masterQueue.remove_location(self.masterQueue.current_preview)
 
         if dWidget.isChanged:
-            self.currentLoc = self.masterQueue.refresh()
-            self._refresh_widget(self.currentLoc.current_preview)
+            self.current_loc = self.masterQueue.refresh()
+            self._refresh_widget(self.current_loc.current_preview)
 
     def onBtnRefresh(self):
         self._update_file_name_preview()

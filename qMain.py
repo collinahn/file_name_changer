@@ -8,8 +8,6 @@ from PyQt5.QtCore import (
 from PyQt5.QtWidgets import (
     QApplication, 
     QAction,
-    QMessageBox, 
-    QDesktopWidget,
     qApp
 )
 
@@ -114,7 +112,7 @@ class Gongik(QMainWindow):
         self.progress_dlg.show()
 
         if not failDlg.answer:
-            QMessageBox.information(self, 'EXIT_PLAIN', const.MSG_INFO['EXIT_PLAIN'])
+            InitInfoDialogue(const.MSG_INFO.get('EXIT_PLAIN', 'EXIT'), ('네', )).exec_()
             return False
 
         adb_connect = BridgePhone()
@@ -123,7 +121,7 @@ class Gongik(QMainWindow):
         self.progress_dlg.update(20, f'{len(adb_connect.files)}개의 파일 복사 중')
 
         if not adb_connect.transfer_files():
-            QMessageBox.information(self, 'TRANSFER_FAILURE', const.MSG_INFO['TRANSFER_FAILURE'])
+            InitInfoDialogue(const.MSG_INFO.get('TRANSFER_FAILURE', 'TRANSFER_FAILURE'), ('다시 시도', )).exec_()
             self.progress_dlg.update(10, '다시 시도 중')
             if adb_connect.transfer_files(): # 현재는 객체 재활용, 안먹히면 다시 생성
                 InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_SUCCESS', 'TRANSFER_RETRY_SUCCESS'), ('확인',)).exec_()
@@ -146,8 +144,8 @@ class Gongik(QMainWindow):
 
 
     def _pop_warn_msg(self, code):
-        self.log.WARNING(repr(const.MSG_WARN[code]))
-        QMessageBox.warning(self, code, const.MSG_WARN[code])
+        self.log.WARNING(f'{code = }')
+        InitInfoDialogue(const.MSG_WARN.get(code, code), ('넹', )).exec_()
         sys.exit()
 
     def _init_ui(self):
@@ -159,38 +157,38 @@ class Gongik(QMainWindow):
 
         #메뉴 바 - progMenu - Exit
         exitAction = QAction(QIcon(self.exit_icon_path), '퇴근하기', self)
-        exitAction.setShortcut(const.MSG_SHORTCUT['EXIT'])
-        exitAction.setStatusTip(const.MSG_TIP['EXIT'])
+        exitAction.setShortcut(const.MSG_SHORTCUT.get('EXIT'))
+        exitAction.setStatusTip(const.MSG_TIP.get('EXIT', 'EXIT'))
         exitAction.triggered.connect(qApp.quit)
 
         # (베타) 이미지에서 텍스트 추출
         recommendAction = QAction(QIcon(self.dev_icon_path), '텍스트 추출(베타)', self)
-        recommendAction.setShortcut(const.MSG_SHORTCUT['RECOMMEND'])
-        recommendAction.setStatusTip(const.MSG_TIP['RECOMMEND'])
+        recommendAction.setShortcut(const.MSG_SHORTCUT.get('RECOMMEND'))
+        recommendAction.setStatusTip(const.MSG_TIP.get('RECOMMEND', 'RECOMMEND'))
         recommendAction.triggered.connect(self.onModalRecommend)
 
         # 작업 복구 메뉴
         restoreAction = QAction(QIcon(self.dev_icon_path), '복구하기', self)
-        restoreAction.setShortcut(const.MSG_SHORTCUT['RESTORE'])
-        restoreAction.setStatusTip(const.MSG_TIP['RESTORE'])
+        restoreAction.setShortcut(const.MSG_SHORTCUT.get('RESTORE'))
+        restoreAction.setStatusTip(const.MSG_TIP.get('RESTORE', 'RESTORE'))
         restoreAction.triggered.connect(self.onModalRestore)
 
         #메뉴 바 - info
         infoAction = QAction(QIcon(self.dev_icon_path), '프로그램 정보', self)
-        infoAction.setShortcut(const.MSG_SHORTCUT['INFO'])
-        infoAction.setStatusTip(const.MSG_TIP['INFO'])
+        infoAction.setShortcut(const.MSG_SHORTCUT.get('INFO'))
+        infoAction.setStatusTip(const.MSG_TIP.get('INFO', 'INFO'))
         infoAction.triggered.connect(self.onModalDeveloperInfo)
 
         # 참고 정보 표시
         checkAction = QAction(QIcon(self.main_icon_path), '위치 목록 확인', self)
-        checkAction.setShortcut(const.MSG_SHORTCUT['LIST'])
-        checkAction.setStatusTip(const.MSG_TIP['LIST'])
+        checkAction.setShortcut(const.MSG_SHORTCUT.get('LIST'))
+        checkAction.setStatusTip(const.MSG_TIP.get('LIST', 'LIST'))
         checkAction.triggered.connect(self.onModalAddrInfo)
 
         # 업데이트
         updateAction = QAction(QIcon(self.final_icon_path), '업데이트 확인', self)
-        updateAction.setShortcut(const.MSG_SHORTCUT['UPDATE'])
-        updateAction.setStatusTip(const.MSG_TIP['UPDATE'])
+        updateAction.setShortcut(const.MSG_SHORTCUT.get('UPDATE'))
+        updateAction.setStatusTip(const.MSG_TIP.get('UPDATE', 'UPDATE'))
         updateAction.triggered.connect(self.onModalUpdateApp)
 
         logReportAction = QAction(QIcon(self.dev_icon_path), '로그 보고하기', self)
