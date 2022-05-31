@@ -48,16 +48,15 @@ class FileDetector(Detector):
         사진 파일 목록을 추출한다
         jpg 확장자가 아니거나 이미 수정이 된 파일들은 올리지 않는다.
         '''
-        fileExt = utils.get_valid_file_ext()
-        alreadyHandled = utils.get_handled_suffix()
-        touchedFileName = utils.get_touched_char()
+        file_extention = utils.get_valid_file_ext()
+        already_handled = utils.get_handled_suffix()
 
         files: list[str] = os.listdir(dir)
         return [
-            _ for _ in files 
-            if _.endswith(fileExt) # 확장자 거름
-            and not _.startswith(alreadyHandled) # 이미 프로그램으로 다뤄진 파일들 거름
-            and all(ch not in _ for ch in touchedFileName) # 수동으로 다뤄진 파일들 거름
+            file_name for file_name in files 
+            if file_name.endswith(file_extention) # 확장자 거름
+            and not file_name.startswith(already_handled) # 이미 프로그램으로 다뤄진 파일들 거름
+            and not utils.is_korean_included(file_name)  # 수동으로 다뤄진 파일들 거름
         ]
 
 

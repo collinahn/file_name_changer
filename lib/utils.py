@@ -1,6 +1,7 @@
 import contextlib
 import sys
 import os
+import re
 from datetime import datetime
 from collections import defaultdict
 from PIL import Image
@@ -22,11 +23,11 @@ def get_car_candidates():
 def get_handled_suffix():
     return tuple( f'{_}_' for _ in get_car_candidates() )
 
-def get_touched_char() -> tuple:
+def is_korean_included(target_str: str) -> bool:
     '''
-    도로명 주소 혹은 지번주소가 이름에 이미 들어간 파일은 제외한다
+    한글이 들어가 있는지 정규식으로 판별한다.
     '''
-    return '동', '로'
+    return bool(len(re.findall(u'[\u3130-\u318F\uAC00-\uD7A3]+', target_str)))
 
 def extract_dir(winDir=False):
     return os.getcwd() if winDir else os.getcwd().replace('\\', '/')
