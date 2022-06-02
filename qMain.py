@@ -124,14 +124,27 @@ class Gongik(QMainWindow):
         if not adb_connect.transfer_files():
             InitInfoDialogue(const.MSG_INFO.get('TRANSFER_FAILURE', 'TRANSFER_FAILURE'), ('다시 시도', )).exec_()
             self.progress_dlg.update(10, '다시 시도 중')
-            if adb_connect.transfer_files(): # 현재는 객체 재활용, 안먹히면 다시 생성
-                InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_SUCCESS', 'TRANSFER_RETRY_SUCCESS'), ('확인',)).exec_()
-                return True
-            InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_FAILURE', 'TRANSFER_RETRY_FAILURE'), ('확인', )).exec_()
-            return False
+            del adb_connect
+            return self._retry_loop_after_failure()
         
         self.progress_dlg.update(10, '파일 검사 중')
         return True
+
+    def _retry_loop_after_failure(self):
+        while True:
+            self.log.INFO('adb transfer retry loop activated')
+            adb_connect = BridgePhone()
+            if ret := adb_connect.transfer_files():
+                InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_SUCCESS', 'TRANSFER_RETRY_SUCCESS'), ('확인',)).exec_()
+                return True
+            
+            fail_handler = InitInfoDialogue(const.MSG_INFO.get('TRANSFER_RETRY_FAILURE', 'TRANSFER_RETRY_FAILURE'), ('다시 시도', '나가기'))
+            
+            del adb_connect
+            self.log.INFO('BridgePhone deleted')
+            
+            if not fail_handler.answer:
+                return False
 
     def _handle_ADB_failure(self, adb_conn: BridgePhone):
         if not adb_conn.connected:
@@ -142,7 +155,6 @@ class Gongik(QMainWindow):
 
         if not adb_conn.files:
             self._pop_warn_msg('EMPTY_FILE_ERROR')
-
 
     def _pop_warn_msg(self, code):
         self.log.WARNING(f'{code = }')
