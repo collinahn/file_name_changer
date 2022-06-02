@@ -92,7 +92,8 @@ class Gongik(QMainWindow):
             if not self._get_files_fm_phone():
                 sys.exit()
 
-        self.progress_dlg.update(10, '파일 분석 중')
+        self.file_detector.refresh()
+        self.progress_dlg.update(10, f'{len(self.file_detector.file_list)}개의 파일 분석 중')
 
         self._init_ui()
         self._init_main_widget()

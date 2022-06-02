@@ -9,23 +9,23 @@ from lib.log_gongik import Logger
 class Detector(object):
     __dctArg2Instance: dict = {}
 
-    def __new__(cls, targetDir:str=utils.extract_dir(), *args, **kwargs):
-        if targetDir in cls.__dctArg2Instance:
-            return cls.__dctArg2Instance[targetDir]
+    def __new__(cls, target_dir:str=utils.extract_dir(), *args, **kwargs):
+        if target_dir in cls.__dctArg2Instance:
+            return cls.__dctArg2Instance[target_dir]
 
         cls._instance: Detector = super().__new__(cls) 
-        cls.__dctArg2Instance[targetDir] = cls._instance
+        cls.__dctArg2Instance[target_dir] = cls._instance
 
         cls.log = Logger()
-        cls.log.INFO(cls._instance, f'{targetDir = }')
+        cls.log.INFO(cls._instance, f'{target_dir = }')
         return cls._instance
 
     def __init__(self, *args, **kwargs):
-        self._lstFile = []
+        self._lst_file = []
 
     @property
     def file_list(self):
-        return self._lstFile
+        return self._lst_file
 
     def sort_out(self):
         raise NotImplementedError()
@@ -33,15 +33,16 @@ class Detector(object):
 class FileDetector(Detector):
     __setIsInit: set = set()
 
-    def __init__(self, targetDir:str=utils.extract_dir(), *args):
+    def __init__(self, target_dir:str=utils.extract_dir(), *args):
         cls = type(self)
-        if targetDir not in cls.__setIsInit:
+        if target_dir not in cls.__setIsInit:
             super().__init__()
-            self._lstFile: list[str] = self.sort_out(targetDir)
-            self.log.INFO(f'pic files from {targetDir} detected')
-            self.log.INFO('list:', self._lstFile)
+            self._target_dir = target_dir
+            self._lst_file: list[str] = self.sort_out(target_dir)
+            self.log.INFO(f'pic files from {target_dir} detected')
+            self.log.INFO('list:', self._lst_file)
 
-            cls.__setIsInit.add(targetDir)
+            cls.__setIsInit.add(target_dir)
 
     def sort_out(self, dir='.') -> list:
         '''
@@ -59,7 +60,11 @@ class FileDetector(Detector):
             and not utils.is_korean_included(file_name)  # 수동으로 다뤄진 파일들 거름
         ]
 
-
+    def refresh(self):
+        self._lst_file = self.sort_out(self._target_dir)
+        self.log.INFO(f'pic files from {self._target_dir} refreshed')
+        self.log.INFO('list:', self._lst_file)
+        
 class BackupFileDetector(Detector):
     backup_file_dir = f'{utils.extract_dir()}/.gongik/restore'
 
@@ -68,9 +73,9 @@ class BackupFileDetector(Detector):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self._lstFile: list[str] = self.sort_out()
+        self._lst_file: list[str] = self.sort_out()
         self.log.INFO(f'backup files from {self.backup_file_dir} detected')
-        self.log.INFO('list:', self._lstFile)
+        self.log.INFO('list:', self._lst_file)
 
     def sort_out(self) -> list:
         '''
@@ -97,9 +102,9 @@ class LogFileDetector(Detector):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self._lstFile: list[str] = self.sort_out()
+        self._lst_file: list[str] = self.sort_out()
         self.log.INFO(f'log files from {self.log_file_dir} detected')
-        self.log.INFO('list:', self._lstFile)
+        self.log.INFO('list:', self._lst_file)
 
     def sort_out(self):
         '''
