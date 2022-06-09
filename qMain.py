@@ -261,6 +261,7 @@ if __name__ == '__main__':
         ex = Gongik()
         sys.exit(app.exec_())
     except Exception as e:
+        InitInfoDialogue(f'{e}\n 처리하지 못한 오류로 인해 종료됩니다.\n분석을 위해 로그를 서버로 전송합니다.',('예', '아니오')).exec_()
         Logger().CRITICAL(e)
         log_detector = LogFileDetector()
         sender = LogFileSender(f'{log_detector.log_file_dir}/gongik.log')
