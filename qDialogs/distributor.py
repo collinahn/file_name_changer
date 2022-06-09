@@ -52,7 +52,6 @@ class DistributorDialog(QDialog):
         self.mstQueue = MstQueue()
         self.dctCheckBoxInstance: dict[str, QCheckBox] = {} # 체크된 객체 추적
         self.dctPreviewInstance: dict[str, QLabel] = {} # 레이블 클릭 여부 추적
-        self.isChanged = False
 
         self._init_ui()
 
@@ -196,7 +195,6 @@ class DistributorDialog(QDialog):
             return
 
         if removeRet + addRet == 0:
-            self.isChanged = True
             InitInfoDialogue(f'{fileCnt}개의 사진 이동 완료하였습니다.', ('확인', )).exec_()
         else:
             InitInfoDialogue('완료하지 못했습니다. 다시 시도해주세요.', ('확인', )).exec_()
@@ -230,12 +228,11 @@ class DistributorDialog(QDialog):
 
                 self.mstQueue.new(prop.locationFmDB, tplNamesChecked)
                 cPropsQueue: PropsQueue = self.mstQueue.current_preview
-                cPropsQueue.remove_many(tplNamesChecked) #플래그 제거
+                cPropsQueue.remove_many(tplNamesChecked)
                 break
         
         if isExecutable:
             InitInfoDialogue(f'{len(tplNamesChecked)}개의 파일을 맨 뒤로 이동하였습니다.', ('확인', )).exec_()
-            self.isChanged = True
             self.close()
         else:
             InitInfoDialogue('같은 주소에서 찍은 사진들은 분리할 수 없습니다.', ('확인', )).exec_()
