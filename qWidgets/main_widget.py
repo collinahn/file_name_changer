@@ -29,6 +29,7 @@ from lib.base_folder import WorkingDir
 
 
 import lib.utils as utils
+from qWidgets.car_radiobtn import CarWidget
 import qWordBook as const
 from lib.get_location import LocationInfo
 from lib.file_property import FileProp
@@ -44,6 +45,7 @@ from lib.meta_data import (
     TimeInfo
 )
 from lib.restore_result import BackupRestore
+from qWidgets.stamp_chkbox import StampWidget
 from qDialogs.distributor import DistributorDialog
 from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
@@ -230,23 +232,14 @@ class GongikWidget(QWidget):
         self.changeDetailsLayout.addWidget(self.inputPriorityDetails)
 
         # 1호차2호차 선택 라디오버튼
-        self.radioGroupCar = QGroupBox('호차 선택')
-        self.mainWidgetLayout.addWidget(self.radioGroupCar, 4, 0, 1, 2)
+        self.car_widget = CarWidget()
+        self.mainWidgetLayout.addWidget(self.car_widget, 4, 0)
+        self.car_widget.radio_btn_1st.clicked.connect(self.onBtnRefresh)
+        self.car_widget.radio_btn_2nd.clicked.connect(self.onBtnRefresh)
 
-        self.radioBoxCarLayout = QHBoxLayout()
-        self.radioGroupCar.setLayout(self.radioBoxCarLayout)
-
-        self.radioBtn1stCar = QRadioButton(f'1호차({const.MSG_SHORTCUT.get("1CAR")})', self)
-        self.radioBtn1stCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn1stCar.setShortcut(const.MSG_SHORTCUT.get('1CAR'))
-        self.radioBoxCarLayout.addWidget(self.radioBtn1stCar, alignment=Qt.AlignTop)
-        self.radioBtn2ndCar = QRadioButton(f'2호차({const.MSG_SHORTCUT.get("2CAR")})', self)
-        self.radioBtn2ndCar.clicked.connect(self.onRadioBtnCar)
-        self.radioBtn2ndCar.setShortcut(const.MSG_SHORTCUT.get("2CAR"))
-        self.radioBoxCarLayout.addWidget(self.radioBtn2ndCar, alignment=Qt.AlignTop)
-        if self.current_loc.current_preview.prefix == '6': self.radioBtn1stCar.setChecked(True)
-        elif self.current_loc.current_preview.prefix == '2': self.radioBtn2ndCar.setChecked(True)
-        self.radioBoxCarLayout.addStretch()
+        #사진에 스탬프 추가 체크박스
+        self.stamp_widget = StampWidget()
+        self.mainWidgetLayout.addWidget(self.stamp_widget, 4, 1)
 
         self.btn2Change = QPushButton(f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT.get("FINISH")})')
         self.btn2Change.setShortcut(const.MSG_SHORTCUT.get('FINISH'))
@@ -501,18 +494,6 @@ class GongikWidget(QWidget):
         elif self.radioBtnBeforeFetch.isChecked(): self._update_suffix(const.BEFORE_FETCH)
         elif self.radioBtnAfterFetch.isChecked(): self._update_suffix(const.AFTER_FETCH)
         elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
-
-    def onRadioBtnCar(self):
-        currentFile = self.current_loc.current_preview
-        if self.radioBtn1stCar.isChecked():
-            self.log.INFO('selected 1호차')
-            currentFile.prefix = '6'
-
-        elif self.radioBtn2ndCar.isChecked():
-            self.log.INFO('selected 2호차')
-            currentFile.prefix = '2'
-            
-        self._update_file_name_preview()
 
     def onCheckModifyLoc(self):
         fProps: FileProp = self.current_loc.current_preview
