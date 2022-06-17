@@ -94,7 +94,7 @@ class LocalStamp(Stamp):
     def align(self):
         return (self.img_width-self.text_width*11/10, self.text_height/5)
 
-class CommentStamp(Stamp):
+class DetailStamp(Stamp):
     '''
     우측 하단 입력사항 스탬프
     '''
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     ls.stamp()
     ls.img.show()
 
-    cm = CommentStamp(file)
+    cm = DetailStamp(file)
     cm.flip_color()
     cm.stamp()
     cm.img.show()

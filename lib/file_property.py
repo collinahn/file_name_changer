@@ -43,7 +43,7 @@ class FileProp(object):
             self._suffix: str = ''
             self._newPath: str= '' # 나중에 초기화되는 최종 이름(절대경로)
             self._tplCoordinance: tuple[float, float] or None = None # WGS84위도경도값
-            self._pixmap_scaled: QPixmap = QPixmap(self._absPath).scaled(220, 165) # 캐싱
+            self._pixmap_scaled: QPixmap = QPixmap(self._absPath).scaled(*const.PIXMAP_SCALE) # 캐싱
 
             self._setInstance4Init.add(name)
             self.log.INFO(name, 'fileProp init', f'{self._name = }, {self._originLocAPI = }')
@@ -187,6 +187,10 @@ class FileProp(object):
     @property
     def pixmap(self) -> QPixmap:
         return self._pixmap_scaled
+
+    @pixmap.setter
+    def pixmap(self, pixmap: QPixmap):
+        self._pixmap_scaled = pixmap
 
     @classmethod
     def name2AddrAPIOrigin(cls):

@@ -141,7 +141,7 @@ class DistributorDialog(QDialog):
                 fProp: FileProp
 
                 picPreview4Candidate = QLabel(fProp.name)
-                picPreview4Candidate.setPixmap(fProp.pixmap)
+                picPreview4Candidate.setPixmap(fProp.pixmap.scaled(240, 160))
 
                 picLoc = QLabel(fProp.locationFmDB)
 
@@ -238,7 +238,7 @@ class DistributorDialog(QDialog):
             self.isChanged = True
             self.close()
         else:
-            InitInfoDialogue('같은 주소에서 찍은 사진들은 분리할 수 없습니다.', ('확인', )).exec_()
+            InitInfoDialogue('현재 장소와 같거나 이미 존재하는 주소입니다.', ('확인', )).exec_()
 
     def onBtnCancel(self):
         self.log.INFO('User Canceled Distribution')
