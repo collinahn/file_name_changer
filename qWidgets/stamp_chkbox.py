@@ -66,6 +66,7 @@ class StampWidget(QWidget):
         self.checkbox_locationstamp.clicked.connect(self.on_checked)
         self.checkbox_detailstamp.clicked.connect(self.on_checked)
         self.btn_store.clicked.connect(self.on_store_stamped_pic)
+        self.btn_store.setMinimumHeight(30)
 
     def on_checked(self):
         self.imageqt_pool = []

@@ -45,31 +45,31 @@ class CarWidget(QWidget):
 
         self.groupbox = QGroupBox('호차 선택')
         widget_layout.addWidget(self.groupbox)
-        
+
         self.radio_btns_layout_hbox = QHBoxLayout()
         self.groupbox.setLayout(self.radio_btns_layout_hbox)
 
-        self.radio_btn_1st = QRadioButton(f'1', self)
-        self.radio_btn_2nd = QRadioButton(f'2', self)
+        self.radio_btn_1st = QRadioButton('1', self)
+        self.radio_btn_2nd = QRadioButton('2', self)
         self.radio_btn_1st.clicked.connect(self.on_radio_btn)
         self.radio_btn_2nd.clicked.connect(self.on_radio_btn)
         self.radio_btn_1st.setShortcut(const.MSG_SHORTCUT.get('1CAR'))
         self.radio_btn_2nd.setShortcut(const.MSG_SHORTCUT.get("2CAR"))
-        self.radio_btns_layout_hbox.addWidget(self.radio_btn_1st, alignment=Qt.AlignTop)
-        self.radio_btns_layout_hbox.addWidget(self.radio_btn_2nd, alignment=Qt.AlignTop)
+        self.radio_btns_layout_hbox.addWidget(self.radio_btn_1st, alignment=Qt.AlignCenter)
+        self.radio_btns_layout_hbox.addWidget(self.radio_btn_2nd, alignment=Qt.AlignCenter)
         if self.current_loc.current_preview.prefix == '6': self.radio_btn_1st.setChecked(True)
         elif self.current_loc.current_preview.prefix == '2': self.radio_btn_2nd.setChecked(True)
         self.radio_btns_layout_hbox.addStretch()
 
     def on_radio_btn(self):
         if self.radio_btn_1st.isChecked():
-            self.log.INFO(f'selected 1호차')
+            self.log.INFO('selected 1호차')
             for instance in FileProp.props().values():
                 instance: FileProp
                 instance.prefix = '6'
 
         elif self.radio_btn_2nd.isChecked():
-            self.log.INFO(f'selected 2호차')
+            self.log.INFO('selected 2호차')
             for instance in FileProp.props().values():
                 instance: FileProp
                 instance.prefix = '2'
