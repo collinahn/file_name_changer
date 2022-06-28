@@ -54,7 +54,7 @@ class StampWidget(QWidget):
         self.group_layout = QHBoxLayout()
         self.checkbox_group.setLayout(self.group_layout)
 
-        self.checkbox_timestamp = QCheckBox('촬영시각')
+        self.checkbox_timestamp = QCheckBox('촬영일시')
         self.checkbox_locationstamp = QCheckBox('촬영장소')
         self.checkbox_detailstamp = QCheckBox('상세정보')
         self.btn_store = QPushButton('저장하기')
@@ -67,6 +67,7 @@ class StampWidget(QWidget):
         self.checkbox_detailstamp.clicked.connect(self.on_checked)
         self.btn_store.clicked.connect(self.on_store_stamped_pic)
         self.btn_store.setMinimumHeight(30)
+        self.btn_store.setEnabled(False)
 
     def on_checked(self):
         self.imageqt_pool = []
@@ -74,6 +75,11 @@ class StampWidget(QWidget):
         current_loc: PropsQueue = self.mst_queue.current_preview
         current_loc.chkbox_status = status # 상태 저장
         self.log.INFO(f'user checked ! checkbox {status = }')
+
+        if self.unchecked():
+            self.btn_store.setEnabled(False)
+        else:
+            self.btn_store.setEnabled(True)
 
         time_flag, loc_flag, detail_flag = status
         for prop in current_loc.queue:
@@ -108,6 +114,9 @@ class StampWidget(QWidget):
             self.checkbox_locationstamp.isChecked(), 
             self.checkbox_detailstamp.isChecked()
         )
+
+    def unchecked(self):
+        return self.checkbox_status() == (False, False, False)
 
     def set_status(self):
         current_loc: PropsQueue = self.mst_queue.current_preview

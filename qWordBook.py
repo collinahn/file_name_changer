@@ -121,6 +121,10 @@ QWidget .QPushButton:hover {
     background-color: yellow;
     color: black
 }
+QWidget .QPushButton:disabled {
+    border:2px solid rgb(67, 67, 70);
+    color: rgb(67, 67, 70)
+}
 
 QLineEdit {
     border:2px solid rgb(67, 67, 70);
