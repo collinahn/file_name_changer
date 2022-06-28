@@ -205,6 +205,7 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
             self._queueSize = len(tplFileNames4Props)
             self._lstQueue = [None] * self._queueSize
             self._sharedDetail = ''
+            self.chkbox_status = (False, False, False)
 
             super().__init__(queueName, tplFileNames4Props)
 

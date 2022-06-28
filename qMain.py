@@ -1,4 +1,4 @@
-# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
+# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract PyQtWebEngine
 
 import sys
 from PyQt5.QtGui import QIcon
@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QAction,
     qApp
 )
-
+ 
 import lib.utils as utils
 import qWordBook as const
 from lib.file_copy import BridgePhone
@@ -31,18 +31,14 @@ from lib.file_detect import (
     FileDetector, 
     LogFileDetector
 )
-from qDraggable import ( #custom qobjects
-    QDialog, 
-    QMainWindow, 
-    QWidget,
-)
+from qDraggable import QMainWindow
 from qWordBook import VERSION_INFO
 
 
 '''
 exe 빌드하기
 pyinstaller -F --clean qMain.spec
-pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
+pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "fonts/NanumBarunGothic.ttf;./fonts" --add-data "tesseract-ocr;./tesseract-ocr" --icon=img/final.ico qMain.py
 '''
 
 class Gongik(QMainWindow):
