@@ -1,4 +1,4 @@
-# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract
+# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract PyQtWebEngine
 
 import sys
 from PyQt5.QtGui import QIcon
@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QAction,
     qApp
 )
-
+ 
 import lib.utils as utils
 import qWordBook as const
 from lib.file_copy import BridgePhone
@@ -31,11 +31,7 @@ from lib.file_detect import (
     FileDetector, 
     LogFileDetector
 )
-from qDraggable import ( #custom qobjects
-    QDialog, 
-    QMainWindow, 
-    QWidget,
-)
+from qDraggable import QMainWindow
 from qWordBook import VERSION_INFO
 
 

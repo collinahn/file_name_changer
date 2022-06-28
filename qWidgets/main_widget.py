@@ -1,5 +1,3 @@
-# TODO: DICT객체 참조 시 get 메소드를 이용
-
 import sys
 from PyQt5.QtGui import (
     QPixmap,

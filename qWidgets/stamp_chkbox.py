@@ -3,21 +3,25 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QGroupBox, 
     QHBoxLayout, 
+    QPushButton,
     QCheckBox,
     QToolTip, 
     QWidget, 
     QApplication,
 )
+from PIL import Image
 from PIL.ImageQt import ImageQt
+from lib.continuous_image import ContinuousImage
 
 
 import lib.utils as utils
+from qDialogs.info_dialog import InitInfoDialogue
 import qWordBook as const
 from lib.log_gongik import Logger
 from lib.file_property import FileProp
 from lib.picture_stamp import TimeStamp
 from lib.picture_stamp import LocalStamp
-from lib.picture_stamp import CommentStamp
+from lib.picture_stamp import DetailStamp
 from lib.base_folder import WorkingDir
 from lib.queue_order import MstQueue
 from lib.queue_order import PropsQueue
@@ -34,6 +38,8 @@ class StampWidget(QWidget):
         self.mst_queue = MstQueue()
         self.init_ui()
 
+        self.imageqt_pool = []
+
     
     def init_ui(self):
         self.setWindowTitle('Stamp Widget')
@@ -48,38 +54,51 @@ class StampWidget(QWidget):
         self.group_layout = QHBoxLayout()
         self.checkbox_group.setLayout(self.group_layout)
 
-        self.checkbox_timestamp = QCheckBox('타임스탬프')
-        self.checkbox_locationstamp = QCheckBox('장소스탬프')
-        self.checkbox_detailstamp = QCheckBox('상세정보스탬프')
+        self.checkbox_timestamp = QCheckBox('촬영시각')
+        self.checkbox_locationstamp = QCheckBox('촬영장소')
+        self.checkbox_detailstamp = QCheckBox('상세정보')
+        self.btn_store = QPushButton('저장하기')
         self.group_layout.addWidget(self.checkbox_timestamp)
         self.group_layout.addWidget(self.checkbox_locationstamp)
         self.group_layout.addWidget(self.checkbox_detailstamp)
+        self.group_layout.addWidget(self.btn_store)
         self.checkbox_timestamp.clicked.connect(self.on_checked)
         self.checkbox_locationstamp.clicked.connect(self.on_checked)
         self.checkbox_detailstamp.clicked.connect(self.on_checked)
+        self.btn_store.clicked.connect(self.on_store_stamped_pic)
 
     def on_checked(self):
+        self.imageqt_pool = []
         status = self.checkbox_status()
         current_loc: PropsQueue = self.mst_queue.current_preview
         self.log.INFO(f'user checked ! checkbox {status = }')
 
-        if status == (False, False, False):
-            for prop in current_loc.queue:
-                prop: FileProp
-                prop.pixmap = QPixmap(prop.abs_path).scaled(*const.PIXMAP_SCALE)
-        elif status == (True, False, False):
-            for prop in current_loc.queue:
-                prop: FileProp
-                ts = TimeStamp(prop) 
-                ts.stamp() # -> 이때 사진
-                prop.pixmap = QPixmap.fromImage(ImageQt(ts.img)).scaled(*const.PIXMAP_SCALE)
-        # elif status == (False, True, False):
-        # elif status == (False, False, True):
-        # elif status == (True, True, False):
-        # elif status == (False, True, True):
-        # elif status == (True, False, True):
-        # elif status == (True, True, True):
+        time_flag, loc_flag, detail_flag = status
+        for prop in current_loc.queue:
+            prop: FileProp
+            ContinuousImage.refresh(prop.abs_path)
+            img_file = None
+            
+            if time_flag:
+                ts = TimeStamp(prop)
+                ts.stamp()
+                img_file = ts.img
+            if loc_flag:
+                ls = LocalStamp(prop)
+                ls.stamp()
+                img_file = ls.img
+            if detail_flag:
+                df = DetailStamp(prop)
+                df.stamp()
+                img_file = df.img
 
+            if not img_file: # 아무것도 체크하지 않은 경우
+                prop.pixmap = QPixmap(prop.abs_path).scaled(*const.PIXMAP_SCALE)
+                continue
+
+            iqt = ImageQt(img_file)
+            self.imageqt_pool.append(iqt)
+            prop.pixmap = QPixmap.fromImage(iqt).scaled(*const.PIXMAP_SCALE)
 
     def checkbox_status(self):
         return ( 
@@ -87,6 +106,32 @@ class StampWidget(QWidget):
             self.checkbox_locationstamp.isChecked(), 
             self.checkbox_detailstamp.isChecked()
         )
+
+    def on_store_stamped_pic(self):
+        self.log.INFO('storing stamped')
+        current_loc: PropsQueue = self.mst_queue.current_preview
+
+        ask_save = InitInfoDialogue(
+            f'현재 보이는 미리보기로 사진을 교체하여 저장합니다.\n현재 위치군에 있는 사진 {current_loc.size}장이 전부 변경됩니다.\n이 작업은 되돌릴 수 없습니다.', 
+            ('예', '아니오')
+        )
+        ask_save.exec_()
+
+        if not ask_save.answer or self.checkbox_status() == (False, False, False):
+            self.log.INFO('user chose not to save')
+            return
+
+        for prop in current_loc.queue:
+            prop: FileProp
+            original_size = Image.open(prop.abs_path).size
+
+            try:
+                prop.pixmap.scaled(*original_size).save(prop.abs_path, 'jpg', 100)
+                self.log.INFO(f'{prop.name} saved with it\'s original size {original_size}, {self.checkbox_status() = }')
+            except Exception as e:
+                self.log.CRITICAL(e)
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

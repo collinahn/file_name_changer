@@ -18,31 +18,46 @@ class Stamp:
         self.text: str = ''
         self.text_width = 0
         self.text_height = 0
-        self.fontsize = 60
-        self.fontcolor = (0, 0, 0)
+        
+        self.img: Image = self._load_img(self.file.abs_path)
+        self.draw: ImageDraw = self._load_draw(self.img)
+
+        if self.img:
+            self.fontsize = int( self.img.width / 40 )
+            self.log.DEBUG(f'{self.img.size = }, {self.fontsize = }, {self.file.abs_path}')
+            self.img_width, self.img_height = self.img.size
+        else:
+            self.fontsize = 60
+            self.img_width, self.img_height = 0, 0
+        self.fontcolor = (0, 0, 0) # black
         self.font = self._update_font()
+
+    def _load_img(self, path) -> Image:
         try:
-            self.img: Image = ContinuousImage.open(self.file.abs_path)
-            self.draw: ImageDraw = ImageDraw.Draw(self.img)
+            return ContinuousImage.open(path)
         except (FileNotFoundError, UnidentifiedImageError) as ie:
             self.log.ERROR(ie)
-            self.img = None
-            self.draw = None
+            return None
         except Exception as e:
             self.log.CRITICAL(e)
-            self.img = None
-            self.draw = None
-        
-        self.img_width, self.img_height = 0, 0
-        if self.img:
-            self.img_width, self.img_height = self.img.size
+            return None
+
+    def _load_draw(self, img) -> ImageDraw:
+        try:
+            return ImageDraw.Draw(img)
+        except (FileNotFoundError, UnidentifiedImageError) as ie:
+            self.log.ERROR(ie)
+            return None
+        except Exception as e:
+            self.log.CRITICAL(e)
+            return None
 
     def _set_text(self, text):
         self.text = text
         self.text_width, self.text_height = self.font.getsize(text)
 
     def _update_font(self):
-        return ImageFont.truetype(utils.resource_path('fonts/NanumBarunGothic.ttf'), size=int(self.fontsize))
+        return ImageFont.truetype(utils.resource_path('fonts/NanumBarunGothicBold.ttf'), size=int(self.fontsize))
 
     def set_fontsize(self, size):
         self.fontsize = size
@@ -65,9 +80,6 @@ class Stamp:
         except AttributeError as ae:
             self.log.ERROR(ae)
 
-    def save_img(self):
-        raise NotImplementedError()
-
 class TimeStamp(Stamp):
     '''
     좌측 상단 타임스탬프
@@ -75,11 +87,11 @@ class TimeStamp(Stamp):
     def __init__(self, file_prop: FileProp) -> None:
         super().__init__(file_prop)
 
-        self.text = self.file.time.strftime('%Y-%m-%d %H:%M:%S')
+        self.text = self.file.time.strftime('촬영일시: %Y년%m월%d일 %H시%M분%S초')
         super()._set_text(self.text)
 
     def align(self):
-        return (self.text_width/10, self.text_height/5)
+        return (self.fontsize/3, self.text_height/4)
 
 class LocalStamp(Stamp):
     '''
@@ -92,7 +104,7 @@ class LocalStamp(Stamp):
         super()._set_text(self.text)
 
     def align(self):
-        return (self.img_width-self.text_width*11/10, self.text_height/5)
+        return (self.img_width-self.text_width*16/15, self.text_height/4)
 
 class DetailStamp(Stamp):
     '''
@@ -105,7 +117,7 @@ class DetailStamp(Stamp):
         super()._set_text(self.text)
 
     def align(self):
-        return (self.img_width-self.text_width*11/10, self.img_height-self.text_height*6/5)
+        return (self.img_width-self.text_width-self.fontsize/3, self.img_height-self.text_height*5/4)
 
 if __name__ == '__main__':
     import sys
@@ -120,13 +132,14 @@ if __name__ == '__main__':
 
     ts = TimeStamp(file)
     ts.stamp()
-    ts.img.show()
 
     ls = LocalStamp(file)
     ls.stamp()
-    ls.img.show()
+    # ls.img.show()
 
     cm = DetailStamp(file)
     cm.flip_color()
     cm.stamp()
-    cm.img.show()
+    # cm.img.show()
+
+    print(Image.open(r'C:\Users\Collin Ahn\NetDrive\file_name_changer\1231.jpg').size)
