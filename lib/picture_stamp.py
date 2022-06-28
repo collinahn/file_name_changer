@@ -24,7 +24,7 @@ class Stamp:
 
         if self.img:
             self.fontsize = int( self.img.width / 40 )
-            self.log.DEBUG(f'{self.img.size = }, {self.fontsize = }, {self.file.abs_path}')
+            self.log.INFO(f'{self.img.size = }, {self.fontsize = }, {self.file.abs_path}')
             self.img_width, self.img_height = self.img.size
         else:
             self.fontsize = 60
@@ -100,7 +100,7 @@ class LocalStamp(Stamp):
     def __init__(self, file_prop: FileProp) -> None:
         super().__init__(file_prop)
         
-        self.text = self.file.locationFmAPI
+        self.text = self.file.location4Display[1] # 보정된 도로명주소
         super()._set_text(self.text)
 
     def align(self):

@@ -1,10 +1,7 @@
 import sys
 from PyQt5.QtGui import (
-    QPixmap,
     QFont,
     QIcon,
-    QImage,
-    QPainter
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -12,7 +9,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QVBoxLayout,
     QCheckBox,
-    QRadioButton,
     QToolTip, 
     QApplication, 
     QGridLayout,
@@ -141,7 +137,9 @@ class DistributorDialog(QDialog):
                 fProp: FileProp
 
                 picPreview4Candidate = QLabel(fProp.name)
-                picPreview4Candidate.setPixmap(fProp.pixmap.scaled(240, 160))
+                self.log.DEBUG(f'before setting pixmap of {fProp.name}, {fProp.pixmap = }, {fProp.pixmap.isNull()}')
+                picPreview4Candidate.setPixmap(fProp.pixmap.scaledToWidth(240))
+                self.log.DEBUG(f'after setting pixmap of {fProp.name}, {fProp.pixmap = }')
 
                 picLoc = QLabel(fProp.locationFmDB)
 
