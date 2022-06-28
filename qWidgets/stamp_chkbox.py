@@ -39,7 +39,6 @@ class StampWidget(QWidget):
         self.init_ui()
 
         self.imageqt_pool = []
-
     
     def init_ui(self):
         self.setWindowTitle('Stamp Widget')
@@ -48,7 +47,7 @@ class StampWidget(QWidget):
         self.setContentsMargins(0,0,0,0)
         self.setLayout(widget_layout)
 
-        self.checkbox_group = QGroupBox('사진에 스탬프 추가(개발중)')
+        self.checkbox_group = QGroupBox('사진에 스탬프 추가(베타)')
         widget_layout.addWidget(self.checkbox_group)
 
         self.group_layout = QHBoxLayout()
@@ -101,12 +100,12 @@ class StampWidget(QWidget):
                 img_file = df.img
 
             if not img_file: # 아무것도 체크하지 않은 경우
-                prop.pixmap = QPixmap(prop.abs_path).scaled(*const.PIXMAP_SCALE)
+                prop.pixmap = QPixmap(prop.abs_path)
                 continue
 
             iqt = ImageQt(img_file)
             self.imageqt_pool.append(iqt)
-            prop.pixmap = QPixmap.fromImage(iqt).scaled(*const.PIXMAP_SCALE)
+            prop.pixmap = QPixmap.fromImage(iqt)
 
     def checkbox_status(self):
         return ( 
@@ -129,12 +128,12 @@ class StampWidget(QWidget):
         current_loc: PropsQueue = self.mst_queue.current_preview
 
         ask_save = InitInfoDialogue(
-            f'현재 보이는 미리보기로 사진을 교체하여 저장합니다.\n현재 위치군에 있는 사진 {current_loc.size}장이 전부 변경됩니다.\n이 작업은 되돌릴 수 없습니다.', 
+            f'현재 보이는 미리보기로 사진을 교체하여 저장합니다.\n현재 위치군에 있는 사진 {current_loc.size}장이 전부 변경됩니다.\n이 작업은 되돌릴 수 없으며, 사진의 정보가 일부 변경될 수 있습니다.', 
             ('예', '아니오')
         )
         ask_save.exec_()
 
-        if not ask_save.answer or self.checkbox_status() == (False, False, False):
+        if not ask_save.answer:
             self.log.INFO('user chose not to save')
             return
 

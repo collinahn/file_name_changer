@@ -27,8 +27,8 @@ from lib.base_folder import WorkingDir
 
 
 import lib.utils as utils
-from qWidgets.car_radiobtn import CarWidget
 import qWordBook as const
+from qWidgets.car_radiobtn import CarWidget
 from lib.get_location import LocationInfo
 from lib.file_property import FileProp
 from lib.log_gongik import Logger
