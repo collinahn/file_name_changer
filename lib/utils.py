@@ -21,7 +21,7 @@ def get_year_month_day() -> tuple[str, str, str]:
 
 # 취급하는 파일 확장자 표시
 def get_valid_file_ext():
-    return ( r'.jpg', r'.jpeg' )
+    return ( r'.jpg', r'.jpeg', r'.JPG', r'.JPEG' )
 
 def get_car_candidates():
     return ( '6', '2', '3', '4')

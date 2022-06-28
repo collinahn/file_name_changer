@@ -31,18 +31,17 @@ class Detector(object):
         raise NotImplementedError()
 
 class FileDetector(Detector):
-    __setIsInit: set = set()
+    __set_initiated: set = set()
 
     def __init__(self, target_dir:str=utils.extract_dir(), *args):
-        cls = type(self)
-        if target_dir not in cls.__setIsInit:
+        if target_dir not in self.__set_initiated:
             super().__init__()
             self._target_dir = target_dir
             self._lst_file: list[str] = self.sort_out(target_dir)
             self.log.INFO(f'pic files from {target_dir} detected')
-            self.log.INFO('list:', self._lst_file)
+            self.log.INFO(f'list: {self._lst_file}')
 
-            cls.__setIsInit.add(target_dir)
+            self.__set_initiated.add(target_dir)
 
     def sort_out(self, dir='.') -> list:
         '''
@@ -63,7 +62,7 @@ class FileDetector(Detector):
     def refresh(self):
         self._lst_file = self.sort_out(self._target_dir)
         self.log.INFO(f'pic files from {self._target_dir} refreshed')
-        self.log.INFO('list:', self._lst_file)
+        self.log.INFO(f'list: {self._lst_file}')
         
 class BackupFileDetector(Detector):
     backup_file_dir = f'{utils.extract_dir()}/.gongik/restore'
@@ -75,7 +74,7 @@ class BackupFileDetector(Detector):
         super().__init__()
         self._lst_file: list[str] = self.sort_out()
         self.log.INFO(f'backup files from {self.backup_file_dir} detected')
-        self.log.INFO('list:', self._lst_file)
+        self.log.INFO(f'list: {self._lst_file}')
 
     def sort_out(self) -> list:
         '''

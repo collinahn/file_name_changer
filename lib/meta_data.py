@@ -71,13 +71,12 @@ class TimeInfo(MetaData):
         return cls._instance
 
     def __init__(self, targetDir=utils.extract_dir()):
-        cls = type(self)
-        if targetDir not in cls.__setIsInit:
+        if targetDir not in self.__setIsInit:
             super().__init__(targetDir)
 
             self._init_time_info()
 
-            cls.__setIsInit.add(targetDir)
+            self.__setIsInit.add(targetDir)
 
     def _init_time_info(self) -> None:
         for fName, meta in self._dctMetaData.items():
@@ -127,7 +126,7 @@ class GPSInfo(MetaData):
                 latData = exifGPS[2]
                 lonData = exifGPS[4]
 
-            # 도, 분, 초 계산
+                # 도, 분, 초 계산
                 latDeg = float(latData[0])
                 latMin = float(latData[1])
                 latSec = float(latData[2])
@@ -181,7 +180,6 @@ class GPSInfo(MetaData):
         trans = partial(transform, projWGS84, projGRS80)
 
         for fName, WGS84xy in self._dctGPSInfoWGS84.items():
-            # trans = Transformer(WGS84, GRS80)
             self._dctGPSInfoGRS80[fName] =  trans(WGS84xy[0], WGS84xy[1])
             if WGS84xy == (0, 0):
                 self._dctGPSInfoGRS80[fName] = (0, 0)
