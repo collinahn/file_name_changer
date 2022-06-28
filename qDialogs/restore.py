@@ -239,8 +239,8 @@ class RestoreDialog(QDialog):
             for fProp in self.targetData.values():
                 fProp: FileProp
                 if not clsNC.change_name_designated(
-                    fromName=fProp.new_path,
-                    toName=fProp.abs_path
+                    src_name=fProp.new_path,
+                    dst_name=fProp.abs_path
                 ): #오류 발생
                     resFail.append(fProp.new_path)
         

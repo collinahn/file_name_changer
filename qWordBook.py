@@ -40,7 +40,7 @@ USE_NORMAL = 2
 
 #Interact Msg
 MSG_INFO = {
-    'COMPLETE':'처리가 완료되었습니다.',
+    'COMPLETE':'처리가 완료되었습니다.\n결과를 확인하여 주세요.',
     'SOF':'시작 장소입니다.',
     'EOF':'마지막 장소입니다.',
     'EXIT_END':'프로그램을 종료합니다.\n일부 중복된 장소를 확인하여 주세요.',

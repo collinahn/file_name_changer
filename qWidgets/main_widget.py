@@ -435,6 +435,7 @@ class GongikWidget(QWidget):
             self.log.ERROR('file name error')
             error_dlg = InitInfoDialogue(const.MSG_WARN.get('FILE_NAME_ERROR', 'FILE_NAME_ERROR'), ('확인', ))
             error_dlg.exec_()
+            return
         else:
             self.log.ERROR('mission fail')
             error_dlg = InitInfoDialogue(const.MSG_WARN.get('OS_ERROR', 'OS_ERROR'), ('확인', ))
@@ -450,7 +451,7 @@ class GongikWidget(QWidget):
         folder_opener = FolderOpener()
         folder_opener.open_file_browser(abs_path=self.targetFolderAbsPath)
 
-        InitInfoDialogue(const.MSG_INFO.get('EXIT_END', 'EXIT'), ('확인', )).exec_()
+        # InitInfoDialogue(const.MSG_INFO.get('EXIT_END', 'EXIT'), ('확인', )).exec_()
         self.log.INFO('==================================')
         self.log.INFO('program exit')
         self.log.INFO('==================================')
