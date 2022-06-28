@@ -315,7 +315,7 @@ class GongikWidget(QWidget):
             return ''
 
     #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
-    def _setRadioBtnAsChecked(self):
+    def _set_radio_btn_as_checked(self):
         currentPreview: FileProp = self.current_loc.current_preview
 
         if   currentPreview.suffix == const.EMPTY_STR:    self.radioBtnDefault.setChecked(True)
@@ -329,8 +329,8 @@ class GongikWidget(QWidget):
 
         self.log.DEBUG('name:', currentPreview.name, 'suffix:', currentPreview.suffix)
 
-    #위치 변경 여부를 기억한다
-    def _setModifyLocStill(self):
+    #개별 설명란 사용 여부를 기억한다
+    def _set_modify_loc_still(self):
         fProp: FileProp = self.current_loc.current_preview
         if fProp.specific_details:
             self.checkChangeCurrentLoc.setChecked(True)
@@ -347,11 +347,12 @@ class GongikWidget(QWidget):
         self.nameInput.setText(props.details) # 입력 필드 불러오기
         self._update_pixmap(props)
         self._update_file_name_preview()
-        self._setRadioBtnAsChecked()
-        self._setModifyLocStill()
+        self._set_radio_btn_as_checked()
+        self._set_modify_loc_still()
         self.btnLabelPicSeqInfo.setText(self._generate_text_pic_indicator())
         self.labelPointer4SameLoc.setText(self._generate_text_loc_indicator())
         self.webEngineWidget.init_page(*props.coord) # 웹뷰 변경
+        self.stamp_widget.set_status()
 
         self.log.INFO(props.name, 'refreshed')
 

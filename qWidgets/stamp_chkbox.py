@@ -71,6 +71,7 @@ class StampWidget(QWidget):
         self.imageqt_pool = []
         status = self.checkbox_status()
         current_loc: PropsQueue = self.mst_queue.current_preview
+        current_loc.chkbox_status = status # 상태 저장
         self.log.INFO(f'user checked ! checkbox {status = }')
 
         time_flag, loc_flag, detail_flag = status
@@ -106,6 +107,12 @@ class StampWidget(QWidget):
             self.checkbox_locationstamp.isChecked(), 
             self.checkbox_detailstamp.isChecked()
         )
+
+    def set_status(self):
+        current_loc: PropsQueue = self.mst_queue.current_preview
+        self.checkbox_timestamp.setChecked(current_loc.chkbox_status[0])
+        self.checkbox_locationstamp.setChecked(current_loc.chkbox_status[1])
+        self.checkbox_detailstamp.setChecked(current_loc.chkbox_status[2])
 
     def on_store_stamped_pic(self):
         self.log.INFO('storing stamped')
