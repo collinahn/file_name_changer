@@ -37,9 +37,6 @@ class StampWidget(QWidget):
 
         self.mst_queue = MstQueue()
         self.init_ui()
-
-        self.imageqt_pool = []
-        self.img_pool = []
     
     def init_ui(self):
         self.setWindowTitle('Stamp Widget')
@@ -62,16 +59,14 @@ class StampWidget(QWidget):
         self.group_layout.addWidget(self.checkbox_locationstamp)
         self.group_layout.addWidget(self.checkbox_detailstamp)
         self.group_layout.addWidget(self.btn_store)
-        # self.checkbox_timestamp.clicked.connect(self.on_checked)
-        # self.checkbox_locationstamp.clicked.connect(self.on_checked)
-        # self.checkbox_detailstamp.clicked.connect(self.on_checked) # 임시로 막아둠
+        self.checkbox_timestamp.clicked.connect(self.on_checked)
+        self.checkbox_locationstamp.clicked.connect(self.on_checked)
+        self.checkbox_detailstamp.clicked.connect(self.on_checked) # 임시로 막아둠
         self.btn_store.clicked.connect(self.on_store_stamped_pic)
         self.btn_store.setMinimumHeight(30)
         self.btn_store.setEnabled(False)
 
     def on_checked(self):
-        self.img_pool = []
-        self.imageqt_pool = []
         status = self.checkbox_status()
         current_loc: PropsQueue = self.mst_queue.current_preview
         current_loc.chkbox_status = status # 상태 저장
@@ -104,12 +99,10 @@ class StampWidget(QWidget):
             if not img_file: # 아무것도 체크하지 않은 경우
                 prop.pixmap = QPixmap(prop.abs_path)
                 continue
-            
 
             iqt = ImageQt(img_file)
-            self.img_pool.append(img_file)
-            self.imageqt_pool.append(iqt)
             prop.pixmap = QPixmap.fromImage(iqt)
+            prop.pixmap.detach() # gc에 의해 ImageQt객체가 사라진 후 참조시 크래시 나는 현상 예방
 
     def checkbox_status(self):
         return ( 

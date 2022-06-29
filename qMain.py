@@ -38,7 +38,7 @@ from qWordBook import VERSION_INFO
 '''
 exe 빌드하기
 pyinstaller -F --clean qMain.spec
-pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "fonts/NanumBarunGothicBold.ttf;./fonts" --add-data --icon=img/final.ico qMain.py
+pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;./img" --add-data "img/developer.ico;./img" --add-data "img/exit.ico;./img" --add-data "img/final.ico;./img" --add-data "platform-tools;./platform-tools" --add-data "fonts/NanumBarunGothicBold.ttf;./fonts" --icon=img/final.ico qMain.py
 '''
 
 class Gongik(QMainWindow):

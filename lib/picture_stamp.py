@@ -2,6 +2,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from PIL import UnidentifiedImageError
+from PIL.JpegImagePlugin import JpegImageFile
 
 from lib.continuous_image import ContinuousImage
 from lib.file_property import FileProp
@@ -19,8 +20,8 @@ class Stamp:
         self.text_width = 0
         self.text_height = 0
         
-        self.img: Image = self._load_img(self.file.abs_path)
-        self.draw: ImageDraw = self._load_draw(self.img)
+        self.img: JpegImageFile = self._load_img(self.file.abs_path)
+        self.draw: ImageDraw.ImageDraw = self._load_draw(self.img)
 
         if self.img:
             self.fontsize = int( self.img.width / 40 )
@@ -32,7 +33,7 @@ class Stamp:
         self.fontcolor = (0, 0, 0) # black
         self.font = self._update_font()
 
-    def _load_img(self, path) -> Image:
+    def _load_img(self, path) -> JpegImageFile:
         try:
             return ContinuousImage.open(path)
         except (FileNotFoundError, UnidentifiedImageError) as ie:
@@ -42,7 +43,7 @@ class Stamp:
             self.log.CRITICAL(e)
             return None
 
-    def _load_draw(self, img) -> ImageDraw:
+    def _load_draw(self, img) -> ImageDraw.ImageDraw:
         try:
             return ImageDraw.Draw(img)
         except (FileNotFoundError, UnidentifiedImageError) as ie:

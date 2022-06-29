@@ -137,10 +137,7 @@ class DistributorDialog(QDialog):
                 fProp: FileProp
 
                 picPreview4Candidate = QLabel(fProp.name)
-                self.log.DEBUG(f'before setting pixmap of {fProp.name}, {fProp.pixmap = }, {fProp.pixmap.isNull()}')
                 picPreview4Candidate.setPixmap(fProp.pixmap.scaledToWidth(240))
-                self.log.DEBUG(f'after setting pixmap of {fProp.name}, {fProp.pixmap = }')
-
                 picLoc = QLabel(fProp.locationFmDB)
 
                 singleLocBoxLayout.addWidget(picPreview4Candidate, 0, widgetIdx, 1, 1)
