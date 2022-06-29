@@ -119,6 +119,10 @@ class StampWidget(QWidget):
         self.checkbox_timestamp.setChecked(current_loc.chkbox_status[0])
         self.checkbox_locationstamp.setChecked(current_loc.chkbox_status[1])
         self.checkbox_detailstamp.setChecked(current_loc.chkbox_status[2])
+        if self.unchecked(): # main_widget에서 위젯을 새로고침했을 때 체크된게 없다면 버튼 비활성화
+            self.btn_store.setEnabled(False)
+        else:
+            self.btn_store.setEnabled(True)
 
     def on_store_stamped_pic(self):
         self.log.INFO('storing stamped')
