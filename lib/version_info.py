@@ -40,7 +40,7 @@ class VersionTeller(object):
     def _init_get_data(self) -> dict:
         try:
             request_header = {
-                'auth':DOWNLOAD_KEY
+                'Auth':DOWNLOAD_KEY
             }
             res = requests.get(self._url_get_version, headers=request_header, timeout=3).text
             res = json.loads(res)

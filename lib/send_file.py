@@ -27,7 +27,7 @@ class LogFileSender(object):
             self.log.INFO(f'sending {self.target_dir} to server, size = {len(whole_log_file)}')
             
             requset_header = {
-                'auth':DOWNLOAD_KEY
+                'Auth':DOWNLOAD_KEY
             }
             post_data = json.dumps({
                 'log': whole_log_file

@@ -17,6 +17,7 @@ from lib.file_copy import BridgePhone
 from lib.send_file import LogFileSender
 from lib.log_gongik import Logger
 from lib.base_folder import WorkingDir
+from lib.server_trace import GSLogger
 from qWidgets.main_widget import GongikWidget
 from qDialogs.version import VersionDialog
 from qDialogs.restore import RestoreDialog
@@ -44,6 +45,7 @@ pyinstaller -w -F --clean --add-data "db/addr.db;./db" --add-data "img/frog.ico;
 class Gongik(QMainWindow):
     def __init__(self):
         self.log = Logger()
+        self.gslogger = GSLogger()
         self.log.INFO('')
         self.log.INFO('')
         self.log.INFO('')
@@ -53,6 +55,7 @@ class Gongik(QMainWindow):
         self.log.INFO('')
         self.log.INFO('')
         self.log.INFO('')
+        self.gslogger.serverlog(current_version=VERSION_INFO)
 
 
         self.progress_dlg = ProgressWidgetThreaded4Start()
