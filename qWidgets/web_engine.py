@@ -106,13 +106,13 @@ class QWebEngineInstalled(QWidget):
     def init_page(self, latitude:float=37.507441500, longtitude:float=126.721393317):
         self.log.INFO('refreshing webview')
         data = {
-            'pw':DOWNLOAD_KEY,
             'lat':latitude or 37.507441500,
             'lon':longtitude or 126.721393317
         }
         url = QUrl(f"http://{IP}:{PORT_API}/api/v1/map-html")
         req = QWebEngineHttpRequest(url=url, method=QWebEngineHttpRequest.Post)
         req.setHeader(QByteArray(b'Content-Type'),QByteArray(b'application/json'))
+        req.setHeader(QByteArray(b'auth'), QByteArray(DOWNLOAD_KEY.encode('utf-8')))
         req.setPostData(bytes(json.dumps(data), 'utf-8'))
 
         self.mapExplorer.load(req)

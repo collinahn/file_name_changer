@@ -28,7 +28,6 @@ class VersionTeller(object):
             # host='127.0.0.1'
             host = IP
             port = PORT_API
-            self.key = DOWNLOAD_KEY
 
             self._url_get_version = f'http://{host}:{port}/api/v1/version-info'
             self.url_download_exe = f'http://{host}:{port}/api/v1/download-latest'
@@ -40,7 +39,10 @@ class VersionTeller(object):
 
     def _init_get_data(self) -> dict:
         try:
-            res = requests.get(self._url_get_version, timeout=3).text
+            request_header = {
+                'auth':DOWNLOAD_KEY
+            }
+            res = requests.get(self._url_get_version, headers=request_header, timeout=3).text
             res = json.loads(res)
             self.log.INFO('version info request received', f'{res = } ')
         except (ConnectionError, Timeout, HTTPError) as ce:

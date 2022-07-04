@@ -32,6 +32,7 @@ from qDraggable import ( #custom qobjects
 from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
 from qWordBook import VERSION_INFO
+from lib.__PRIVATE import DOWNLOAD_KEY
 
 
 
@@ -113,10 +114,9 @@ class VersionDialog(QDialog):
     def request_new_file(self, url):
         request = QNetworkRequest(QUrl(url))
         request.setHeader(QNetworkRequest.ContentTypeHeader, 'application/x-www-form-urlencoded')
+        request.setRawHeader(QByteArray(b'auth'), QByteArray(DOWNLOAD_KEY.encode('utf-8')))
 
         data = QByteArray()
-        data.append(f'pw={self.clsVI.key}')
-
         self.netManager.post(request, data)
 
     @pyqtSlot(QNetworkReply)

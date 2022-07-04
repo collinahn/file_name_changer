@@ -16,7 +16,6 @@ class LogFileSender(object):
 
         host = IP
         port = PORT_API
-        self.key = DOWNLOAD_KEY
 
         self.server_url: str = f'http://{host}:{port}/api/v1/log-report'
         self.target_dir: str = target_file_dir
@@ -26,13 +25,15 @@ class LogFileSender(object):
             self.log.INFO(f'putting {self.target_dir} to memory')
             whole_log_file: str = TextParser(self.target_dir).value
             self.log.INFO(f'sending {self.target_dir} to server, size = {len(whole_log_file)}')
-
+            
+            requset_header = {
+                'auth':DOWNLOAD_KEY
+            }
             post_data = json.dumps({
-                'pw': self.key,
                 'log': whole_log_file
             })
 
-            return requests.post(self.server_url, data=post_data)
+            return requests.post(self.server_url, data=post_data, headers=requset_header)
         except (requests.exceptions.ChunkedEncodingError, ConnectionError, Timeout, HTTPError) as networkerror:
             self.log.ERROR(f'network error occurred {networkerror}')
             return None
