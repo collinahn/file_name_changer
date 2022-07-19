@@ -252,8 +252,9 @@ class PropsQueue(QueueReadOnly): # 이미 생성된 FileProp인스턴스를 잡�
         try:
             self._setInstance4Init.discard(self.name)
             self._setInstance4InitParent.discard(self.name)
-            self._lstQueue.remove(instance) # list element remove
-            self.log.INFO(instance.name, 'removed from', self.name)
+            if instance in self._lstQueue:
+                self._lstQueue.remove(instance) # list element remove
+                self.log.INFO(instance.name, 'removed from', self.name)
             self.log.DEBUG(f'{self._setInstance4InitParent = }, {self._setInstance4Init}')
         except ValueError as ve:
             self.log.ERROR(ve)

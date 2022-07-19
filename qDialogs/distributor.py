@@ -210,12 +210,15 @@ class DistributorDialog(QDialog):
             if checkBox.isChecked()
         ) # 체크되어있는 목록 반환(파일 이름 리스트)
 
-        dctLocationPool = FileProp.name2AddrDBOrigin()
-        setLocationPool = set(dctLocationPool.values()) # init 정보 클래스 변수는 어떨까?
-
-        self.log.DEBUG(f'{dctLocationPool = }')
-        self.log.DEBUG(f'{set(dctLocationPool.values()) = }')
-        self.log.DEBUG(f'{len(set(dctLocationPool.values())) = }')
+        try:
+            setLocationPool = set( (propQ.name for propQ in self.mstQueue.queue) ) # init 정보 클래스 변수는 어떨까?
+        except AttributeError as ae:
+            self.log.ERROR(ae)
+            InitInfoDialogue('ae\n오류로 요청하신 명령을 수행할 수 없습니다.', ('예', )).exec_()
+            return 
+                
+        self.log.DEBUG(f'{setLocationPool = }')
+        self.log.DEBUG(f'{len(set(setLocationPool)) = }')
 
         for fName in tplNamesChecked:
             prop = FileProp(fName)
