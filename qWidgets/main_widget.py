@@ -451,7 +451,6 @@ class GongikWidget(QWidget):
         folder_opener = FolderOpener()
         folder_opener.open_file_browser(abs_path=self.targetFolderAbsPath)
 
-        # InitInfoDialogue(const.MSG_INFO.get('EXIT_END', 'EXIT'), ('확인', )).exec_()
         self.log.INFO('==================================')
         self.log.INFO('program exit')
         self.log.INFO('==================================')

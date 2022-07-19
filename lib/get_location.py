@@ -40,9 +40,9 @@ class LocationInfo(object):
             prop = FileProp(orginName, path=self.path)
 
             prop.locationFmDB = self.clsDB.get_addr(tplGPS4DB)
+            prop.coord = tuple(list(self._dctName2GPS4API.get(orginName, (None, None)))[::-1]) # offline인 경우 초기화가 되지 않으므로 여기서 초기화
             self.log.INFO(f'got info fm DB, {orginName} {tplGPS4DB} -> {prop.locationFmDB}')
         
-
     # 스레드 재료
     def _get_api_addr_fm_coord(self, originName, tplGPS4API):
         prop = FileProp(originName, path=self.path)

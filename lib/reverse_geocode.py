@@ -9,7 +9,7 @@ from requests.exceptions import (
     HTTPError,
 )
 
-from lib.__PRIVATE import API_KEY
+from lib.__PRIVATE import API_KEY # str 형태의 kakaomap api key
 from lib.log_gongik import Logger
 from lib.meta_data import GPSInfo
 

@@ -114,7 +114,6 @@ class QWebEngineInstalled(QWidget):
         req.setHeader(QByteArray(b'Content-Type'),QByteArray(b'application/json'))
         req.setHeader(QByteArray(b'auth'), QByteArray(DOWNLOAD_KEY.encode('utf-8')))
         req.setPostData(bytes(json.dumps(data), 'utf-8'))
-
         self.mapExplorer.load(req)
         self.labelLocationCandidate.setText('위치를 조정하려면 지도를 클릭하세요')
 

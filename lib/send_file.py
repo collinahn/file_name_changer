@@ -5,6 +5,7 @@ from requests.exceptions import (
     Timeout,
     HTTPError,
 )
+from urllib3.exceptions import NewConnectionError
 
 from lib.json_parser import TextParser
 from lib.log_gongik import Logger
@@ -34,12 +35,15 @@ class LogFileSender(object):
             })
 
             return requests.post(self.server_url, data=post_data, headers=requset_header)
-        except (requests.exceptions.ChunkedEncodingError, ConnectionError, Timeout, HTTPError) as networkerror:
+        except (requests.exceptions.ChunkedEncodingError, ConnectionError, Timeout, HTTPError, NewConnectionError) as networkerror:
             self.log.ERROR(f'network error occurred {networkerror}')
             return None
 
     def report(self) -> bool:
         res = self._send_server()
+        if not res:
+            self.log.ERROR('offline')
+            return False
         if res.status_code != 200:
             self.log.ERROR(f'{res.content = }')
             return False
