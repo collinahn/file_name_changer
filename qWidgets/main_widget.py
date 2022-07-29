@@ -112,7 +112,7 @@ class GongikWidget(QWidget):
 
         self.nameInput = QLineEdit()
         self.nameInput.setPlaceholderText('상세 정보 입력(예> "불법적치물"만 입력)')
-        self.nameInput.setMaxLength(100)
+        self.nameInput.setMaxLength(200)
         self.nameInput.setMinimumWidth(500)
         self.nameInput.setMinimumHeight(50)
         self.nameInput.textChanged.connect(self.onTextCommonDetailsModified)
@@ -155,6 +155,7 @@ class GongikWidget(QWidget):
 
         # 파일 이름 미리보기 & 주소 종류 설정 라디오버튼
         self.fileNameGroup = QGroupBox()
+        self.fileNameGroup.setMinimumWidth(500)
         self.mainWidgetLayout.addWidget(self.fileNameGroup, 2, 1)
 
         self.fileNameBoxLayout = QVBoxLayout()
@@ -162,6 +163,7 @@ class GongikWidget(QWidget):
 
         self.fileNamePreview = QLabel() # 변환된 파일명의 미리보기
         self.fileNamePreview.setAlignment(Qt.AlignCenter)
+        self.fileNamePreview.setWordWrap(True)
         self.fileNamePreview.setStyleSheet('font-weight: bold; color: yellow')
         self.fileNameBoxLayout.addWidget(self.fileNamePreview)
         self.bgFlash = False
