@@ -27,8 +27,8 @@ class WordSettings:
     def make_init_data() -> dict[str, list[tuple]]:
         return {
             'prefix': [
-                ('1','1호차'),
-                ('2','2호차'),
+                ('1','6'),
+                ('2','2'),
             ],
             'suffix': [
                 ('정비 전','전후정비 전'),

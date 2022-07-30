@@ -1,4 +1,4 @@
-# pip3 install pyproj pillow requests haversine pyinstaller pyqt5 pure-python-adb paramiko pytesseract PyQtWebEngine
+# pip3 install pyproj pillow requests haversine==2.5.1 pyinstaller pyqt5 pure-python-adb paramiko pytesseract PyQtWebEngine
 
 import sys
 from PyQt5.QtGui import QIcon

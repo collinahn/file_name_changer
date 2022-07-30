@@ -21,6 +21,7 @@ from lib.queue_order import (
     MstQueue, 
     PropsQueue
 )
+from lib.word_settings import WordSettings
 
 class CarWidget(QWidget):
     '''
@@ -33,9 +34,14 @@ class CarWidget(QWidget):
 
         self.mst_queue = MstQueue()
         self.current_loc: PropsQueue = self.mst_queue.current_preview
+        word_setting = WordSettings()
+        self.base_data = word_setting.load_data().get('prefix')
+        self.first_name = self.base_data[0][0]
+        self.first_value = self.base_data[0][1]
+        self.sec_name = self.base_data[1][0]
+        self.sec_value = self.base_data[1][1]
         self.init_ui()
 
-    
     def init_ui(self):
         self.setWindowTitle('Car Widget')
 
@@ -49,30 +55,30 @@ class CarWidget(QWidget):
         self.radio_btns_layout_hbox = QHBoxLayout()
         self.groupbox.setLayout(self.radio_btns_layout_hbox)
 
-        self.radio_btn_1st = QRadioButton('1', self)
-        self.radio_btn_2nd = QRadioButton('2', self)
+        self.radio_btn_1st = QRadioButton(self.first_name, self)
+        self.radio_btn_2nd = QRadioButton(self.sec_name, self)
         self.radio_btn_1st.clicked.connect(self.on_radio_btn)
         self.radio_btn_2nd.clicked.connect(self.on_radio_btn)
         self.radio_btn_1st.setShortcut(const.MSG_SHORTCUT.get('1CAR'))
         self.radio_btn_2nd.setShortcut(const.MSG_SHORTCUT.get("2CAR"))
         self.radio_btns_layout_hbox.addWidget(self.radio_btn_1st, alignment=Qt.AlignCenter)
         self.radio_btns_layout_hbox.addWidget(self.radio_btn_2nd, alignment=Qt.AlignCenter)
-        if self.current_loc.current_preview.prefix == '6': self.radio_btn_1st.setChecked(True)
-        elif self.current_loc.current_preview.prefix == '2': self.radio_btn_2nd.setChecked(True)
+        if self.current_loc.current_preview.prefix == self.first_value: self.radio_btn_1st.setChecked(True)
+        elif self.current_loc.current_preview.prefix == self.sec_value: self.radio_btn_2nd.setChecked(True)
         self.radio_btns_layout_hbox.addStretch()
 
     def on_radio_btn(self):
         if self.radio_btn_1st.isChecked():
-            self.log.INFO('selected 1호차')
+            self.log.INFO(f'selected {self.first_name}')
             for instance in FileProp.props().values():
                 instance: FileProp
-                instance.prefix = '6'
+                instance.prefix = self.first_value
 
         elif self.radio_btn_2nd.isChecked():
-            self.log.INFO('selected 2호차')
+            self.log.INFO(f'selected {self.sec_name}')
             for instance in FileProp.props().values():
                 instance: FileProp
-                instance.prefix = '2'
+                instance.prefix = self.sec_value
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

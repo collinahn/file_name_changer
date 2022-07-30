@@ -24,7 +24,7 @@ def get_valid_file_ext():
     return ( r'.jpg', r'.jpeg', r'.JPG', r'.JPEG' )
 
 def get_car_candidates():
-    return ( '6', '2', '3', '4')
+    return ( '6', '2', '3', '4' )
 
 def get_handled_suffix():
     return tuple( f'{_}_' for _ in get_car_candidates() )

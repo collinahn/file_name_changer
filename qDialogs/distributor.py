@@ -214,7 +214,7 @@ class DistributorDialog(QDialog):
             setLocationPool = set( (propQ.name for propQ in self.mstQueue.queue) ) # init 정보 클래스 변수는 어떨까?
         except AttributeError as ae:
             self.log.ERROR(ae)
-            InitInfoDialogue('ae\n오류로 요청하신 명령을 수행할 수 없습니다.', ('예', )).exec_()
+            InitInfoDialogue(f'{ae}\n오류로 요청하신 명령을 수행할 수 없습니다.', ('예', )).exec_()
             return 
                 
         self.log.DEBUG(f'{setLocationPool = }')
