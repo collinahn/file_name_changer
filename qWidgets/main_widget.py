@@ -48,6 +48,10 @@ from qDialogs.distributor import DistributorDialog
 from qDialogs.info_dialog import InitInfoDialogue
 from qWidgets.progress_display import ProgressWidgetThreaded
 from qWidgets.web_engine import QWebEngineInstalled
+from lib.word_settings import ( 
+    WordSettings,
+    IncompleteValueError
+)
 
 class QPushButton(QPushButton):
     def __init__(self, parent = None):
@@ -66,8 +70,12 @@ class GongikWidget(QWidget):
         self.log = Logger()
 
         self.targetFolderAbsPath = targetFolder
-        clsLoc = LocationInfo(targetFolder) #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
-        clsTI = TimeInfo(targetFolder) #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
+        LocationInfo(targetFolder) #질의를 한 후 그 결과로 FileProp클래스 인스턴스의 정보를 초기화 
+        TimeInfo(targetFolder) #시간 정보를 초기화한다.(FileProp 인스턴스 이용)
+
+        settings = WordSettings()
+        self.word_settings = settings.load_data()
+        self.shortcut_settings = settings.shortcut_info()
 
 
         if not FileProp.name2AddrAPIOrigin() or not FileProp.name2AddrDBOrigin():
@@ -125,26 +133,15 @@ class GongikWidget(QWidget):
 
         self.radioBoxLayout = QHBoxLayout()
         self.radioGroupBox.setLayout(self.radioBoxLayout)
+        self.suffixRadioStore = []
 
-        txtRadioBtn = [
-            f'정비 전\n({const.MSG_SHORTCUT.get("BEFORE_FIX")})',
-            f'정비 후\n({const.MSG_SHORTCUT.get("AFTER_FIX")})',
-            f'안내장\n({const.MSG_SHORTCUT.get("ATTACH_FLYER")})',
-            f'1차계고\n({const.MSG_SHORTCUT.get("WARN_1ST")})',
-            f'2차계고\n({const.MSG_SHORTCUT.get("WARN_2ST")})',
-            f'수거 전\n({const.MSG_SHORTCUT.get("BEFORE_FETCH")})',
-            f'수거 후\n({const.MSG_SHORTCUT.get("AFTER_FETCH")})',
-            f'지정안함\n({const.MSG_SHORTCUT.get("SET_NONE")})',
-        ]
-        self.radioBtnBefore = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FIX', 0)
-        self.radioBtnAfter = self._make_suffix_radio_btn(txtRadioBtn, 'AFTER_FIX', 1)
-        self.radioBtnAttached = self._make_suffix_radio_btn(txtRadioBtn, 'ATTACH_FLYER', 2)
-        self.radioBtn1stWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_1ST', 3)
-        self.radioBtn2ndWarn = self._make_suffix_radio_btn(txtRadioBtn, 'WARN_2ST', 4)
-        self.radioBtnBeforeFetch = self._make_suffix_radio_btn(txtRadioBtn, 'BEFORE_FETCH', 5)
-        self.radioBtnAfterFetch = self._make_suffix_radio_btn(txtRadioBtn, 'AFTER_FETCH', 6)
-        self.radioBtnDefault = self._make_suffix_radio_btn(txtRadioBtn, 'SET_NONE', 7)
-        self.radioBtnDefault.setChecked(True)
+        for radio_shortcut_idx, (radio_btn_label, real_btn_value) in enumerate(self.word_settings.get('suffix')):
+            shortcut = self.shortcut_settings.get('suffix')[radio_shortcut_idx]
+            suffixRadio = QRadioButton(f'{radio_btn_label}\n({shortcut})', self)
+            suffixRadio.setShortcut(shortcut)
+            suffixRadio.clicked.connect(self.onRadioBtnSuffixNew)
+            self.radioBoxLayout.addWidget(suffixRadio, alignment=Qt.AlignTop)
+            self.suffixRadioStore.append(suffixRadio)
         self.radioBoxLayout.addStretch()
 
         self.btnPreviousAddr = QPushButton(f'이전 장소 보기\n({const.MSG_SHORTCUT.get("BACKWARD")})')
@@ -316,20 +313,20 @@ class GongikWidget(QWidget):
         except (KeyError, AttributeError, TypeError):
             return ''
 
-    #suffix라디오버튼의 위치를 기억했다가 다시 차례가 오면 채워준다
+    #suffix라디오버튼의 위치를 계산하여 현재 포커스가 맞춰지면 체크해준다
     def _set_radio_btn_as_checked(self):
         currentPreview: FileProp = self.current_loc.current_preview
 
-        if   currentPreview.suffix == const.EMPTY_STR:    self.radioBtnDefault.setChecked(True)
-        elif currentPreview.suffix == const.BEFORE_FIX:   self.radioBtnBefore.setChecked(True)
-        elif currentPreview.suffix == const.AFTER_FIX:    self.radioBtnAfter.setChecked(True)
-        elif currentPreview.suffix == const.ATTACH_FLYER: self.radioBtnAttached.setChecked(True)
-        elif currentPreview.suffix == const.WARN_1ST:     self.radioBtn1stWarn.setChecked(True)   
-        elif currentPreview.suffix == const.WARN_2ND:     self.radioBtn2ndWarn.setChecked(True)
-        elif currentPreview.suffix == const.BEFORE_FETCH: self.radioBtnBeforeFetch.setChecked(True)   
-        elif currentPreview.suffix == const.AFTER_FETCH:  self.radioBtnAfterFetch.setChecked(True)
-
-        self.log.DEBUG('name:', currentPreview.name, 'suffix:', currentPreview.suffix)
+        for radioBtn in self.suffixRadioStore:
+            indicator = radioBtn.text().split('\n')[0] # 모든 버튼 겉 표시
+            for (radioBtnLabel, realBtnValue) in self.word_settings.get('suffix'):
+                if indicator != radioBtnLabel: continue   # 버튼 겉 표시 이름이 같으면 
+                if realBtnValue == currentPreview.suffix:  # 현재 커서의 값과 비교한다
+                    radioBtn.setChecked(True)
+                    self.log.DEBUG(f'{currentPreview.suffix}\'s radio btn restored to {radioBtnLabel}')
+                    return
+        self.log.ERROR(f'failed to trace {currentPreview.name}\'s \'{currentPreview.suffix}\' radiobtn')
+        
 
     #개별 설명란 사용 여부를 기억한다
     def _set_modify_loc_still(self):
@@ -486,15 +483,17 @@ class GongikWidget(QWidget):
         self._update_file_name_preview()
 
     #선택한 라디오 버튼에 맞춰서 {현 썸네일 이름: 전.후 정보}를 업데이트한다.
-    def onRadioBtnSuffix(self):
-        if self.radioBtnBefore.isChecked(): self._update_suffix(const.BEFORE_FIX)
-        elif self.radioBtnAfter.isChecked(): self._update_suffix(const.AFTER_FIX)
-        elif self.radioBtnAttached.isChecked(): self._update_suffix(const.ATTACH_FLYER)
-        elif self.radioBtn1stWarn.isChecked(): self._update_suffix(const.WARN_1ST)
-        elif self.radioBtn2ndWarn.isChecked(): self._update_suffix(const.WARN_2ND)
-        elif self.radioBtnBeforeFetch.isChecked(): self._update_suffix(const.BEFORE_FETCH)
-        elif self.radioBtnAfterFetch.isChecked(): self._update_suffix(const.AFTER_FETCH)
-        elif self.radioBtnDefault.isChecked(): self._update_suffix(const.EMPTY_STR)
+    def onRadioBtnSuffixNew(self):
+        indicator = self.sender().text().split('\n')[0]
+        self.log.DEBUG(f'{repr(indicator)} clicked')
+        suffix_pool = self.word_settings.get('suffix')
+
+        for (radioBtnLabel, realBtnValue) in suffix_pool:
+            if radioBtnLabel == indicator:
+                self._update_suffix(realBtnValue)
+                return
+            
+        InitInfoDialogue('에러가 발생하였습니다.', ('예', )).exec_()
 
     def onCheckModifyLoc(self):
         fProps: FileProp = self.current_loc.current_preview

@@ -27,6 +27,7 @@ from qDialogs.developer import DeveloperInfoDialog
 from qDialogs.recommend import RecommendDialog
 from qDialogs.report import ReportLogDialog
 from qDialogs.summary import AddrInfoDialog
+from qDialogs.modify import ModifyButtonTextDialog
 from qWidgets.progress_display import ProgressWidgetThreaded4Start
 from lib.file_detect import (
     FileDetector, 
@@ -174,10 +175,15 @@ class Gongik(QMainWindow):
         exitAction.triggered.connect(qApp.quit)
 
         # (베타) 이미지에서 텍스트 추출
-        recommendAction = QAction(QIcon(self.dev_icon_path), '텍스트 추출(베타)', self)
+        recommendAction = QAction('텍스트 추출(베타)', self)
         recommendAction.setShortcut(const.MSG_SHORTCUT.get('RECOMMEND'))
         recommendAction.setStatusTip(const.MSG_TIP.get('RECOMMEND', 'RECOMMEND'))
         recommendAction.triggered.connect(self.onModalRecommend)
+
+        textModifyAction = QAction(QIcon(self.dev_icon_path), '텍스트 변경', self)
+        textModifyAction.setShortcut(const.MSG_SHORTCUT.get('SET_TEXT'))
+        textModifyAction.setStatusTip(const.MSG_TIP.get('SET_TEXT','SET_TEXT'))
+        textModifyAction.triggered.connect(self.onModalModifyText)
 
         # 작업 복구 메뉴
         restoreAction = QAction(QIcon(self.dev_icon_path), '복구하기', self)
@@ -215,6 +221,7 @@ class Gongik(QMainWindow):
         logMenu = menu.addMenu('보고')
         
         progMenu.addAction(restoreAction)
+        progMenu.addAction(textModifyAction)
         progMenu.addAction(recommendAction)
         progMenu.addAction(exitAction)
         additionalMenu.addAction(infoAction)
@@ -252,6 +259,11 @@ class Gongik(QMainWindow):
     def onReportRecentLog(self):
         rllg = ReportLogDialog()
         rllg.exec_()
+
+    def onModalModifyText(self):
+        mbt = ModifyButtonTextDialog()
+        mbt.exec_()
+
 
 
 if __name__ == '__main__':
