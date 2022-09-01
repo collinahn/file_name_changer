@@ -2,28 +2,28 @@ from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineCore import QWebEngineHttpRequest
 from PyQt5.QtWebEngineWidgets import (
-    QWebEngineView, 
+    QWebEngineView,
     QWebEnginePage,
 )
 from PyQt5 import (
-    QtCore, 
+    QtCore,
     QtWebChannel,
 )
 from PyQt5.QtCore import (
     QObject,
-    pyqtSignal, 
+    pyqtSignal,
     QUrl,
     Qt,
     QByteArray
 )
 from PyQt5.QtWidgets import (
     QVBoxLayout,
-    QToolTip, 
-    QWidget, 
-    QApplication, 
-    QPushButton, 
-    QLabel, 
-    QLineEdit, 
+    QToolTip,
+    QWidget,
+    QApplication,
+    QPushButton,
+    QLabel,
+    QLineEdit,
 )
 import json
 
@@ -38,6 +38,7 @@ from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
 class WebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
         Logger().INFO("javaScriptConsoleMessage: ", level, message, lineNumber, sourceID)
+
 
 class PassQT2JS(QObject):
     '''JS와 PYTHON 간 데이터 공유를 위한 클래스'''
@@ -69,14 +70,14 @@ class QWebEngineInstalled(QWidget):
         self.newLocFmPic.valueChanged.connect(self.onMapClick)
         self.channel = QtWebChannel.QWebChannel()
         self.channel.registerObject("newLocFmPic", self.newLocFmPic)
-        self.mapExplorer.page().setWebChannel(self.channel) #페이지와 통신
+        self.mapExplorer.page().setWebChannel(self.channel)  # 페이지와 통신
 
         self.init_page()
 
     def initUI(self):
 
         mapBoxLayout = QVBoxLayout(self)
-        mapBoxLayout.setContentsMargins(5,5,5,5)
+        mapBoxLayout.setContentsMargins(5, 5, 5, 5)
         self.setLayout(mapBoxLayout)
 
         self.labelInfoMapArea = QLabel('위치 정밀 조정')
@@ -92,7 +93,7 @@ class QWebEngineInstalled(QWidget):
         self.labelLocationCandidate = QLabel('위치를 조정하려면 지도를 클릭하세요')
         self.labelLocationCandidate.setAlignment(Qt.AlignCenter)
         mapBoxLayout.addWidget(self.labelLocationCandidate)
-        
+
         self.btnRenewLocation = QPushButton('주소 변경하기')
         self.btnRenewLocation.setToolTip('선택한 주소로 변경합니다.')
         self.btnRenewLocation.setMinimumHeight(50)
@@ -102,40 +103,42 @@ class QWebEngineInstalled(QWidget):
         self.setGeometry(300, 300, 400, 600)
         self.setWindowTitle('QWebEngineView')
 
-
-    def init_page(self, latitude:float=37.507441500, longtitude:float=126.721393317):
-        self.log.INFO('refreshing webview')
+    def init_page(self, latitude: float = 37.507441500, longtitude: float = 126.721393317):
+        self.log.INFO(f'refreshing webview {latitude=}, {longtitude=}')
         data = {
-            'lat':latitude or 37.507441500,
-            'lon':longtitude or 126.721393317
+            'lat': latitude or 37.507441500,
+            'lon': longtitude or 126.721393317
         }
         url = QUrl(f"http://{IP}:{PORT_API}/api/v1/map-html")
         req = QWebEngineHttpRequest(url=url, method=QWebEngineHttpRequest.Post)
-        req.setHeader(QByteArray(b'Content-Type'),QByteArray(b'application/json'))
-        req.setHeader(QByteArray(b'auth'), QByteArray(DOWNLOAD_KEY.encode('utf-8')))
+        req.setHeader(QByteArray(b'Content-Type'),
+                      QByteArray(b'application/json'))
+        req.setHeader(QByteArray(b'auth'), QByteArray(
+            DOWNLOAD_KEY.encode('utf-8')))
         req.setPostData(bytes(json.dumps(data), 'utf-8'))
         self.mapExplorer.load(req)
         self.labelLocationCandidate.setText('위치를 조정하려면 지도를 클릭하세요')
 
     def onBtnChangeLocation(self):
-        self.log.DEBUG(f'{self.newLocFmPic.value = }')
-        if not self.newLocFmPic.value:
+        new_loc = self.newLocFmPic.value
+        self.log.INFO(f'{new_loc = }')
+        if not new_loc:
             InitInfoDialogue('주소가 선택되지 않았습니다.', ('다시 선택하기',)).exec_()
             return
 
         mstQ = MstQueue()
         currentLoc: PropsQueue = mstQ.current_preview
-        currentLoc.set_common_location(self.newLocFmPic.value)
-        self.log.INFO(f'location changed to {currentLoc.name} -> {self.newLocFmPic.value}')
-        
+        currentLoc.set_common_location(new_loc)
+        self.log.INFO(
+            f'location changed to {currentLoc.name} -> {new_loc}')
 
     @QtCore.pyqtSlot(str)
     def onMapClick(self, value):
         self.labelLocationCandidate.setText(value)
         self.onBtnChangeLocation()
         self.log.INFO(f'user clicked {value = }')
-        
-        
+
+
 def main():
     import sys
 
