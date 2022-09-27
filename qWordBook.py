@@ -1,4 +1,4 @@
-VERSION_INFO = '(release)gongik_v2.8.3'
+VERSION_INFO = '(release)gongik_v2.8.4'
 
 NO_FILE_INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 이미 처리한 파일은 프로그램이 인식하지 않습니다.
@@ -40,7 +40,7 @@ USE_NORMAL = 2
 
 # Interact Msg
 MSG_INFO = {
-    'COMPLETE': '처리가 완료되었습니다.\n결과를 확인하여 주세요.',
+    'COMPLETE': '처리가 완료되었습니다.\n결과를 확인하여 주세요.\n결과가 클립보드에 저장되었습니다.\n엑셀 파일에 붙여넣기 하세요.',
     'SOF': '시작 장소입니다.',
     'EOF': '마지막 장소입니다.',
     'EXIT_END': '프로그램을 종료합니다.\n일부 중복된 장소를 확인하여 주세요.',

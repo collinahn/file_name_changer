@@ -3,7 +3,7 @@
 from PyQt5.QtGui import QPixmap
 from threading import Lock
 from datetime import (
-    datetime, 
+    datetime,
     timedelta
 )
 
@@ -11,12 +11,13 @@ import lib.utils as utils
 import qWordBook as const
 from lib.log_gongik import Logger
 
+
 class FileProp(object):
     _setInstance4Init = set()
     _dctInstace4New = {}
     _lock = Lock()
 
-    def __new__(cls, fileName:str, path:str=None, *args):
+    def __new__(cls, fileName: str, path: str = None, *args):
         with cls._lock:
             if fileName in cls._dctInstace4New:
                 return cls._dctInstace4New[fileName]
@@ -27,32 +28,34 @@ class FileProp(object):
             cls.log.INFO(fileName, cls._instance)
             return cls._instance
 
-    def __init__(self, name:str, path:str=None, *args) -> None:
+    def __init__(self, name: str, path: str = None, *args) -> None:
         if name not in self._setInstance4Init:
             self._prefix = utils.get_car_no_from_parent_dir()
             self._name: str = name
-            self._path = path or '.' # unpickling 을 위해 보존
+            self._path = path or '.'  # unpickling 을 위해 보존
             self._absPath: str = f'{self._path}/{name}'
-            self._time: datetime = datetime.strptime('0001:01:01 00:00:00', '%Y:%m:%d %H:%M:%S')
-            self._originLocAPI: str = '' #파일 기본 지번주소
-            self._originLocDB: str = ''  #파일 기본 도로명주소
-            self._locationAPI: str = ''  #보정된 지번주소
-            self._locationDB: str = ''   #보정된 도로명주소
-            self._details: str = ''          #상세(같은 주소면 동일한 상세)
-            self._details_priority: str = '' #단일 인스턴스 상세(우선순위 높음)
+            self._time: datetime = datetime.strptime(
+                '0001:01:01 00:00:00', '%Y:%m:%d %H:%M:%S')
+            self._originLocAPI: str = ''  # 파일 기본 지번주소
+            self._originLocDB: str = ''  # 파일 기본 도로명주소
+            self._locationAPI: str = ''  # 보정된 지번주소
+            self._locationDB: str = ''  # 보정된 도로명주소
+            self._details: str = ''  # 상세(같은 주소면 동일한 상세)
+            self._details_priority: str = ''  # 단일 인스턴스 상세(우선순위 높음)
             self._suffix: str = ''
-            self._newPath: str= '' # 나중에 초기화되는 최종 이름(절대경로)
-            self._tplCoordinance: tuple[float, float] or None = None # WGS84위도경도값
-            self._pixmap: QPixmap = QPixmap(self._absPath) # 캐싱
+            self._newPath: str = ''  # 나중에 초기화되는 최종 이름(절대경로)
+            self._tplCoordinance: tuple[float,
+                                        float] or None = None  # WGS84위도경도값
+            self._pixmap: QPixmap = QPixmap(self._absPath)  # 캐싱
 
             self._setInstance4Init.add(name)
-            self.log.INFO(name, 'fileProp init', f'{self._name = }, {self._originLocAPI = }')
-
+            self.log.INFO(name, 'fileProp init',
+                          f'{self._name = }, {self._originLocAPI = }')
 
     def __str__(self) -> str:
         return self._name if hasattr(self, '_name') else super().__str__()
 
-    def __getnewargs_ex__(self) -> tuple[tuple,dict]:
+    def __getnewargs_ex__(self) -> tuple[tuple, dict]:
         '''
         unpickling을 위한 함수
         '''
@@ -61,6 +64,23 @@ class FileProp(object):
     @classmethod
     def props(cls) -> dict:
         return cls._dctInstace4New
+
+    @classmethod
+    def result_to_clipboard(cls) -> list:
+        res_clipboard = set()
+        for prop in cls.props().values():
+            prop: cls
+            details = f' {prop._details}' if prop._details else ''
+
+            indv_res = ''.join(
+                (
+                    prop._locationDB or 'Undefined',
+                    f' {prop._details_priority}' if prop._details_priority else details
+                )
+            )
+            res_clipboard.add(indv_res)
+
+        return list(res_clipboard)
 
     @classmethod
     def initialize_instances(cls) -> None:
@@ -73,7 +93,7 @@ class FileProp(object):
                 del cls._dctInstace4New[name]
             except Exception as e:
                 cls.log.CRITICAL(e)
-                    
+
         cls._dctInstace4New.clear()
         cls._setInstance4Init.clear()
 
@@ -90,7 +110,7 @@ class FileProp(object):
         return self._time
 
     @time.setter
-    def time(self, newTime:str):
+    def time(self, newTime: str):
         try:
             self._time = datetime.strptime(newTime, '%Y:%m:%d %H:%M:%S')
         except Exception as e:
@@ -176,12 +196,12 @@ class FileProp(object):
     @property
     def coord(self):
         return self._tplCoordinance
-    
+
     @coord.setter
     def coord(self, newCoord):
         if self._tplCoordinance:
             return
-        
+
         self._tplCoordinance = newCoord
 
     @property
@@ -216,7 +236,7 @@ class FileProp(object):
     @classmethod
     def name2Time(cls):
         return {
-            name:instance._time
+            name: instance._time
             for name, instance in cls._dctInstace4New.items()
         }
 
@@ -225,7 +245,7 @@ class FileProp(object):
         return list(cls._setInstance4Init)
 
     @property
-    def final_road_name(self): # 간략화
+    def final_road_name(self):  # 간략화
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
 
@@ -234,15 +254,13 @@ class FileProp(object):
                 self._prefix,
                 '_',
                 self._locationDB or 'Undefined',
-                f' {self._details_priority}'
-                if self._details_priority
-                else details,
+                f' {self._details_priority}' if self._details_priority else details,
                 suffix,
             )
         )
-    
+
     @property
-    def final_normal_name(self): # 간략화
+    def final_normal_name(self):  # 간략화
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
 
@@ -251,15 +269,13 @@ class FileProp(object):
                 self._prefix,
                 '_',
                 self._locationAPI or 'Undefined',
-                f' {self._details_priority}'
-                if self._details_priority
-                else details,
+                f' {self._details_priority}' if self._details_priority else details,
                 suffix,
             )
         )
-    
+
     @property
-    def final_full_name(self): #상세 버전
+    def final_full_name(self):  # 상세 버전
         details = f' {self._details}' if self._details else ''
         suffix = f' {self._suffix}' if self._suffix else ''
 
@@ -267,17 +283,15 @@ class FileProp(object):
             (
                 self._prefix,
                 '_',
-                self._locationAPI or 'Undefined',
-                f'({self._locationDB})',
-                f' {self._details_priority}'
-                if self._details_priority
-                else details,
+                f'{self._locationDB or "Undefined"}',
+                f'({self._locationAPI or "Undefined"})',
+                f' {self._details_priority}' if self._details_priority else details,
                 suffix,
             )
         )
 
     # 수정할 땐 이걸로
-    def correct_address(self, apiAddr:str='', dbAddr:str=''):
+    def correct_address(self, apiAddr: str = '', dbAddr: str = ''):
         if apiAddr:
             self._locationAPI = apiAddr
         if dbAddr:
@@ -288,7 +302,7 @@ class FileProp(object):
         for prop in cls._dctInstace4New.values():
             prop: FileProp
             prop._pixmap = None
-  
+
     @classmethod
     def self_correct_address(cls):
         '''
@@ -298,12 +312,13 @@ class FileProp(object):
         기준들의 사이에 있는 사진들을 같은 위치로 분류합니다.
         '''
         dctName2Time = cls.name2Time()
-        lstTimePicTakenSorted = sorted(list(dctName2Time.values())) #많아봐야 100장
+        lstTimePicTakenSorted = sorted(
+            list(dctName2Time.values()))  # 많아봐야 100장
         cls.log.DEBUG(lstTimePicTakenSorted)
         cls.log.DEBUG(dctName2Time)
-        dctTimeLaps: dict[datetime,str] = {} #기준 시간과 주소 삽입
-        timeStandard = lstTimePicTakenSorted[0] #for루프를 돌 때 기준이 되는 시간
-        
+        dctTimeLaps: dict[datetime, str] = {}  # 기준 시간과 주소 삽입
+        timeStandard = lstTimePicTakenSorted[0]  # for루프를 돌 때 기준이 되는 시간
+
         for datePic in lstTimePicTakenSorted:
             timeGap: timedelta = datePic - timeStandard
             if timeGap.total_seconds() > const.TIME_GAP:
@@ -319,13 +334,13 @@ class FileProp(object):
                 if tGap.total_seconds() < const.TIME_GAP and tGap.total_seconds() >= 0:
                     try:
                         fProp = FileProp(fName)
-                        cls.log.INFO(fName, fProp.locationFmDB, '->', addrDB, ', ', fProp.locationFmAPI, '->', addrAPI)
-                        fProp.correct_address(dbAddr=addrDB, apiAddr=addrAPI) #sorting 기준 = db addr
+                        cls.log.INFO(fName, fProp.locationFmDB, '->',
+                                     addrDB, ', ', fProp.locationFmAPI, '->', addrAPI)
+                        # sorting 기준 = db addr
+                        fProp.correct_address(dbAddr=addrDB, apiAddr=addrAPI)
                         break
                     except AttributeError as ae:
                         cls.log.ERROR(ae)
-
-
 
     @classmethod
     def debug_info(cls):

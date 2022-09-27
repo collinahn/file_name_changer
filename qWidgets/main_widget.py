@@ -52,6 +52,7 @@ from lib.word_settings import (
     WordSettings,
     IncompleteValueError
 )
+from lib.clip_result import ClipSave
 
 
 class QPushButton(QPushButton):
@@ -258,7 +259,7 @@ class GongikWidget(QWidget):
             self.on_btn_refresh_preview)
 
         self.btn2Change = QPushButton(
-            f'완료 및 이름 바꾸기\n({const.MSG_SHORTCUT.get("FINISH")})')
+            f'이름 바꾸기 및 결과 복사\n({const.MSG_SHORTCUT.get("FINISH")})')
         self.btn2Change.setShortcut(const.MSG_SHORTCUT.get('FINISH'))
         self.btn2Change.setMinimumHeight(70)
         self.btn2Change.setToolTip(const.MSG_TIP.get('FINISH', 'FINISH'))
@@ -462,6 +463,8 @@ class GongikWidget(QWidget):
 
         name_changer = NameChanger()
         ret_val = name_changer.change_name_on_btn(self._use_name)
+        res_list = FileProp.result_to_clipboard()
+        ClipSave.to_clipboard(res_list)
 
         if ret_val == 0:
             self.log.INFO('mission complete')
