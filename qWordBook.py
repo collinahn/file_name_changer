@@ -1,4 +1,4 @@
-VERSION_INFO = '(release)gongik_v2.8.4'
+VERSION_INFO = '(release)gongik_v2.8.5'
 
 NO_FILE_INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 이미 처리한 파일은 프로그램이 인식하지 않습니다.
