@@ -18,26 +18,22 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import (
     QVBoxLayout,
-    QToolTip,
     QWidget,
     QApplication,
     QPushButton,
     QLabel,
-    QLineEdit,
 )
 import json
 
-import lib.utils as utils
-import qWordBook as const
 from qDialogs.info_dialog import InitInfoDialogue
 from lib.queue_order import MstQueue, PropsQueue
 from lib.log_gongik import Logger
 from lib.__PRIVATE import IP, PORT_API, DOWNLOAD_KEY
 
 
-class WebEnginePage(QWebEnginePage):
+class GongikLogEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
-        Logger().INFO("javaScriptConsoleMessage: ", level, message, lineNumber, sourceID)
+        Logger().INFO(level, message, lineNumber, sourceID)
 
 
 class PassQT2JS(QObject):
@@ -85,7 +81,7 @@ class QWebEngineInstalled(QWidget):
         mapBoxLayout.addWidget(self.labelInfoMapArea)
 
         self.mapExplorer = QWebEngineView()
-        self.mapExplorerPage = QWebEnginePage(self.mapExplorer)
+        self.mapExplorerPage = GongikLogEnginePage(self.mapExplorer)
         self.mapExplorer.setPage(self.mapExplorerPage)
         self.mapExplorer.setFixedSize(330, 430)
         mapBoxLayout.addWidget(self.mapExplorer, alignment=Qt.AlignCenter)
