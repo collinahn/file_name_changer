@@ -1,6 +1,7 @@
 # pip3 install pyproj pillow requests haversine==2.5.1 pyinstaller pyqt5 pure-python-adb paramiko pytesseract PyQtWebEngine
 
 import sys
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import (
     Qt,
@@ -280,6 +281,9 @@ class Gongik(QMainWindow):
 if __name__ == '__main__':
     try:
         app = QApplication(sys.argv)
+        settings = QWebEngineSettings.defaultSettings()
+        settings.setAttribute(
+            QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
         ex = Gongik()
         sys.exit(app.exec_())
     except Exception as e:
