@@ -105,7 +105,7 @@ class QWebEngineInstalled(QWidget):
             'lat': latitude or 37.507441500,
             'lon': longtitude or 126.721393317
         }
-        url = QUrl(f"http://{IP}:{PORT_API}/api/v1/map-html")
+        url = QUrl(f"http://{IP}:{PORT_API}/api/v1/map-html/")
         req = QWebEngineHttpRequest(url=url, method=QWebEngineHttpRequest.Post)
         req.setHeader(QByteArray(b'Content-Type'),
                       QByteArray(b'application/json'))
