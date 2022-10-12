@@ -1,4 +1,4 @@
-VERSION_INFO = '(release)gongik_v2.8.8'
+VERSION_INFO = '(release)gongik_v2.8.9'
 
 NO_FILE_INSTRUCTION = '''현재 디렉토리에 처리할 수 있는 파일이 없습니다.
 이미 처리한 파일은 프로그램이 인식하지 않습니다.
@@ -54,7 +54,7 @@ MSG_INFO = {
 
 MSG_WARN = {
     'FILE_NAME_ERROR': '중복된 파일 이름이 있습니다. 이름 변경 후 다시 시도하세요',
-    'OS_ERROR': '문제가 있어 일부 파일을 처리하지 못했습니다.(수동 확인 필요, 로그를 확인하세요.)',
+    'OS_ERROR': '문제가 있어 일부 파일을 처리하지 못했습니다.\n \ / : * ? " < > | 특수문자가 입력에 포함되어있는지 확인해 주세요.',
     'CONNECTION_ERROR': '연결된 기기가 없거나 USB디버깅 모드가 활성화되지 않았습니다.\n종료합니다.',
     'MULTI_CONNECTION_ERROR': '연결된 기기가 하나 이상입니다.\n종료합니다.',
     'EMPTY_FILE_ERROR': '금일 생성된 파일이 없거나 권한이 없어 파일을 인식하지 못하였습니다.\nUSB 디버깅을 위해 컴퓨터의 RSA지문을 항상 허용해주세요.',

@@ -463,8 +463,6 @@ class GongikWidget(QWidget):
 
         name_changer = NameChanger()
         ret_val = name_changer.change_name_on_btn(self._use_name)
-        res_list = FileProp.result_to_clipboard()
-        ClipSave.to_clipboard(res_list)
 
         if ret_val == 0:
             self.log.INFO('mission complete')
@@ -482,7 +480,10 @@ class GongikWidget(QWidget):
             error_dlg = InitInfoDialogue(
                 const.MSG_WARN.get('OS_ERROR', 'OS_ERROR'), ('확인', ))
             error_dlg.exec_()
+            return
 
+        res_list = FileProp.result_to_clipboard()
+        ClipSave.to_clipboard(res_list)
         progress_dlg.update(10, '내역 저장 중')
 
         backup = BackupRestore()
